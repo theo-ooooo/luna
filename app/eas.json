@@ -13,7 +13,7 @@
     "preview": {
       "distribution": "internal",
       "ios": { "simulator": false },
-      "android": { "buildType": "apk" }
+      "android": { "buildType": "app-bundle" }
     },
     "production": {
       "autoIncrement": true,
@@ -25,8 +25,8 @@
     "production": {
       "ios": {
         "appleId": "kwkang@ssrinc.co.kr",
-        "ascAppId": "",
-        "appleTeamId": ""
+        "ascAppId": "$APP_STORE_CONNECT_APP_ID",
+        "appleTeamId": "$APPLE_TEAM_ID"
       },
       "android": {
         "serviceAccountKeyPath": "./google-services-key.json",

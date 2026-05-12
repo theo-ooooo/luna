@@ -26,7 +26,9 @@ export default function App() {
     () => new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 60_000 } } }),
   );
 
-  useEffect(() => { setupAndroidChannel(); }, []);
+  useEffect(() => {
+    setupAndroidChannel().catch((e) => console.error('[Luna] Android channel setup failed:', e));
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

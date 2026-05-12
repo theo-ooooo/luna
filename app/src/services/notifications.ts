@@ -14,16 +14,27 @@ Notifications.setNotificationHandler({
 
 const ANDROID_CHANNEL_ID = 'luna-default';
 
-// Android 8+ requires a notification channel — call once at app start
-export async function setupAndroidChannel() {
-  if (Platform.OS !== 'android') return;
-  await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
-    name: 'Luna 알림',
-    importance: Notifications.AndroidImportance.HIGH,
-    vibrationPattern: [0, 250, 250, 250],
-    lightColor: '#F2847C',
-    sound: null,
-  });
+// Module-level promise so scheduling always waits for channel creation on Android
+let _channelReady: Promise<void> | null = null;
+
+function ensureAndroidChannel(): Promise<void> {
+  if (Platform.OS !== 'android') return Promise.resolve();
+  if (!_channelReady) {
+    _channelReady = Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
+      name: 'Luna 알림',
+      // DEFAULT: shows in shade without sound — consistent with shouldPlaySound: false
+      importance: Notifications.AndroidImportance.DEFAULT,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#F2847C',
+      sound: null,
+    }).then(() => {});
+  }
+  return _channelReady;
+}
+
+// Call from App root to eagerly warm the channel before first schedule attempt
+export function setupAndroidChannel(): Promise<void> {
+  return ensureAndroidChannel();
 }
 
 // Parses "YYYY-MM-DD" in local timezone, avoiding the UTC-midnight trap of new Date(str)
@@ -125,21 +136,28 @@ function daysOffset(base: Date, days: number, hour: number): Date {
 
 async function scheduleAt(id: string, date: Date, title: string, body: string) {
   if (date <= new Date()) return;
+  await ensureAndroidChannel();
   await Notifications.scheduleNotificationAsync({
     identifier: id,
-    content: { title, body, ...(Platform.OS === 'android' && { channelId: ANDROID_CHANNEL_ID }) },
-    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
+    content: { title, body },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date,
+      channelId: Platform.OS === 'android' ? ANDROID_CHANNEL_ID : undefined,
+    },
   });
 }
 
 async function scheduleDailyRepeat(id: string, hour: number, minute: number, title: string, body: string) {
+  await ensureAndroidChannel();
   await Notifications.scheduleNotificationAsync({
     identifier: id,
-    content: { title, body, ...(Platform.OS === 'android' && { channelId: ANDROID_CHANNEL_ID }) },
+    content: { title, body },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour,
       minute,
+      channelId: Platform.OS === 'android' ? ANDROID_CHANNEL_ID : undefined,
     },
   });
 }
