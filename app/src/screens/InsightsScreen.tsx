@@ -143,7 +143,7 @@ export function InsightsScreen() {
 }
 
 function KpiTile({ label, value, unit, bg, inkLight = false }: { label: string; value: string; unit: string; bg: string; inkLight?: boolean }) {
-  const labelColor = inkLight ? Colors.bgCard : Colors.ink2;
+  const labelColor = Colors.ink1;
   const valueColor = inkLight ? Colors.bgCard : Colors.ink1;
   const unitColor  = inkLight ? Colors.bgCard : Colors.ink2;
   return (
