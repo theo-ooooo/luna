@@ -49,6 +49,8 @@ export interface RecordFormState {
   lhResult: LHResult | null;
   notes: string;
   setFlow: (v: FlowId | null) => void;
+  setMoods: (v: string[]) => void;
+  setSymptoms: (v: string[]) => void;
   toggleMood: (v: string) => void;
   toggleSymptom: (v: string) => void;
   setBbt: (v: string) => void;
@@ -84,6 +86,8 @@ export function useRecordForm(todayLog?: DailyLogSnapshot | null): RecordFormSta
   return {
     flow, moods, symptoms, bbt, lhResult, notes,
     setFlow,
+    setMoods,
+    setSymptoms,
     toggleMood: (v) => toggle(moods, setMoods, v),
     toggleSymptom: (v) => toggle(symptoms, setSymptoms, v),
     setBbt,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -10,6 +10,7 @@ import { FlowSelector } from '../components/record/FlowSelector';
 import { TagChipGroup } from '../components/record/TagChipGroup';
 import { useRecordForm } from '../hooks/useRecordForm';
 import { useTodayLog, useSaveDailyLog, buildLogFields } from '../hooks/useDailyLog';
+import { useParseLog } from '../hooks/useParseLog';
 import type { TabParamList } from '../navigation/TabNavigator';
 
 const MOODS = ['좋음', '평온', '피곤', '짜증', '우울', '불안'] as const;
@@ -23,10 +24,29 @@ export function RecordScreen() {
   const { data: todayLog } = useTodayLog();
   const form = useRecordForm(todayLog);
   const save = useSaveDailyLog();
+  const parseLog = useParseLog();
+  const [aiText, setAiText] = useState('');
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
 
   const today = new Date();
   const dateLabel = `${today.getMonth() + 1}월 ${today.getDate()}일 · ${'일월화수목금토'[today.getDay()]}`;
+
+  function handleAiParse() {
+    if (!aiText.trim()) return;
+    parseLog.mutate(aiText.trim(), {
+      onSuccess: (parsed) => {
+        if (parsed.flow) form.setFlow(parsed.flow);
+        if (parsed.moods.length > 0) form.setMoods(parsed.moods);
+        if (parsed.symptoms.length > 0) form.setSymptoms(parsed.symptoms);
+        if (parsed.bbt) form.setBbt(parsed.bbt);
+        if (parsed.lh_result !== null) form.setLhResult(parsed.lh_result);
+        if (parsed.notes) form.setNotes(parsed.notes);
+        setAiText('');
+        Toast.show({ type: 'success', text1: 'AI가 채워줬어요!', text2: '내용을 확인하고 수정해보세요.' });
+      },
+      onError: () => Toast.show({ type: 'error', text1: 'AI 파싱 실패', text2: '직접 입력해주세요.' }),
+    });
+  }
 
   function handleSave() {
     save.mutate(
@@ -57,6 +77,36 @@ export function RecordScreen() {
         <View style={[styles.heroCard, Shadow.lift]}>
           <Text style={styles.heroDate}>{dateLabel}</Text>
           <Text style={styles.heroTitle}>오늘 어떠셨나요?</Text>
+        </View>
+
+        {/* AI 자연어 입력 */}
+        <View style={[styles.aiCard, Shadow.card]}>
+          <View style={styles.aiHeader}>
+            <Icon name="spark" size={13} strokeWidth={2.2} color={Colors.coral} />
+            <Text style={styles.aiLabel}>AI로 채우기</Text>
+          </View>
+          <View style={styles.aiInputRow}>
+            <TextInput
+              style={styles.aiInput}
+              value={aiText}
+              onChangeText={setAiText}
+              placeholder="오늘 배가 아프고 피곤해요…"
+              placeholderTextColor={Colors.ink4}
+              multiline={false}
+              returnKeyType="done"
+              onSubmitEditing={handleAiParse}
+              editable={!parseLog.isPending}
+            />
+            <TouchableOpacity
+              style={[styles.aiBtn, parseLog.isPending && styles.aiBtnDisabled]}
+              onPress={handleAiParse}
+              disabled={parseLog.isPending || !aiText.trim()}
+            >
+              {parseLog.isPending
+                ? <Text style={styles.aiBtnText}>…</Text>
+                : <Icon name="spark" size={14} strokeWidth={2.4} color={Colors.inkInv} />}
+            </TouchableOpacity>
+          </View>
         </View>
 
         <Section title="출혈량">
@@ -143,6 +193,14 @@ const styles = StyleSheet.create({
   saveBtnText: { fontSize: 13, fontWeight: '700', color: Colors.inkInv },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingBottom: 120, gap: 12 },
+  aiCard: { backgroundColor: Colors.bgCard, borderRadius: Radius.tile, padding: 16, gap: 10 },
+  aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  aiLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: Colors.ink3 },
+  aiInputRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  aiInput: { flex: 1, fontSize: 14, color: Colors.ink1, backgroundColor: Colors.bgAlt, borderRadius: Radius.pill, paddingHorizontal: 16, paddingVertical: 10 },
+  aiBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.coral, alignItems: 'center', justifyContent: 'center' },
+  aiBtnDisabled: { opacity: 0.5 },
+  aiBtnText: { fontSize: 16, color: Colors.inkInv, fontWeight: '700' },
   heroCard: { backgroundColor: Colors.bgInk, borderRadius: Radius.card, padding: 24 },
   heroDate: { fontSize: 11, fontWeight: '700', color: 'rgba(242,238,232,0.5)', letterSpacing: 1.2, textTransform: 'uppercase' },
   heroTitle: { fontSize: 28, fontWeight: '900', letterSpacing: -1, color: Colors.inkInv, marginTop: 8 },
