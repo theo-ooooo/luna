@@ -33,8 +33,7 @@ export function RecordScreen() {
       { id: todayLog?.id, fields: buildLogFields(form) },
       {
         onSuccess: () => {
-          Toast.show({ type: 'success', text1: '기록 저장 완료!', text2: '오늘의 기록이 저장됐어요.' });
-          navigation.navigate('Home');
+          Toast.show({ type: 'success', text1: '기록 저장 완료!', text2: '오늘의 기록이 저장됐어요.', onHide: () => navigation.navigate('Home') });
         },
         onError: (err) => {
           Toast.show({ type: 'error', text1: '저장 실패', text2: (err as Error).message ?? '다시 시도해주세요.' });

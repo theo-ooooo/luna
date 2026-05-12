@@ -74,8 +74,6 @@ export function SettingsScreen() {
           </View>
         </View>
 
-
-
         {/* 프로필 설정 */}
         <Section title="프로필">
           <SettingRow label="호칭">
