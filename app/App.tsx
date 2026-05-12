@@ -4,6 +4,13 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { TabNavigator } from './src/navigation/TabNavigator';
+import { AuthNavigator } from './src/navigation/AuthNavigator';
+import { useAuthStore } from './src/store/authStore';
+
+function RootNavigator() {
+  const token = useAuthStore(s => s.token);
+  return token ? <TabNavigator /> : <AuthNavigator />;
+}
 
 export default function App() {
   const [queryClient] = useState(
@@ -15,7 +22,7 @@ export default function App() {
       <SafeAreaProvider>
         <NavigationContainer>
           <StatusBar style="dark" />
-          <TabNavigator />
+          <RootNavigator />
         </NavigationContainer>
       </SafeAreaProvider>
     </QueryClientProvider>
