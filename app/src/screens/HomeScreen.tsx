@@ -29,10 +29,10 @@ export function HomeScreen({ cycleDay = 14 }: HomeScreenProps) {
       <View style={styles.topBar}>
         <LunaLogo size={18} />
         <View style={styles.topBarRight}>
-          <TouchableOpacity style={styles.iconBtn}>
+          <TouchableOpacity style={styles.iconBtn} accessibilityRole="button" accessibilityLabel="검색">
             <Icon name="search" size={20} color={Colors.ink1} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn}>
+          <TouchableOpacity style={styles.iconBtn} accessibilityRole="button" accessibilityLabel="알림">
             <Icon name="bell" size={20} color={Colors.ink1} />
           </TouchableOpacity>
         </View>
@@ -91,7 +91,7 @@ export function HomeScreen({ cycleDay = 14 }: HomeScreenProps) {
           <StatTile eyebrow="기분" value="좋음" detail="3일 연속" width={bentoHalfWidth} />
           {/* BBT tile */}
           <StatTile eyebrow="기초체온" value="36.7°" detail="평균 +0.1°" width={bentoHalfWidth}>
-            <MiniSparkline />
+            <MiniSparkline data={[36.4, 36.5, 36.4, 36.3, 36.4, 36.6, 36.7]} />
           </StatTile>
           {/* Sleep tile */}
           <StatTile eyebrow="수면" value="7h 20m" detail="목표 달성" width={bentoHalfWidth} />
@@ -125,8 +125,7 @@ function StatTile({ eyebrow, value, detail, width, children }: {
   );
 }
 
-function MiniSparkline() {
-  const data = [36.4, 36.5, 36.4, 36.3, 36.4, 36.6, 36.7];
+function MiniSparkline({ data }: { data: number[] }) {
   const min = 36.2, max = 36.8, w = 100, h = 28;
   const pts = data.map((v, i) => {
     const x = (i / (data.length - 1)) * w;

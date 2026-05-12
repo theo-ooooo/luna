@@ -61,7 +61,9 @@ export const Radius = {
   chip: 14,
 } as const;
 
-export const Shadow = {
+import { StyleSheet } from 'react-native';
+
+export const Shadow = StyleSheet.create({
   lift: {
     shadowColor: Colors.ink1,
     shadowOffset: { width: 0, height: 3 },
@@ -83,7 +85,7 @@ export const Shadow = {
     shadowRadius: 12,
     elevation: 2,
   },
-} as const;
+});
 
 export const Motion = {
   fast: 180,

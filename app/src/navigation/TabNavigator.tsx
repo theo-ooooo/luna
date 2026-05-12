@@ -47,14 +47,29 @@ function LunaTabBar({ state, navigation }: BottomTabBarProps) {
 
           if (tab.primary) {
             return (
-              <TouchableOpacity key={tab.id} style={styles.primaryBtn} onPress={onPress} activeOpacity={0.8}>
+              <TouchableOpacity
+                key={tab.id}
+                style={styles.primaryBtn}
+                onPress={onPress}
+                activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={tab.label}
+              >
                 <Icon name={tab.icon} size={22} strokeWidth={2.4} color={Colors.bgInk} />
               </TouchableOpacity>
             );
           }
 
           return (
-            <TouchableOpacity key={tab.id} style={styles.tabItem} onPress={onPress} activeOpacity={0.7}>
+            <TouchableOpacity
+              key={tab.id}
+              style={styles.tabItem}
+              onPress={onPress}
+              activeOpacity={0.7}
+              accessibilityRole="tab"
+              accessibilityLabel={tab.label}
+              accessibilityState={{ selected: active }}
+            >
               <Icon
                 name={tab.icon}
                 size={20}
