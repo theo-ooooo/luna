@@ -80,6 +80,10 @@ export function useSaveDailyLog() {
       }
       return api.post<DailyLog>('/api/v1/daily_logs', { ...fields, logged_on: today });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['dailyLog', today] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['dailyLog', today] });
+      // cancel log-nudge notification if user logged today
+      import('../services/notifications').then(({ cancelLogNudge }) => cancelLogNudge()).catch(() => {});
+    },
   });
 }

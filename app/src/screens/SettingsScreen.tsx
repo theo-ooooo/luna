@@ -10,6 +10,7 @@ import Toast from 'react-native-toast-message';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { useUpdateProfile } from '../hooks/useProfile';
+import { useNotificationStore } from '../store/notificationStore';
 
 export function SettingsScreen() {
   const user = useAuthStore(s => s.user);
@@ -17,23 +18,23 @@ export function SettingsScreen() {
   const update = useUpdateProfile();
   const qc = useQueryClient();
 
+  const { prefs, setPrefs, permissionGranted, permissionChecked } = useNotificationStore();
+
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [cycleLen, setCycleLen] = useState(user?.cycle_length_default ?? 28);
   const [lutealLen, setLutealLen] = useState(user?.luteal_phase_length ?? 14);
-  const [notiEnabled, setNotiEnabled] = useState(user?.notifications_enabled ?? false);
 
   useEffect(() => {
     if (user) {
       setNickname(user.nickname ?? '');
       setCycleLen(user.cycle_length_default);
       setLutealLen(user.luteal_phase_length);
-      setNotiEnabled(user.notifications_enabled ?? false);
     }
   }, [user]);
 
   function handleSave() {
     update.mutate(
-      { nickname: nickname.trim() || undefined, cycle_length_default: cycleLen, luteal_phase_length: lutealLen, notifications_enabled: notiEnabled },
+      { nickname: nickname.trim() || undefined, cycle_length_default: cycleLen, luteal_phase_length: lutealLen },
       {
         onSuccess: () => Toast.show({ type: 'success', text1: '설정 저장 완료!' }),
         onError: (err) => Toast.show({ type: 'error', text1: '저장 실패', text2: (err as Error).message ?? '다시 시도해주세요.' }),
@@ -119,14 +120,52 @@ export function SettingsScreen() {
 
         {/* 알림 */}
         <Section title="알림">
-          <SettingRow label="생리 예정일 알림">
-            <Switch
-              value={notiEnabled}
-              onValueChange={setNotiEnabled}
-              trackColor={{ false: Colors.borderSoft, true: Colors.coral }}
-              thumbColor={Colors.inkInv}
-            />
-          </SettingRow>
+          {permissionChecked && !permissionGranted && (
+            <View style={styles.notiWarning}>
+              <Text style={styles.notiWarningText}>알림 권한이 허용되지 않았습니다. 기기 설정에서 Luna 알림을 켜주세요.</Text>
+            </View>
+          )}
+          <NotiRow
+            label="생리 예정일 알림"
+            sub="예정일 3일·1일 전 오전 9시"
+            value={prefs.periodReminder}
+            onChange={(v) => setPrefs({ periodReminder: v })}
+          />
+          <View style={styles.divider} />
+          <NotiRow
+            label="배란 예정일 알림"
+            sub="예정 배란일 2일·당일 오전 9시"
+            value={prefs.ovulationAlert}
+            onChange={(v) => setPrefs({ ovulationAlert: v })}
+          />
+          <View style={styles.divider} />
+          <NotiRow
+            label="가임기 시작 알림"
+            sub="가임기 첫날 오전 9시"
+            value={prefs.fertileStart}
+            onChange={(v) => setPrefs({ fertileStart: v })}
+          />
+          <View style={styles.divider} />
+          <NotiRow
+            label="기록 독려"
+            sub="예정일 당일 미기록 시 오후 8시"
+            value={prefs.logNudge}
+            onChange={(v) => setPrefs({ logNudge: v })}
+          />
+          <View style={styles.divider} />
+          <NotiRow
+            label="일일 리마인더"
+            sub="매일 오후 10시 (기본 꺼짐)"
+            value={prefs.dailyReminder}
+            onChange={(v) => setPrefs({ dailyReminder: v })}
+          />
+          <View style={styles.divider} />
+          <NotiRow
+            label="월간 리포트"
+            sub="주기 종료 다음날 오전 10시"
+            value={prefs.monthlyReport}
+            onChange={(v) => setPrefs({ monthlyReport: v })}
+          />
         </Section>
 
         {/* 계정 */}
@@ -138,6 +177,23 @@ export function SettingsScreen() {
         </Section>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function NotiRow({ label, sub, value, onChange }: { label: string; sub: string; value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <View style={styles.settingRow}>
+      <View style={styles.settingLabel}>
+        <Text style={styles.settingLabelText}>{label}</Text>
+        <Text style={styles.settingDetail}>{sub}</Text>
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onChange}
+        trackColor={{ false: Colors.borderSoft, true: Colors.coral }}
+        thumbColor={Colors.inkInv}
+      />
+    </View>
   );
 }
 
@@ -191,4 +247,6 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: Colors.borderSoft, marginVertical: 8 },
   logoutRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 40 },
   logoutText: { fontSize: 14, fontWeight: '600', color: Colors.coral },
+  notiWarning: { backgroundColor: Colors.bgAlt, borderRadius: 10, padding: 12, marginBottom: 14 },
+  notiWarningText: { fontSize: 12, color: Colors.ink2, lineHeight: 18 },
 });
