@@ -30,6 +30,29 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return body?.data ?? body;
 }
 
+async function streamRequest(path: string, data: unknown, signal?: AbortSignal): Promise<Response> {
+  const token = useAuthStore.getState().token;
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(data),
+    signal,
+  });
+
+  if (res.status === 401) {
+    useAuthStore.getState().clearAuth();
+    throw new ApiError(401, 'Unauthorized');
+  }
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new ApiError(res.status, body?.message ?? res.statusText, body?.code);
+  }
+  return res;
+}
+
 export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, data: unknown) =>
@@ -37,4 +60,6 @@ export const api = {
   patch: <T>(path: string, data: unknown) =>
     request<T>(path, { method: 'PATCH', body: JSON.stringify(data) }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  streamPost: (path: string, data: unknown, signal?: AbortSignal) =>
+    streamRequest(path, data, signal),
 };
