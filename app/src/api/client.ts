@@ -26,7 +26,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       // Refresh token flow can be wired here when the backend supports it.
       useAuthStore.getState().clearAuth();
     }
-    throw new ApiError(res.status, body?.message ?? res.statusText, body?.code);
+    throw new ApiError(res.status, body?.error?.message ?? body?.message ?? res.statusText, body?.error?.code ?? body?.code);
   }
   return body?.data ?? body;
 }
@@ -49,7 +49,7 @@ async function streamRequest(path: string, data: unknown, signal?: AbortSignal):
   }
   if (!res.ok) {
     const body = await res.json().catch(() => null);
-    throw new ApiError(res.status, body?.message ?? res.statusText, body?.code);
+    throw new ApiError(res.status, body?.error?.message ?? body?.message ?? res.statusText, body?.error?.code ?? body?.code);
   }
   return res;
 }
