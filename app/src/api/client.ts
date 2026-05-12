@@ -14,7 +14,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>),
   };
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const isAuthEndpoint = /^\/api\/v1\/auth\/(login|signup)$/.test(path);
+  if (token && !isAuthEndpoint) headers['Authorization'] = `Bearer ${token}`;
 
   const res = await fetch(`${BASE_URL}${path}`, { ...options, headers });
   const body = await res.json().catch(() => null);
