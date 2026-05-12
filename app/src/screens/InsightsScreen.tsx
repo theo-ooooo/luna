@@ -7,21 +7,13 @@ import { Icon } from '../components/ui/Icon';
 import { usePrediction } from '../hooks/usePrediction';
 import { useCycleList } from '../hooks/useCycles';
 import { useMonthlyReport } from '../hooks/useMonthlyReport';
+import { useBbtHistory } from '../hooks/useBbtHistory';
+import { useSymptomHeatmap } from '../hooks/useSymptomHeatmap';
+import { useStats } from '../hooks/useStats';
 
 const CONTENT_PADDING = 16;
 const TILE_PADDING = 18;
 
-// Static mock data — BBT and symptoms require historical daily_logs aggregation (future API)
-const BBT_DATA = [36.4, 36.5, 36.4, 36.5, 36.4, 36.3, 36.5, 36.6, 36.5, 36.4, 36.3, 36.7, 36.9, 36.8];
-const BBT_OVULATION_DAY = 10;
-const SYMPTOMS = ['두통', '복통', '부종', '피로', '여드름'] as const;
-const HEATMAP_DATA = [
-  [0, 2, 3, 0, 1, 1, 0, 1, 2, 1, 0, 0],
-  [3, 2, 1, 0, 0, 1, 2, 3, 1, 0, 0, 1],
-  [1, 2, 3, 2, 1, 0, 0, 1, 2, 3, 1, 0],
-  [2, 1, 0, 1, 2, 1, 2, 1, 0, 1, 2, 1],
-  [0, 1, 2, 1, 0, 0, 1, 2, 1, 0, 1, 0],
-];
 export function InsightsScreen() {
   const { width: screenW } = useWindowDimensions();
   const { data: prediction } = usePrediction();
@@ -32,6 +24,9 @@ export function InsightsScreen() {
     return `${d.getMonth() + 1}월`;
   }), [now]);
   const { data: report, isLoading: reportLoading } = useMonthlyReport(now.getFullYear(), now.getMonth() + 1);
+  const { data: bbtHistory, isError: bbtError } = useBbtHistory();
+  const { data: heatmap, isError: heatmapError } = useSymptomHeatmap();
+  const { data: stats } = useStats();
 
   const avgCycle = Number(prediction?.avg_cycle_length ?? 28);
   const chartW = screenW - CONTENT_PADDING * 2 - TILE_PADDING * 2;
@@ -81,11 +76,11 @@ export function InsightsScreen() {
         {/* KPI tiles */}
         <View style={styles.kpiRow}>
           <KpiTile label="평균 주기" value={avgCycle.toFixed(1)} unit="일" bg={Colors.bgCard} />
-          <KpiTile label="평균 출혈" value="—" unit="일" bg={Colors.coral} inkLight />
+          <KpiTile label="평균 출혈" value={stats?.avg_bleed_days != null ? stats.avg_bleed_days.toFixed(1) : '—'} unit="일" bg={Colors.coral} inkLight />
         </View>
         <View style={styles.kpiRow}>
-          <KpiTile label="평균 BBT" value="—" unit="°" bg={Colors.lavender} />
-          <KpiTile label="규칙성" value="—" unit="%" bg={Colors.bgCard} />
+          <KpiTile label="평균 BBT" value={stats?.avg_bbt != null ? stats.avg_bbt.toFixed(2) : '—'} unit="°" bg={Colors.lavender} />
+          <KpiTile label="규칙성" value={stats?.regularity_pct != null ? String(stats.regularity_pct) : '—'} unit="%" bg={Colors.bgCard} />
         </View>
 
         {/* BBT Chart */}
@@ -96,25 +91,42 @@ export function InsightsScreen() {
               <Text style={styles.tileTitle}>기초체온 변화</Text>
             </View>
           </View>
-          <BbtChart width={chartW} data={BBT_DATA} ovDay={BBT_OVULATION_DAY} />
+          {bbtError ? (
+            <Text style={styles.tileEmpty}>데이터를 불러오지 못했어요. 잠시 후 다시 시도해주세요.</Text>
+          ) : bbtHistory && bbtHistory.data.length > 0 ? (
+            <BbtChart
+              width={chartW}
+              data={bbtHistory.data.map(p => p.bbt)}
+              ovDay={(() => {
+                if (!bbtHistory.ovulation_on) return undefined;
+                const idx = bbtHistory.data.findIndex(p => p.date >= bbtHistory.ovulation_on!);
+                return idx >= 0 ? idx : undefined;
+              })()}
+            />
+          ) : (
+            <Text style={styles.tileEmpty}>BBT를 기록하면 여기에 차트가 표시돼요.</Text>
+          )}
         </View>
 
         {/* Symptom heatmap */}
         <View style={[styles.tile, Shadow.card]}>
           <Text style={styles.tileEyebrow}>증상 빈도 · 12주</Text>
-          <View style={styles.heatmapGrid}>
-            {SYMPTOMS.map((symptom, r) => (
-              <View key={symptom} style={styles.heatmapRow}>
-                <Text style={styles.heatmapLabel}>{symptom}</Text>
-                {HEATMAP_DATA[r].map((v, c) => (
-                  <View
-                    key={c}
-                    style={[styles.heatCell, { backgroundColor: heatColor(v) }]}
-                  />
-                ))}
-              </View>
-            ))}
-          </View>
+          {heatmapError ? (
+            <Text style={styles.tileEmpty}>데이터를 불러오지 못했어요. 잠시 후 다시 시도해주세요.</Text>
+          ) : heatmap && heatmap.grid.some(row => row.some(v => v > 0)) ? (
+            <View style={styles.heatmapGrid}>
+              {heatmap.symptoms.map((symptom, r) => (
+                <View key={symptom} style={styles.heatmapRow}>
+                  <Text style={styles.heatmapLabel}>{symptom}</Text>
+                  {(heatmap.grid[r] ?? []).map((v, c) => (
+                    <View key={c} style={[styles.heatCell, { backgroundColor: heatColor(v) }]} />
+                  ))}
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.tileEmpty}>증상을 기록하면 패턴이 표시돼요.</Text>
+          )}
         </View>
 
         {/* Cycle length bars */}
@@ -157,8 +169,9 @@ function KpiTile({ label, value, unit, bg, inkLight = false }: { label: string; 
   );
 }
 
-function BbtChart({ width, data, ovDay }: { width: number; data: number[]; ovDay: number }) {
-  const safeOvDay = Math.min(ovDay, data.length - 1);
+function BbtChart({ width, data, ovDay }: { width: number; data: number[]; ovDay?: number }) {
+  const hasOv = ovDay !== undefined;
+  const safeOvDay = hasOv ? Math.min(ovDay!, data.length - 1) : data.length - 1;
   const h = 130, padX = 28, padY = 20;
   const minV = 36.2, maxV = 37.0;
   const innerW = width - padX * 2;
@@ -169,7 +182,7 @@ function BbtChart({ width, data, ovDay }: { width: number; data: number[]; ovDay
   const ys = (v: number) => h - padY - ((clamp(v) - minV) / (maxV - minV)) * innerH;
 
   const preOvPath  = data.slice(0, safeOvDay + 1).map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
-  const postOvPath = data.slice(safeOvDay).map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i + safeOvDay).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
+  const postOvPath = hasOv ? data.slice(safeOvDay).map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i + safeOvDay).toFixed(1)},${ys(v).toFixed(1)}`).join(' ') : '';
   const gridLevels = [36.4, 36.6, 36.8];
   const ovX = xs(safeOvDay);
 
@@ -182,23 +195,23 @@ function BbtChart({ width, data, ovDay }: { width: number; data: number[]; ovDay
             <SvgText x={2} y={ys(v) + 4} fontSize={8} fill={Colors.ink4} fontWeight="500">{v}</SvgText>
           </React.Fragment>
         ))}
-        {/* Ovulation zone */}
-        <Rect x={ovX - 8} y={padY} width={16} height={innerH} fill={Colors.coral} opacity={0.08} rx={4} />
-        <SvgText x={ovX} y={padY - 4} fontSize={7} fill={Colors.coral} fontWeight="700" textAnchor="middle">OVUL</SvgText>
+        {/* Ovulation zone — only when ovulation date falls within recorded data */}
+        {hasOv && <Rect x={ovX - 8} y={padY} width={16} height={innerH} fill={Colors.coral} opacity={0.08} rx={4} />}
+        {hasOv && <SvgText x={ovX} y={padY - 4} fontSize={7} fill={Colors.coral} fontWeight="700" textAnchor="middle">OVUL</SvgText>}
         {/* Lines */}
         <Path d={preOvPath}  stroke={Colors.coral}        strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        <Path d={postOvPath} stroke={Colors.lavenderDeep} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        {hasOv && postOvPath ? <Path d={postOvPath} stroke={Colors.lavenderDeep} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" /> : null}
         {/* Dots */}
         {data.map((v, i) => (
           <Circle key={i} cx={xs(i)} cy={ys(v)} r={i === data.length - 1 ? 4 : 2.5}
-            fill={i <= safeOvDay ? Colors.coral : Colors.lavenderDeep}
+            fill={hasOv && i > safeOvDay ? Colors.lavenderDeep : Colors.coral}
             stroke={i === data.length - 1 ? Colors.bgCard : 'none'} strokeWidth={2}
           />
         ))}
       </Svg>
       <View style={styles.chartLegend}>
         <View style={styles.legendItem}><View style={[styles.legendLine, { backgroundColor: Colors.coral }]} /><Text style={styles.legendText}>난포기</Text></View>
-        <View style={styles.legendItem}><View style={[styles.legendLine, { backgroundColor: Colors.lavenderDeep }]} /><Text style={styles.legendText}>황체기</Text></View>
+        {hasOv && <View style={styles.legendItem}><View style={[styles.legendLine, { backgroundColor: Colors.lavenderDeep }]} /><Text style={styles.legendText}>황체기</Text></View>}
       </View>
     </View>
   );
@@ -247,6 +260,8 @@ const styles = StyleSheet.create({
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   legendLine: { width: 8, height: 2, borderRadius: 1 },
   legendText: { fontSize: 10, color: Colors.ink3, fontWeight: '500' },
+
+  tileEmpty: { fontSize: 13, color: Colors.ink3, fontWeight: '500', marginTop: 8, lineHeight: 20 },
 
   heatmapGrid: { gap: 4, marginTop: 8 },
   heatmapRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
