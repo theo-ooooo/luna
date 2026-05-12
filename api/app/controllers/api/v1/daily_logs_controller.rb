@@ -50,7 +50,7 @@ module Api
           .order(:logged_on)
           .select(:logged_on, :bbt)
 
-        prediction = current_user.predictions.order(computed_at: :desc).first
+        prediction = latest_cycle&.prediction || current_user.predictions.order(computed_at: :desc).first
 
         success({
           data: logs.map { |l| { date: l.logged_on, bbt: l.bbt.to_f } },

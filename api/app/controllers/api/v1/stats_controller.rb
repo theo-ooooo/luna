@@ -5,12 +5,17 @@ module Api
         cycles  = current_user.cycles.recent(6)
         lengths = cycles.map(&:length_days).compact
 
-        avg_bleed = if cycles.any?
-          days = cycles.map { |c| c.length_days || (Date.current - c.started_on).to_i + 1 }
-          (days.sum.to_f / days.size).round(1)
+        avg_bleed = if lengths.any?
+          (lengths.sum.to_f / lengths.size).round(1)
         end
 
-        avg_bbt = current_user.daily_logs.where.not(bbt: nil).average(:bbt)&.to_f&.round(2)
+        cycle_date_range = cycles.map(&:started_on).minmax
+        avg_bbt = if cycle_date_range.first
+          current_user.daily_logs
+            .where(logged_on: cycle_date_range.first..Date.current)
+            .where.not(bbt: nil)
+            .average(:bbt)&.to_f&.round(2)
+        end
 
         regularity_pct = if lengths.size >= 2
           mean = lengths.sum.to_f / lengths.size

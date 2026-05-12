@@ -79,4 +79,65 @@ RSpec.describe "Api::V1::DailyLogs", type: :request do
       expect(response).to have_http_status(:ok)
     end
   end
+
+  describe "GET /api/v1/daily_logs/bbt_history" do
+    context '데이터 없을 때' do
+      it '빈 data 배열 반환' do
+        get '/api/v1/daily_logs/bbt_history', headers: headers
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body['data']['data']).to eq([])
+      end
+    end
+
+    context 'BBT 기록 있을 때' do
+      before do
+        create(:cycle, user: user, started_on: 10.days.ago.to_date)
+        create(:daily_log, user: user, bbt: 36.5, logged_on: 8.days.ago.to_date)
+        create(:daily_log, user: user, bbt: 36.7, logged_on: 6.days.ago.to_date)
+        create(:daily_log, user: user, bbt: nil, logged_on: 4.days.ago.to_date) # excluded
+      end
+
+      it 'BBT 있는 로그만 반환' do
+        get '/api/v1/daily_logs/bbt_history', headers: headers
+        expect(response).to have_http_status(:ok)
+        data = response.parsed_body['data']['data']
+        expect(data.size).to eq(2)
+        expect(data.map { |d| d['bbt'] }).to contain_exactly(36.5, 36.7)
+      end
+    end
+
+    it '미인증 401' do
+      get '/api/v1/daily_logs/bbt_history'
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
+
+  describe "GET /api/v1/daily_logs/symptom_heatmap" do
+    context '데이터 없을 때' do
+      it '모두 0인 grid 반환' do
+        get '/api/v1/daily_logs/symptom_heatmap', headers: headers
+        expect(response).to have_http_status(:ok)
+        grid = response.parsed_body['data']['grid']
+        expect(grid.flatten.uniq).to eq([0])
+      end
+    end
+
+    context '증상 기록 있을 때' do
+      before do
+        create(:daily_log, user: user, headache: 2, logged_on: 1.week.ago.to_date)
+      end
+
+      it '해당 주에 headache 집계' do
+        get '/api/v1/daily_logs/symptom_heatmap', headers: headers
+        expect(response).to have_http_status(:ok)
+        grid = response.parsed_body['data']['grid']
+        expect(grid[0].any? { |v| v > 0 }).to be true
+      end
+    end
+
+    it '미인증 401' do
+      get '/api/v1/daily_logs/symptom_heatmap'
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
 end
