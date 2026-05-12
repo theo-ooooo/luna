@@ -57,7 +57,6 @@ export function PasswordScreen({ navigation, route }: Props) {
               }
             />
 
-
             <PrimaryButton onPress={handleLogin} disabled={!password} loading={login.isPending}>
               로그인
             </PrimaryButton>

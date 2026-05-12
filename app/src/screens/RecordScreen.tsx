@@ -59,7 +59,6 @@ export function RecordScreen() {
           <Text style={styles.heroTitle}>오늘 어떠셨나요?</Text>
         </View>
 
-
         <Section title="출혈량">
           <FlowSelector value={form.flow} onChange={form.setFlow} />
         </Section>
@@ -158,5 +157,4 @@ const styles = StyleSheet.create({
   tagChipText: { fontSize: 13, fontWeight: '600', color: Colors.ink2 },
   tagChipTextActive: { color: Colors.inkInv },
   notesInput: { fontSize: 14, color: Colors.ink1, lineHeight: 22, borderWidth: 1.5, borderColor: Colors.borderSoft, borderRadius: 12, padding: 12, minHeight: 96 },
-  errorText: { fontSize: 13, color: Colors.coral, textAlign: 'center' },
 });
