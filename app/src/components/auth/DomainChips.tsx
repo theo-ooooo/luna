@@ -8,7 +8,7 @@ interface DomainChipsProps {
   local: string;
   query: string;
   matches: string[];
-  onPick: (domain: string) => void;
+  onPick: (fullEmail: string) => void;
 }
 
 export function DomainChips({ local, query, matches, onPick }: DomainChipsProps) {
@@ -20,7 +20,7 @@ export function DomainChips({ local, query, matches, onPick }: DomainChipsProps)
           <TouchableOpacity
             key={d}
             style={[styles.option, i > 0 && styles.optionDivider]}
-            onPress={() => onPick(d)}
+            onPress={() => onPick(`${local}@${d}`)}
             activeOpacity={0.6}
           >
             <Text style={styles.local} numberOfLines={1}>{local}</Text>
@@ -46,6 +46,7 @@ export function getEmailMatches(email: string): { show: boolean; local: string; 
   if (atIdx < 0 || email.slice(0, atIdx).length === 0) return { show: false, local: email, query: '', matches: [] };
   const local = email.slice(0, atIdx);
   const query = email.slice(atIdx + 1).toLowerCase();
+  if (EMAIL_DOMAINS.some(d => d.toLowerCase() === query)) return { show: false, local, query, matches: [] };
   const matches = EMAIL_DOMAINS.filter(d => d.toLowerCase().includes(query));
   return { show: matches.length > 0, local, query, matches };
 }

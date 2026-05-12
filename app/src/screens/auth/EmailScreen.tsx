@@ -19,9 +19,6 @@ export function EmailScreen({ navigation }: Props) {
   const auto = getEmailMatches(email);
   const checkEmail = useCheckEmail();
 
-  function pickDomain(d: string) {
-    setEmail(auto.local + '@' + d);
-  }
 
   async function handleContinue() {
     const trimmed = email.trim();
@@ -57,7 +54,7 @@ export function EmailScreen({ navigation }: Props) {
               autoFocus
               accessibilityLabel="이메일 입력"
             />
-            {auto.show && <DomainChips local={auto.local} query={auto.query} matches={auto.matches} onPick={pickDomain} />}
+            {auto.show && <DomainChips local={auto.local} query={auto.query} matches={auto.matches} onPick={setEmail} />}
 
             {checkEmail.isError && (
               <Text style={styles.error}>이메일 확인에 실패했어요. 다시 시도해주세요.</Text>
