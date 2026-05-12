@@ -1,6 +1,6 @@
 class PredictionService
   WEIGHTS = [6, 5, 4, 3, 2, 1].freeze
-  MIN_CYCLES_FOR_PREDICTION = 1
+  MIN_CYCLES_FOR_PREDICTION = 3  # 3개 미만이면 기본값 28일 사용 (CLAUDE.md 명세)
   MAX_CYCLES_USED = 6
 
   def initialize(user)

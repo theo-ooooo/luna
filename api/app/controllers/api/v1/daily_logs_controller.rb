@@ -4,8 +4,12 @@ module Api
       before_action :set_log, only: [:update, :destroy]
 
       def index
-        from = params[:from] ? Date.parse(params[:from]) : 30.days.ago.to_date
-        to   = params[:to]   ? Date.parse(params[:to])   : Date.current
+        from = parse_date(params[:from]) || 30.days.ago.to_date
+        to   = parse_date(params[:to])   || Date.current
+
+        if from.nil? || to.nil?
+          return failure("VALIDATION_ERROR", "날짜 형식이 올바르지 않습니다. (YYYY-MM-DD)", status: :bad_request)
+        end
 
         if (to - from).to_i > 92
           return failure("VALIDATION_ERROR", "날짜 범위는 최대 92일입니다.", status: :bad_request)
@@ -31,6 +35,12 @@ module Api
       end
 
       private
+
+      def parse_date(str)
+        str.present? ? Date.parse(str) : nil
+      rescue ArgumentError
+        nil
+      end
 
       def set_log
         @log = current_user.daily_logs.find(params[:id])

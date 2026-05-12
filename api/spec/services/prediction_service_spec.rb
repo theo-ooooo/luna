@@ -13,17 +13,16 @@ RSpec.describe PredictionService, type: :service do
       end
     end
 
-    context "주기 1개" do
-      let!(:cycle) do
-        create(:cycle, user: user,
-               started_on: 28.days.ago.to_date,
-               ended_on: 23.days.ago.to_date)
+    context "주기 2개 (3개 미만 → 기본값 28일 사용)" do
+      before do
+        create(:cycle, user: user, started_on: 56.days.ago.to_date, ended_on: 51.days.ago.to_date)
+        create(:cycle, user: user, started_on: 28.days.ago.to_date, ended_on: 23.days.ago.to_date)
       end
 
-      it "1개 주기로 예측 생성" do
+      it "기본값 28일 사용" do
         prediction = service.compute!
-        expect(prediction.based_on_cycles_count).to eq(1)
-        expect(prediction.predicted_period_start).to eq(Date.current - 23.days + 1)
+        expect(prediction.based_on_cycles_count).to eq(0)
+        expect(prediction.avg_cycle_length).to eq(28.0)
       end
     end
 

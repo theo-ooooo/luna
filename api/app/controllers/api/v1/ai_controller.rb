@@ -6,7 +6,7 @@ module Api
         conversation = find_or_create_conversation
 
         context = Ai::ContextBuilder.new(current_user).build
-        conversation.append_message("user", message)
+        conversation.messages << { "role" => "user", "content" => message, "ts" => Time.current.iso8601 }
         conversation.update!(context_snapshot: context)
 
         response.headers["Content-Type"] = "text/event-stream"
@@ -47,8 +47,12 @@ module Api
       end
 
       def monthly_report
-        year = (params[:year] || Date.current.year).to_i
+        year  = (params[:year]  || Date.current.year).to_i
         month = (params[:month] || Date.current.month).to_i
+
+        unless (2020..2100).cover?(year) && (1..12).cover?(month)
+          return failure("VALIDATION_ERROR", "year(2020~2100) 또는 month(1~12) 범위를 확인하세요.", status: :bad_request)
+        end
 
         service = Ai::ChatService.new(current_user)
         result = service.monthly_report(current_user, year, month)
