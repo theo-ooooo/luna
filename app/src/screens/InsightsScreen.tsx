@@ -32,7 +32,10 @@ export function InsightsScreen() {
     .filter(c => c.length_days)
     .slice(0, 6)
     .reverse()
-    .map((c, i) => ({ days: c.length_days!, label: MONTH_LABELS[i] ?? '' }));
+    .map(c => ({
+      days: c.length_days!,
+      label: `${parseInt(c.started_on.slice(5, 7), 10)}월`,
+    }));
 
   const barData = cycleBarData.length >= 2 ? cycleBarData : MONTH_LABELS.map((label, i) => ({ days: 26 + (i % 3), label }));
   const maxBar = Math.max(...barData.map(b => b.days));
@@ -152,7 +155,8 @@ function BbtChart({ width, data, ovDay }: { width: number; data: number[]; ovDay
   const minV = 36.2, maxV = 37.0;
   const innerW = width - padX * 2;
   const innerH = h - padY * 2;
-  const xs = (i: number) => padX + (i / (data.length - 1)) * innerW;
+  const divisor = Math.max(data.length - 1, 1);
+  const xs = (i: number) => padX + (i / divisor) * innerW;
   const ys = (v: number) => h - padY - ((v - minV) / (maxV - minV)) * innerH;
 
   const preOvPath  = data.slice(0, ovDay + 1).map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
