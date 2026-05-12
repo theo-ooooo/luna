@@ -24,6 +24,7 @@ export const Icons = {
   edit:     'M4 20h4l11-11-4-4L4 16v4zM14 5l4 4',
   drop:     'M12 3l5 7a6 6 0 11-10 0l5-7z',
   filter:   'M3 5h18M6 12h12M10 19h4',
+  trend:    'M3 18l4-6 4 4 4-8 4 4M3 18h18',
 } as const;
 
 export type IconName = keyof typeof Icons;
