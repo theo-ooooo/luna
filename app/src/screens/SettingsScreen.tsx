@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Radius, Shadow } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
+import Toast from 'react-native-toast-message';
 import { useAuthStore } from '../store/authStore';
 import { useUpdateProfile } from '../hooks/useProfile';
 
@@ -29,13 +30,13 @@ export function SettingsScreen() {
   }, [user]);
 
   function handleSave() {
-    update.reset();
-    update.mutate({
-      nickname: nickname.trim() || undefined,
-      cycle_length_default: cycleLen,
-      luteal_phase_length: lutealLen,
-      notifications_enabled: notiEnabled,
-    });
+    update.mutate(
+      { nickname: nickname.trim() || undefined, cycle_length_default: cycleLen, luteal_phase_length: lutealLen, notifications_enabled: notiEnabled },
+      {
+        onSuccess: () => Toast.show({ type: 'success', text1: '설정 저장 완료!' }),
+        onError: (err) => Toast.show({ type: 'error', text1: '저장 실패', text2: (err as Error).message ?? '다시 시도해주세요.' }),
+      },
+    );
   }
 
   function handleLogout() {
@@ -73,12 +74,7 @@ export function SettingsScreen() {
           </View>
         </View>
 
-        {update.isError && (
-          <Text style={styles.errorText}>{(update.error as Error)?.message ?? '저장에 실패했어요.'}</Text>
-        )}
-        {update.isSuccess && (
-          <Text style={styles.successText}>저장됐어요!</Text>
-        )}
+
 
         {/* 프로필 설정 */}
         <Section title="프로필">
@@ -182,8 +178,6 @@ const styles = StyleSheet.create({
   profileInfo: { flex: 1 },
   profileEmail: { fontSize: 13, fontWeight: '700', color: Colors.ink1 },
   profileSince: { fontSize: 11, color: Colors.ink3, marginTop: 2 },
-  errorText: { fontSize: 13, color: Colors.coral, textAlign: 'center' },
-  successText: { fontSize: 13, color: Colors.ink2, textAlign: 'center' },
   section: { backgroundColor: Colors.bgCard, borderRadius: Radius.tile, padding: 18 },
   sectionTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: Colors.ink3, marginBottom: 14 },
   settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 40 },

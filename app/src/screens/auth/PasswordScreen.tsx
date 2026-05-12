@@ -5,6 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors, Radius } from '../../theme/tokens';
 import { AuthField } from '../../components/auth/AuthField';
 import { PrimaryButton } from '../../components/auth/PrimaryButton';
+import Toast from 'react-native-toast-message';
 import { useLogin } from '../../hooks/useAuthMutations';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 
@@ -18,7 +19,10 @@ export function PasswordScreen({ navigation, route }: Props) {
 
   function handleLogin() {
     if (!password) return;
-    login.mutate({ email, password });
+    login.mutate(
+      { email, password },
+      { onError: (err) => Toast.show({ type: 'error', text1: '로그인 실패', text2: (err as Error).message ?? '이메일 또는 비밀번호를 확인해주세요.' }) },
+    );
   }
 
   return (
@@ -53,11 +57,6 @@ export function PasswordScreen({ navigation, route }: Props) {
               }
             />
 
-            {login.isError && (
-              <Text style={styles.error}>
-                {(login.error as Error)?.message ?? '로그인에 실패했어요.'}
-              </Text>
-            )}
 
             <PrimaryButton onPress={handleLogin} disabled={!password} loading={login.isPending}>
               로그인
@@ -86,5 +85,4 @@ const styles = StyleSheet.create({
   emailText: { fontSize: 13, fontWeight: '700', color: Colors.ink1 },
   form: { gap: 12 },
   forgotLink: { fontSize: 11, fontWeight: '600', color: Colors.ink3 },
-  error: { fontSize: 13, color: Colors.coral, textAlign: 'center' },
 });

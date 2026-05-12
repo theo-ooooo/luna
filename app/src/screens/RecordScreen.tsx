@@ -1,12 +1,16 @@
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import Toast from 'react-native-toast-message';
 import { Colors, Radius, Shadow } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
 import { FlowSelector } from '../components/record/FlowSelector';
 import { TagChipGroup } from '../components/record/TagChipGroup';
 import { useRecordForm } from '../hooks/useRecordForm';
 import { useTodayLog, useSaveDailyLog, buildLogFields } from '../hooks/useDailyLog';
+import type { TabParamList } from '../navigation/TabNavigator';
 
 const MOODS = ['좋음', '평온', '피곤', '짜증', '우울', '불안'] as const;
 const MOOD_EMOJI: Record<string, string> = {
@@ -19,12 +23,24 @@ export function RecordScreen() {
   const form = useRecordForm();
   const { data: todayLog } = useTodayLog();
   const save = useSaveDailyLog();
+  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
 
   const today = new Date();
   const dateLabel = `${today.getMonth() + 1}월 ${today.getDate()}일 · ${'일월화수목금토'[today.getDay()]}`;
 
   function handleSave() {
-    save.mutate({ id: todayLog?.id, fields: buildLogFields(form) });
+    save.mutate(
+      { id: todayLog?.id, fields: buildLogFields(form) },
+      {
+        onSuccess: () => {
+          Toast.show({ type: 'success', text1: '기록 저장 완료!', text2: '오늘의 기록이 저장됐어요.' });
+          navigation.navigate('Home');
+        },
+        onError: (err) => {
+          Toast.show({ type: 'error', text1: '저장 실패', text2: (err as Error).message ?? '다시 시도해주세요.' });
+        },
+      },
+    );
   }
 
   return (
@@ -33,7 +49,7 @@ export function RecordScreen() {
         <View style={styles.topBarLeft} />
         <Text style={styles.topBarLabel}>03 · 기록</Text>
         <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={save.isPending} accessibilityRole="button" accessibilityLabel="저장">
-          <Text style={styles.saveBtnText}>{save.isPending ? '저장 중…' : save.isSuccess ? '저장됨' : '저장'}</Text>
+          <Text style={styles.saveBtnText}>{save.isPending ? '저장 중…' : '저장'}</Text>
           <Icon name="check" size={14} strokeWidth={2.4} color={Colors.inkInv} />
         </TouchableOpacity>
       </View>
@@ -44,9 +60,6 @@ export function RecordScreen() {
           <Text style={styles.heroTitle}>오늘 어떠셨나요?</Text>
         </View>
 
-        {save.isError && (
-          <Text style={styles.errorText}>{(save.error as Error)?.message ?? '저장에 실패했어요.'}</Text>
-        )}
 
         <Section title="출혈량">
           <FlowSelector value={form.flow} onChange={form.setFlow} />
