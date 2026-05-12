@@ -46,10 +46,10 @@ export function InsightsScreen() {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
-        <Text style={styles.topBarLabel}>05 · 인사이트</Text>
-        <View style={styles.topBarRight}>
-          <Icon name="filter" size={20} color={Colors.ink2} />
-        </View>
+        <Text style={styles.topBarLabel}>{String(now.getMonth() + 1).padStart(2, '0')} · 인사이트</Text>
+        {/* TODO: 필터 기능 구현 예정 */}
+        <View style={styles.topBarRight} />
+
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -79,11 +79,11 @@ export function InsightsScreen() {
         {/* KPI tiles */}
         <View style={styles.kpiRow}>
           <KpiTile label="평균 주기" value={avgCycle.toFixed(1)} unit="일" bg={Colors.bgCard} />
-          <KpiTile label="평균 출혈" value="4.8" unit="일" bg={Colors.coral} inkLight />
+          <KpiTile label="평균 출혈" value="—" unit="일" bg={Colors.coral} inkLight />
         </View>
         <View style={styles.kpiRow}>
-          <KpiTile label="평균 BBT" value="36.6" unit="°" bg={Colors.lavender} />
-          <KpiTile label="규칙성" value="94" unit="%" bg={Colors.bgCard} />
+          <KpiTile label="평균 BBT" value="—" unit="°" bg={Colors.lavender} />
+          <KpiTile label="규칙성" value="—" unit="%" bg={Colors.bgCard} />
         </View>
 
         {/* BBT Chart */}
@@ -203,7 +203,7 @@ function BbtChart({ width, data, ovDay }: { width: number; data: number[]; ovDay
 
 function heatColor(v: number) {
   if (v === 0) return Colors.bgAlt;
-  const alpha = 0.25 + v * 0.25;
+  const alpha = Math.min(0.25 + v * 0.25, 1);
   return `rgba(255, 90, 71, ${alpha})`;
 }
 
@@ -226,7 +226,6 @@ const styles = StyleSheet.create({
   aiCardEyebrow: { fontSize: 11, fontWeight: '700', color: Colors.ink1, letterSpacing: 0.6 },
   aiCardText: { fontSize: 14, lineHeight: 22, color: Colors.ink1, fontWeight: '600', letterSpacing: -0.1 },
   aiCardTextMuted: { fontSize: 13, lineHeight: 20, color: Colors.ink2, fontWeight: '500', letterSpacing: -0.1 },
-  aiHighlight: { backgroundColor: Colors.ink1, color: Colors.lime, paddingHorizontal: 4, borderRadius: 4 },
 
   kpiRow: { flexDirection: 'row', gap: 10 },
   kpiTile: { flex: 1, borderRadius: Radius.tile, padding: 18, minHeight: 110, justifyContent: 'space-between' },
