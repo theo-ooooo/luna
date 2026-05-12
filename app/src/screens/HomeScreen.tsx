@@ -18,7 +18,7 @@ export function HomeScreen() {
   const { width: screenW } = useWindowDimensions();
   const bentoHalfWidth = (screenW - 32 - 10) / 2;
   const { data: prediction } = usePrediction();
-  const { data: latestCycle } = useLatestCycle();
+  const { data: latestCycle, isLoading: cycleLoading } = useLatestCycle();
   const startPeriod = useStartPeriod();
   const endPeriod = useEndPeriod();
   const [selectedFlow, setSelectedFlow] = useState<1 | 2 | 3>(2);
@@ -28,7 +28,8 @@ export function HomeScreen() {
   const phaseKey = phaseForDay(cycleDay, cycleLength);
   const dPeriod = daysUntilPeriod(cycleDay, cycleLength);
 
-  const isActivePeriod = !!latestCycle && !latestCycle.ended_on;
+  // Only treat as active if started within last 10 days — prevents historical signup cycle showing as "생리 중"
+  const isActivePeriod = !!latestCycle && !latestCycle.ended_on && daysSince(latestCycle.started_on) <= 10;
 
   function handleStartPeriod() {
     startPeriod.mutate(selectedFlow, {
@@ -92,8 +93,8 @@ export function HomeScreen() {
 
           <CycleRingTile day={cycleDay} cycleLength={cycleLength} phaseKey={phaseKey} startLabel={prediction ? `${cycleLength}일 평균 주기` : '데이터 없음'} />
 
-          {/* 생리 시작/종료 카드 */}
-          {isActivePeriod ? (
+          {/* 생리 시작/종료 카드 — 로딩 중엔 숨겨서 로딩 전 오작동 방지 */}
+          {!cycleLoading && isActivePeriod ? (
             <View style={[styles.periodCard, Shadow.card]}>
               <View style={styles.periodCardHeader}>
                 <View style={styles.activeDot} />
@@ -110,7 +111,7 @@ export function HomeScreen() {
                 <Text style={styles.periodBtnText}>{endPeriod.isPending ? '기록 중…' : '생리 종료'}</Text>
               </TouchableOpacity>
             </View>
-          ) : (
+          ) : !cycleLoading ? (
             <View style={[styles.periodCard, Shadow.card]}>
               <Text style={styles.periodCardTitle}>생리가 시작됐나요?</Text>
               <View style={styles.flowRow}>
@@ -137,11 +138,16 @@ export function HomeScreen() {
                 <Text style={styles.periodBtnText}>{startPeriod.isPending ? '기록 중…' : '생리 시작'}</Text>
               </TouchableOpacity>
             </View>
-          )}
+          ) : null}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+function daysSince(dateStr: string): number {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
 }
 
 const styles = StyleSheet.create({
