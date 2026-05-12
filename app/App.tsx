@@ -8,10 +8,16 @@ import { TabNavigator } from './src/navigation/TabNavigator';
 import { AuthNavigator } from './src/navigation/AuthNavigator';
 import { useAuthStore } from './src/store/authStore';
 import { toastConfig } from './src/components/ui/LunaToast';
+import { useNotificationSetup } from './src/hooks/useNotificationSetup';
+
+function AuthenticatedRoot() {
+  useNotificationSetup();
+  return <TabNavigator />;
+}
 
 function RootNavigator() {
   const token = useAuthStore(s => s.token);
-  return token ? <TabNavigator /> : <AuthNavigator />;
+  return token ? <AuthenticatedRoot /> : <AuthNavigator />;
 }
 
 export default function App() {

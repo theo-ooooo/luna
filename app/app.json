@@ -28,7 +28,16 @@
     },
     "plugins": [
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#F2847C",
+          "sounds": [],
+          "mode": "production"
+        }
+      ]
     ]
   }
 }
