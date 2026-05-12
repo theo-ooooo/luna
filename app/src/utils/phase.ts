@@ -7,7 +7,7 @@ export const CYCLE_DEFAULTS = {
   ovulationEnd: 16,   // day ≤ this → ovulation
 } as const;
 
-export function phaseForDay(day: number, cycleLength = CYCLE_DEFAULTS.length): PhaseKey {
+export function phaseForDay(day: number, cycleLength: number = CYCLE_DEFAULTS.length): PhaseKey {
   if (day < 1) day = 1;
   if (day > cycleLength) day = ((day - 1) % cycleLength) + 1;
   if (day <= CYCLE_DEFAULTS.period) return 'menstrual';
@@ -16,7 +16,7 @@ export function phaseForDay(day: number, cycleLength = CYCLE_DEFAULTS.length): P
   return 'luteal';
 }
 
-export function daysUntilPeriod(day: number, cycleLength = CYCLE_DEFAULTS.length): number {
+export function daysUntilPeriod(day: number, cycleLength: number = CYCLE_DEFAULTS.length): number {
   return Math.max(0, cycleLength - day + 1);
 }
 

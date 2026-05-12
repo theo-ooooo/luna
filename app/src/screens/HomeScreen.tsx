@@ -9,17 +9,18 @@ import { StatTile } from '../components/home/StatTile';
 import { MiniSparkline } from '../components/home/MiniSparkline';
 import { HydroBar } from '../components/home/HydroBar';
 import { CycleRingTile } from '../components/home/CycleRingTile';
-import { phaseForDay, daysUntilPeriod } from '../utils/phase';
-
-// TODO: replace with usePrediction() hook once API is wired
-const MOCK_CYCLE_DAY = 14;
+import { phaseForDay, daysUntilPeriod, CYCLE_DEFAULTS } from '../utils/phase';
+import { usePrediction } from '../hooks/usePrediction';
 
 export function HomeScreen() {
   const { width: screenW } = useWindowDimensions();
   const bentoHalfWidth = (screenW - 32 - 10) / 2;
+  const { data: prediction } = usePrediction();
 
-  const phaseKey = phaseForDay(MOCK_CYCLE_DAY);
-  const dPeriod = daysUntilPeriod(MOCK_CYCLE_DAY);
+  const cycleDay = prediction?.cycle_day ?? 1;
+  const cycleLength: number = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
+  const phaseKey = phaseForDay(cycleDay, cycleLength);
+  const dPeriod = daysUntilPeriod(cycleDay, cycleLength);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -36,7 +37,7 @@ export function HomeScreen() {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <HeroCard phaseKey={phaseKey} cycleDay={MOCK_CYCLE_DAY} daysUntilPeriod={dPeriod} />
+        <HeroCard phaseKey={phaseKey} cycleDay={cycleDay} daysUntilPeriod={dPeriod} />
 
         <View style={styles.bento}>
           {/* AI 인사이트 */}
@@ -60,7 +61,7 @@ export function HomeScreen() {
             <HydroBar pct={0.9} />
           </StatTile>
 
-          <CycleRingTile day={MOCK_CYCLE_DAY} phaseKey={phaseKey} startLabel="5월 1일 시작 · 28일 평균" />
+          <CycleRingTile day={cycleDay} phaseKey={phaseKey} startLabel={prediction ? `${cycleLength}일 평균 주기` : '데이터 없음'} />
         </View>
       </ScrollView>
     </SafeAreaView>
