@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { AuthNavigator } from './src/navigation/AuthNavigator';
 import { useAuthStore } from './src/store/authStore';
 import { toastConfig } from './src/components/ui/LunaToast';
 import { useNotificationSetup } from './src/hooks/useNotificationSetup';
+import { setupAndroidChannel } from './src/services/notifications';
 
 function AuthenticatedRoot() {
   useNotificationSetup();
@@ -24,6 +25,10 @@ export default function App() {
   const [queryClient] = useState(
     () => new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 60_000 } } }),
   );
+
+  useEffect(() => {
+    setupAndroidChannel().catch((e) => console.error('[Luna] Android channel setup failed:', e));
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

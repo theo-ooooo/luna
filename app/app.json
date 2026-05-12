@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.luna.app"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +22,10 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.luna.app",
+      "versionCode": 1,
+      "minSdkVersion": 26
     },
     "web": {
       "favicon": "./assets/favicon.png"
