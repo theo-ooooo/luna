@@ -7,21 +7,13 @@ import { Icon } from '../components/ui/Icon';
 import { usePrediction } from '../hooks/usePrediction';
 import { useCycleList } from '../hooks/useCycles';
 import { useMonthlyReport } from '../hooks/useMonthlyReport';
+import { useBbtHistory } from '../hooks/useBbtHistory';
+import { useSymptomHeatmap } from '../hooks/useSymptomHeatmap';
+import { useStats } from '../hooks/useStats';
 
 const CONTENT_PADDING = 16;
 const TILE_PADDING = 18;
 
-// Static mock data — BBT and symptoms require historical daily_logs aggregation (future API)
-const BBT_DATA = [36.4, 36.5, 36.4, 36.5, 36.4, 36.3, 36.5, 36.6, 36.5, 36.4, 36.3, 36.7, 36.9, 36.8];
-const BBT_OVULATION_DAY = 10;
-const SYMPTOMS = ['두통', '복통', '부종', '피로', '여드름'] as const;
-const HEATMAP_DATA = [
-  [0, 2, 3, 0, 1, 1, 0, 1, 2, 1, 0, 0],
-  [3, 2, 1, 0, 0, 1, 2, 3, 1, 0, 0, 1],
-  [1, 2, 3, 2, 1, 0, 0, 1, 2, 3, 1, 0],
-  [2, 1, 0, 1, 2, 1, 2, 1, 0, 1, 2, 1],
-  [0, 1, 2, 1, 0, 0, 1, 2, 1, 0, 1, 0],
-];
 export function InsightsScreen() {
   const { width: screenW } = useWindowDimensions();
   const { data: prediction } = usePrediction();
@@ -32,6 +24,9 @@ export function InsightsScreen() {
     return `${d.getMonth() + 1}월`;
   }), [now]);
   const { data: report, isLoading: reportLoading } = useMonthlyReport(now.getFullYear(), now.getMonth() + 1);
+  const { data: bbtHistory } = useBbtHistory();
+  const { data: heatmap } = useSymptomHeatmap();
+  const { data: stats } = useStats();
 
   const avgCycle = Number(prediction?.avg_cycle_length ?? 28);
   const chartW = screenW - CONTENT_PADDING * 2 - TILE_PADDING * 2;
@@ -81,11 +76,11 @@ export function InsightsScreen() {
         {/* KPI tiles */}
         <View style={styles.kpiRow}>
           <KpiTile label="평균 주기" value={avgCycle.toFixed(1)} unit="일" bg={Colors.bgCard} />
-          <KpiTile label="평균 출혈" value="—" unit="일" bg={Colors.coral} inkLight />
+          <KpiTile label="평균 출혈" value={stats?.avg_bleed_days != null ? stats.avg_bleed_days.toFixed(1) : '—'} unit="일" bg={Colors.coral} inkLight />
         </View>
         <View style={styles.kpiRow}>
-          <KpiTile label="평균 BBT" value="—" unit="°" bg={Colors.lavender} />
-          <KpiTile label="규칙성" value="—" unit="%" bg={Colors.bgCard} />
+          <KpiTile label="평균 BBT" value={stats?.avg_bbt != null ? stats.avg_bbt.toFixed(2) : '—'} unit="°" bg={Colors.lavender} />
+          <KpiTile label="규칙성" value={stats?.regularity_pct != null ? String(stats.regularity_pct) : '—'} unit="%" bg={Colors.bgCard} />
         </View>
 
         {/* BBT Chart */}
@@ -96,25 +91,36 @@ export function InsightsScreen() {
               <Text style={styles.tileTitle}>기초체온 변화</Text>
             </View>
           </View>
-          <BbtChart width={chartW} data={BBT_DATA} ovDay={BBT_OVULATION_DAY} />
+          {bbtHistory && bbtHistory.data.length > 0 ? (
+            <BbtChart
+              width={chartW}
+              data={bbtHistory.data.map(p => p.bbt)}
+              ovDay={bbtHistory.ovulation_on
+                ? Math.max(0, bbtHistory.data.findIndex(p => p.date >= bbtHistory.ovulation_on!))
+                : Math.floor(bbtHistory.data.length * 0.6)}
+            />
+          ) : (
+            <Text style={styles.tileEmpty}>BBT를 기록하면 여기에 차트가 표시돼요.</Text>
+          )}
         </View>
 
         {/* Symptom heatmap */}
         <View style={[styles.tile, Shadow.card]}>
           <Text style={styles.tileEyebrow}>증상 빈도 · 12주</Text>
-          <View style={styles.heatmapGrid}>
-            {SYMPTOMS.map((symptom, r) => (
-              <View key={symptom} style={styles.heatmapRow}>
-                <Text style={styles.heatmapLabel}>{symptom}</Text>
-                {HEATMAP_DATA[r].map((v, c) => (
-                  <View
-                    key={c}
-                    style={[styles.heatCell, { backgroundColor: heatColor(v) }]}
-                  />
-                ))}
-              </View>
-            ))}
-          </View>
+          {heatmap && heatmap.grid.some(row => row.some(v => v > 0)) ? (
+            <View style={styles.heatmapGrid}>
+              {heatmap.symptoms.map((symptom, r) => (
+                <View key={symptom} style={styles.heatmapRow}>
+                  <Text style={styles.heatmapLabel}>{symptom}</Text>
+                  {heatmap.grid[r].map((v, c) => (
+                    <View key={c} style={[styles.heatCell, { backgroundColor: heatColor(v) }]} />
+                  ))}
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.tileEmpty}>증상을 기록하면 패턴이 표시돼요.</Text>
+          )}
         </View>
 
         {/* Cycle length bars */}
@@ -247,6 +253,8 @@ const styles = StyleSheet.create({
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   legendLine: { width: 8, height: 2, borderRadius: 1 },
   legendText: { fontSize: 10, color: Colors.ink3, fontWeight: '500' },
+
+  tileEmpty: { fontSize: 13, color: Colors.ink3, fontWeight: '500', marginTop: 8, lineHeight: 20 },
 
   heatmapGrid: { gap: 4, marginTop: 8 },
   heatmapRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },

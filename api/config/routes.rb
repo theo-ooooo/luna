@@ -17,7 +17,16 @@ Rails.application.routes.draw do
       patch "users/me",  to: "users#update"
 
       resources :cycles, only: [:index, :create, :update, :destroy]
-      resources :daily_logs, only: [:index, :create, :update, :destroy]
+      resources :daily_logs, only: [:index, :create, :update, :destroy] do
+        collection do
+          get :bbt_history
+          get :symptom_heatmap
+        end
+      end
+
+      scope :stats do
+        get "summary", to: "stats#summary", as: :stats_summary
+      end
 
       scope :predictions do
         get "current",  to: "predictions#current",  as: :predictions_current

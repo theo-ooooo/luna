@@ -40,6 +40,47 @@ module Api
         success(nil)
       end
 
+      def bbt_history
+        latest_cycle = current_user.cycles.order(started_on: :desc).first
+        from = latest_cycle&.started_on || 30.days.ago.to_date
+
+        logs = current_user.daily_logs
+          .where(logged_on: from..Date.current)
+          .where.not(bbt: nil)
+          .order(:logged_on)
+          .select(:logged_on, :bbt)
+
+        prediction = current_user.predictions.order(computed_at: :desc).first
+
+        success({
+          data: logs.map { |l| { date: l.logged_on, bbt: l.bbt.to_f } },
+          cycle_start: from,
+          ovulation_on: prediction&.observed_ovulation_on || prediction&.predicted_ovulation_on
+        })
+      end
+
+      def symptom_heatmap
+        from = 12.weeks.ago.beginning_of_week(:monday).to_date
+        logs = current_user.daily_logs
+          .where(logged_on: from..Date.current)
+          .order(:logged_on)
+          .select(:logged_on, :headache, :cramps, :bloating, :fatigue)
+
+        symptom_cols  = %i[headache cramps bloating fatigue]
+        symptom_names = %w[두통 복통 부종 피로]
+        grid = Array.new(4) { Array.new(12, 0) }
+
+        logs.each do |log|
+          week_idx = ((log.logged_on - from) / 7).to_i
+          next unless week_idx.between?(0, 11)
+          symptom_cols.each_with_index do |col, s_idx|
+            grid[s_idx][week_idx] = [grid[s_idx][week_idx] + (log.send(col).to_i > 0 ? 1 : 0), 3].min
+          end
+        end
+
+        success({ symptoms: symptom_names, weeks: 12, grid: grid })
+      end
+
       private
 
       def parse_date(str)
