@@ -14,6 +14,16 @@ interface CyclesResponse {
   meta: { total: number; page: number; per: number };
 }
 
+export function useCycleList(per = 6) {
+  return useQuery({
+    queryKey: ['cycles', 'list', per],
+    queryFn: async () => {
+      const res = await api.get<CyclesResponse>(`/api/v1/cycles?page=1&per=${per}`);
+      return res.cycles;
+    },
+  });
+}
+
 export function useLatestCycle() {
   return useQuery({
     queryKey: ['cycles', 'latest'],

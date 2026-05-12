@@ -5,14 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Radius, Shadow } from '../theme/tokens';
 import { Icon, IconName } from '../components/ui/Icon';
 import { HomeScreen } from '../screens/HomeScreen';
-import { CalendarScreen } from '../screens/CalendarScreen';
+import { InsightsScreen } from '../screens/InsightsScreen';
 import { RecordScreen } from '../screens/RecordScreen';
 import { AIScreen } from '../screens/AIScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 
 export type TabParamList = {
   Home: undefined;
-  Calendar: undefined;
+  Insights: undefined;
   Record: undefined;
   AI: undefined;
   Settings: undefined;
@@ -28,8 +28,8 @@ interface TabItem {
 }
 
 const TABS: TabItem[] = [
-  { id: 'Home',     label: '홈',    icon: 'home' },
-  { id: 'Calendar', label: '캘린더', icon: 'calendar' },
+  { id: 'Home',     label: '홈',      icon: 'home' },
+  { id: 'Insights', label: '인사이트', icon: 'trend' },
   { id: 'Record',   label: '기록',  icon: 'plus', primary: true },
   { id: 'AI',       label: 'AI',    icon: 'spark' },
   { id: 'Settings', label: '설정',  icon: 'user' },
@@ -94,7 +94,7 @@ export function TabNavigator() {
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Calendar" component={CalendarScreen} />
+      <Tab.Screen name="Insights" component={InsightsScreen} />
       <Tab.Screen name="Record" component={RecordScreen} />
       <Tab.Screen name="AI" component={AIScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
