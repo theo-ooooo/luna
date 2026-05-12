@@ -18,8 +18,8 @@ module Ai
       @client = Anthropic::Client.new(api_key: ENV.fetch("ANTHROPIC_API_KEY"))
     end
 
-    def stream(conversation, message, &)
-      context = Ai::ContextBuilder.new(@user).build
+    def stream(conversation, message, context: nil, &)
+      context ||= Ai::ContextBuilder.new(@user).build
 
       system_content = [
         { type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } },
@@ -66,7 +66,7 @@ module Ai
       cycle = user.cycles.where(started_on: start_date..end_date).first
       return nil unless cycle
 
-      logs = user.daily_logs.for_range(start_date, end_date)
+      logs = user.daily_logs.for_range(start_date, end_date).to_a
       prediction = user.predictions.where(cycle: cycle).first
 
       {

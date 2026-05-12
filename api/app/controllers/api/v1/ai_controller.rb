@@ -5,8 +5,9 @@ module Api
         message = params.require(:message)
         conversation = find_or_create_conversation
 
+        context = Ai::ContextBuilder.new(current_user).build
         conversation.append_message("user", message)
-        conversation.update!(context_snapshot: Ai::ContextBuilder.new(current_user).build)
+        conversation.update!(context_snapshot: context)
 
         response.headers["Content-Type"] = "text/event-stream"
         response.headers["X-Accel-Buffering"] = "no"
@@ -18,7 +19,7 @@ module Api
 
         begin
           service = Ai::ChatService.new(current_user)
-          service.stream(conversation, message) do |event|
+          service.stream(conversation, message, context: context) do |event|
             if event.type == "content_block_delta" && event.delta.type == "text_delta"
               text = event.delta.text
               full_response << text

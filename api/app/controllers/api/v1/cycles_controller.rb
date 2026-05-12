@@ -8,11 +8,10 @@ module Api
         per = [[( params[:per] || 12).to_i, 24].min, 1].max
 
         cycles = current_user.cycles.order(started_on: :desc).page(page).per(per)
-        total = current_user.cycles.count
 
         success({
           cycles: cycles.map { |c| cycle_json(c) },
-          meta: { total: total, page: page, per: per }
+          meta: { total: cycles.total_count, page: page, per: per }
         })
       end
 

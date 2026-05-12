@@ -8,8 +8,10 @@ class PredictionService
   end
 
   def compute!
-    completed_cycles = @user.cycles.recent(MAX_CYCLES_USED).to_a
-    latest_cycle = @user.cycles.order(started_on: :desc).first
+    # 최근 주기를 한 번만 조회 — completed + ongoing 포함
+    all_recent = @user.cycles.order(started_on: :desc).limit(MAX_CYCLES_USED + 1).to_a
+    latest_cycle = all_recent.first
+    completed_cycles = all_recent.select(&:ended_on).first(MAX_CYCLES_USED)
 
     avg_length, cycles_count = if completed_cycles.size >= MIN_CYCLES_FOR_PREDICTION
       weighted_average(completed_cycles)
@@ -17,17 +19,16 @@ class PredictionService
       [@user.cycle_length_default.to_f, 0]
     end
 
-    last_cycle = latest_cycle
-    last_start = last_cycle&.started_on || Date.current
+    last_start = latest_cycle&.started_on || Date.current
 
     predicted_start = last_start + avg_length.round.days
     ovulation = predicted_start - @user.luteal_phase_length.days
 
-    observed = observed_ovulation_for_cycle(last_cycle)
+    observed = observed_ovulation_for_cycle(latest_cycle)
 
     Prediction.create!(
       user: @user,
-      cycle: last_cycle,
+      cycle: latest_cycle,
       predicted_period_start: predicted_start,
       predicted_ovulation_on: ovulation,
       fertile_start: ovulation - 2.days,
