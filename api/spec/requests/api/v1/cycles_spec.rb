@@ -33,13 +33,13 @@ RSpec.describe "Api::V1::Cycles", type: :request do
 
     it "미래 날짜 시작 시 422 반환" do
       post "/api/v1/cycles", params: { started_on: Date.tomorrow.to_s }, headers: headers, as: :json
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "중복 날짜 시작 시 422 반환" do
       create(:cycle, :ongoing, user: user, started_on: Date.current)
       post "/api/v1/cycles", params: params, headers: headers, as: :json
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 

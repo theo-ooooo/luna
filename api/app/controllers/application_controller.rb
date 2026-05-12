@@ -5,7 +5,7 @@ class ApplicationController < ActionController::API
     render json: { status: true, data: data, error: nil }, status: status
   end
 
-  def failure(code, message, status: :unprocessable_entity)
+  def failure(code, message, status: :unprocessable_content)
     render json: { status: false, data: nil, error: { code: code, message: message } }, status: status
   end
 
@@ -14,7 +14,7 @@ class ApplicationController < ActionController::API
   end
 
   rescue_from ActiveRecord::RecordInvalid do |e|
-    failure("VALIDATION_ERROR", e.message, status: :unprocessable_entity)
+    failure("VALIDATION_ERROR", e.message, status: :unprocessable_content)
   end
 
   rescue_from ActionController::ParameterMissing do |e|

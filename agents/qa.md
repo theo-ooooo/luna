@@ -115,7 +115,26 @@
 
 GATE 4 통과 조건: **Critical 0건 + High 0건**
 
+## 결과 보고 채널 (오케스트레이터 필독)
+
+QA 완료 후 반드시 **두 곳 모두**에 결과를 게시한다.
+
+1. **PR 코멘트**: `gh pr comment <PR번호> --body "<리포트>"`
+2. **Discord**: `mcp__plugin_discord_discord__reply` 도구로 `chat_id: 1486260878687997972`에 요약 전송
+
+Discord 메시지 포맷:
+```
+PR #<번호> QA 완료 — GATE 4 <PASS/FAIL>
+
+RSpec <N>/<N> PASS
+시나리오 <N>개 항목 전부 PASS / FAIL <N>건
+Critical: <N>건 / High: <N>건
+
+<이슈 있으면 항목별 한 줄 요약>
+
+<PR URL>
+```
+
 ## 제약
 - 프로덕션 DB 직접 조작 금지
 - 테스트용 사용자 데이터는 테스트 완료 후 삭제
-- 결과 리포트는 반드시 오케스트레이터에게 반환 (파일 저장 금지)

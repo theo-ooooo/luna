@@ -23,14 +23,14 @@ RSpec.describe "Api::V1::Auth", type: :request do
     it "이메일 중복 시 422" do
       create(:user, email: "test@example.com")
       post "/api/v1/auth/signup", params: params, as: :json
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "비밀번호 8자 미만 시 422" do
       post "/api/v1/auth/signup",
            params: params.deep_merge(user: { password: "short" }),
            as: :json
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 
