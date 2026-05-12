@@ -1,17 +1,24 @@
-import { useState, useCallback, useRef } from 'react';
-import { useAuthStore } from '../store/authStore';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { api } from '../api/client';
 import type { ChatMessage } from '../types/chat';
-
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 
 export function useAiChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const conversationIdRef = useRef<number | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
 
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || isStreaming) return;
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -32,22 +39,16 @@ export function useAiChat() {
     setIsStreaming(true);
 
     try {
-      const token = useAuthStore.getState().token;
-      const res = await fetch(`${BASE_URL}/api/v1/ai/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
+      const res = await api.streamPost(
+        '/api/v1/ai/chat',
+        {
           message: trimmed,
           ...(conversationIdRef.current !== null ? { conversation_id: conversationIdRef.current } : {}),
-        }),
-      });
+        },
+        controller.signal,
+      );
 
-      if (!res.ok || !res.body) {
-        throw new Error(`HTTP ${res.status}`);
-      }
+      if (!res.body) throw new Error('No response body');
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -81,7 +82,8 @@ export function useAiChat() {
           }
         }
       }
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') return;
       setMessages(prev => prev.map(m =>
         m.id === assistantId
           ? { ...m, content: '오류가 발생했어요. 다시 시도해 주세요.', isStreaming: false }
