@@ -5,6 +5,7 @@ import type { ChatMessage } from '../types/chat';
 export function useAiChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
+  const isStreamingRef = useRef(false);
   const conversationIdRef = useRef<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -14,7 +15,7 @@ export function useAiChat() {
 
   const sendMessage = useCallback(async (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || isStreaming) return;
+    if (!trimmed || isStreamingRef.current) return;
 
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -36,6 +37,7 @@ export function useAiChat() {
     };
 
     setMessages(prev => [...prev, userMsg, assistantMsg]);
+    isStreamingRef.current = true;
     setIsStreaming(true);
 
     try {
@@ -90,9 +92,10 @@ export function useAiChat() {
           : m
       ));
     } finally {
+      isStreamingRef.current = false;
       setIsStreaming(false);
     }
-  }, [isStreaming]);
+  }, []);
 
   return { messages, isStreaming, sendMessage };
 }
