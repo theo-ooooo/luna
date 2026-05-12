@@ -25,8 +25,18 @@ export function useLogin() {
 export function useSignup() {
   const setAuth = useAuthStore(s => s.setAuth);
   return useMutation({
-    mutationFn: ({ email, password, nickname }: { email: string; password: string; nickname: string }) =>
-      api.post<AuthResponse>('/api/v1/auth/signup', { user: { email, password, password_confirmation: password, nickname } }),
+    mutationFn: async ({
+      email, password, nickname, cycleLength, lastPeriodDate,
+    }: {
+      email: string; password: string; nickname: string;
+      cycleLength: number; lastPeriodDate: string;
+    }) => {
+      const auth = await api.post<AuthResponse>('/api/v1/auth/signup', {
+        user: { email, password, password_confirmation: password, nickname, cycle_length_default: cycleLength },
+      });
+      await api.post('/api/v1/cycles', { started_on: lastPeriodDate, flow_level: 1 });
+      return auth;
+    },
     onSuccess: ({ token, user }) => setAuth(token, user),
   });
 }
