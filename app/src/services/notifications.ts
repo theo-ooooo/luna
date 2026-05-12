@@ -11,6 +11,12 @@ Notifications.setNotificationHandler({
   }),
 });
 
+// Parses "YYYY-MM-DD" in local timezone, avoiding the UTC-midnight trap of new Date(str)
+function parseLocalDate(s: string): Date {
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
 // Stable identifier prefix per notification type for idempotent cancel+reschedule
 const IDS = {
   periodD3: 'luna-period-d3',
@@ -41,15 +47,14 @@ interface ScheduleInput {
 }
 
 export async function scheduleNotifications(input: ScheduleInput) {
+  const anyEnabled = Object.values(input.prefs).some(Boolean);
   await cancelAllLunaNotifications();
-
-  if (!input.prefs.periodReminder && !input.prefs.ovulationAlert && !input.prefs.fertileStart &&
-      !input.prefs.logNudge && !input.prefs.dailyReminder && !input.prefs.monthlyReport) return;
+  if (!anyEnabled) return;
 
   const tasks: Promise<void>[] = [];
 
   if (input.periodStart) {
-    const d = new Date(input.periodStart);
+    const d = parseLocalDate(input.periodStart);
     if (input.prefs.periodReminder) {
       tasks.push(scheduleAt(IDS.periodD3, daysOffset(d, -3, 9), '생리 예정 D-3', '3일 후 생리가 예정되어 있어요.'));
       tasks.push(scheduleAt(IDS.periodD1, daysOffset(d, -1, 9), '생리 예정 내일', '내일 생리가 예정되어 있어요.'));
@@ -60,7 +65,7 @@ export async function scheduleNotifications(input: ScheduleInput) {
   }
 
   if (input.ovulationOn) {
-    const d = new Date(input.ovulationOn);
+    const d = parseLocalDate(input.ovulationOn);
     if (input.prefs.ovulationAlert) {
       tasks.push(scheduleAt(IDS.ovulationD2, daysOffset(d, -2, 9), '배란 예정 D-2', '2일 후 배란이 예정되어 있어요.'));
       tasks.push(scheduleAt(IDS.ovulationD0, daysOffset(d, 0, 9), '배란 예정일', '오늘이 배란 예정일이에요.'));
@@ -68,7 +73,7 @@ export async function scheduleNotifications(input: ScheduleInput) {
   }
 
   if (input.fertileStart && input.prefs.fertileStart) {
-    const d = new Date(input.fertileStart);
+    const d = parseLocalDate(input.fertileStart);
     tasks.push(scheduleAt(IDS.fertileStart, daysOffset(d, 0, 9), '가임기 시작', '오늘부터 가임기가 시작돼요.'));
   }
 
@@ -77,7 +82,7 @@ export async function scheduleNotifications(input: ScheduleInput) {
   }
 
   if (input.cycleEndedOn && input.prefs.monthlyReport) {
-    const d = new Date(input.cycleEndedOn);
+    const d = parseLocalDate(input.cycleEndedOn);
     tasks.push(scheduleAt(IDS.monthlyReport, daysOffset(d, 1, 10), '월간 리포트 준비됨', '이번 주기 리포트를 확인해보세요.'));
   }
 
@@ -90,8 +95,8 @@ export async function cancelLogNudge() {
 
 export async function cancelAllLunaNotifications() {
   const all = await Notifications.getAllScheduledNotificationsAsync();
-  const luna = all.filter((n) => (n.identifier as string).startsWith('luna-'));
-  await Promise.all(luna.map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)));
+  const luna = all.filter((n) => n.identifier.startsWith('luna-'));
+  await Promise.allSettled(luna.map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)));
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

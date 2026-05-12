@@ -18,7 +18,7 @@ export function SettingsScreen() {
   const update = useUpdateProfile();
   const qc = useQueryClient();
 
-  const { prefs, setPrefs, permissionGranted } = useNotificationStore();
+  const { prefs, setPrefs, permissionGranted, permissionChecked } = useNotificationStore();
 
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [cycleLen, setCycleLen] = useState(user?.cycle_length_default ?? 28);
@@ -120,7 +120,7 @@ export function SettingsScreen() {
 
         {/* 알림 */}
         <Section title="알림">
-          {!permissionGranted && (
+          {permissionChecked && !permissionGranted && (
             <View style={styles.notiWarning}>
               <Text style={styles.notiWarningText}>알림 권한이 허용되지 않았습니다. 기기 설정에서 Luna 알림을 켜주세요.</Text>
             </View>

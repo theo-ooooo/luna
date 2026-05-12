@@ -83,7 +83,7 @@ export function useSaveDailyLog() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['dailyLog', today] });
       // cancel log-nudge notification if user logged today
-      import('../services/notifications').then(({ cancelLogNudge }) => cancelLogNudge());
+      import('../services/notifications').then(({ cancelLogNudge }) => cancelLogNudge()).catch(() => {});
     },
   });
 }

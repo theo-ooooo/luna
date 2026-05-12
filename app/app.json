@@ -34,8 +34,7 @@
         {
           "icon": "./assets/icon.png",
           "color": "#F2847C",
-          "sounds": [],
-          "mode": "production"
+          "sounds": []
         }
       ]
     ]

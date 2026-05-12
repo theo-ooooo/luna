@@ -13,6 +13,7 @@ export interface NotificationPrefs {
 
 interface NotificationState {
   permissionGranted: boolean;
+  permissionChecked: boolean;  // true after first OS check completes on this launch
   prefs: NotificationPrefs;
   setPermissionGranted: (v: boolean) => void;
   setPrefs: (p: Partial<NotificationPrefs>) => void;
@@ -31,13 +32,16 @@ export const useNotificationStore = create<NotificationState>()(
   persist(
     (set) => ({
       permissionGranted: false,
+      permissionChecked: false,
       prefs: defaultPrefs,
-      setPermissionGranted: (v) => set({ permissionGranted: v }),
+      setPermissionGranted: (v) => set({ permissionGranted: v, permissionChecked: true }),
       setPrefs: (p) => set((s) => ({ prefs: { ...s.prefs, ...p } })),
     }),
     {
       name: 'luna-notifications',
       storage: createJSONStorage(() => AsyncStorage),
+      // permissionChecked is session-only — always re-check on each launch
+      partialize: (s) => ({ permissionGranted: s.permissionGranted, prefs: s.prefs }),
     },
   ),
 );
