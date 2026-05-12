@@ -38,7 +38,6 @@ export function InsightsScreen() {
 
   const cycleBarData = cycles
     .filter(c => c.length_days != null)
-    .slice(0, 6)
     .reverse()
     .map(c => ({
       days: c.length_days!,
@@ -102,7 +101,7 @@ export function InsightsScreen() {
 
         {/* Symptom heatmap */}
         <View style={[styles.tile, Shadow.card]}>
-          <Text style={styles.tileEyebrow}>증상 빈도 · 6개월</Text>
+          <Text style={styles.tileEyebrow}>증상 빈도 · 12주</Text>
           <View style={styles.heatmapGrid}>
             {SYMPTOMS.map((symptom, r) => (
               <View key={symptom} style={styles.heatmapRow}>
@@ -144,9 +143,9 @@ export function InsightsScreen() {
 }
 
 function KpiTile({ label, value, unit, bg, inkLight = false }: { label: string; value: string; unit: string; bg: string; inkLight?: boolean }) {
-  const labelColor = inkLight ? Colors.bgCard : Colors.ink3;
+  const labelColor = inkLight ? Colors.bgCard : Colors.ink2;
   const valueColor = inkLight ? Colors.bgCard : Colors.ink1;
-  const unitColor  = inkLight ? Colors.bgCard : Colors.ink3;
+  const unitColor  = inkLight ? Colors.bgCard : Colors.ink2;
   return (
     <View style={[styles.kpiTile, { backgroundColor: bg }]}>
       <Text style={[styles.kpiLabel, { color: labelColor }]}>{label}</Text>
@@ -159,6 +158,7 @@ function KpiTile({ label, value, unit, bg, inkLight = false }: { label: string; 
 }
 
 function BbtChart({ width, data, ovDay }: { width: number; data: number[]; ovDay: number }) {
+  const safeOvDay = Math.min(ovDay, data.length - 1);
   const h = 130, padX = 28, padY = 20;
   const minV = 36.2, maxV = 37.0;
   const innerW = width - padX * 2;
@@ -168,10 +168,10 @@ function BbtChart({ width, data, ovDay }: { width: number; data: number[]; ovDay
   const xs = (i: number) => padX + (i / divisor) * innerW;
   const ys = (v: number) => h - padY - ((clamp(v) - minV) / (maxV - minV)) * innerH;
 
-  const preOvPath  = data.slice(0, ovDay + 1).map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
-  const postOvPath = data.slice(ovDay).map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i + ovDay).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
+  const preOvPath  = data.slice(0, safeOvDay + 1).map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
+  const postOvPath = data.slice(safeOvDay).map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i + safeOvDay).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
   const gridLevels = [36.4, 36.6, 36.8];
-  const ovX = xs(ovDay);
+  const ovX = xs(safeOvDay);
 
   return (
     <View>
@@ -191,7 +191,7 @@ function BbtChart({ width, data, ovDay }: { width: number; data: number[]; ovDay
         {/* Dots */}
         {data.map((v, i) => (
           <Circle key={i} cx={xs(i)} cy={ys(v)} r={i === data.length - 1 ? 4 : 2.5}
-            fill={i <= ovDay ? Colors.coral : Colors.lavenderDeep}
+            fill={i <= safeOvDay ? Colors.coral : Colors.lavenderDeep}
             stroke={i === data.length - 1 ? Colors.bgCard : 'none'} strokeWidth={2}
           />
         ))}
