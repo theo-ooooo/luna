@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, ScrollView, StyleSheet, useWindowDimensions, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path, Line, Circle, Rect, Text as SvgText } from 'react-native-svg';
@@ -7,6 +7,9 @@ import { Icon } from '../components/ui/Icon';
 import { usePrediction } from '../hooks/usePrediction';
 import { useCycleList } from '../hooks/useCycles';
 import { useMonthlyReport } from '../hooks/useMonthlyReport';
+
+const CONTENT_PADDING = 16;
+const TILE_PADDING = 18;
 
 // Static mock data — BBT and symptoms require historical daily_logs aggregation (future API)
 const BBT_DATA = [36.4, 36.5, 36.4, 36.5, 36.4, 36.3, 36.5, 36.6, 36.5, 36.4, 36.3, 36.7, 36.9, 36.8];
@@ -23,15 +26,15 @@ export function InsightsScreen() {
   const { width: screenW } = useWindowDimensions();
   const { data: prediction } = usePrediction();
   const { data: cycles = [] } = useCycleList(6);
-  const now = new Date();
-  const monthLabels = Array.from({ length: 6 }, (_, i) => {
+  const now = useMemo(() => new Date(), []);
+  const monthLabels = useMemo(() => Array.from({ length: 6 }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
     return `${d.getMonth() + 1}월`;
-  });
+  }), [now]);
   const { data: report, isLoading: reportLoading } = useMonthlyReport(now.getFullYear(), now.getMonth() + 1);
 
   const avgCycle = prediction?.avg_cycle_length ?? 28;
-  const chartW = screenW - 32 - 36; // tile padding
+  const chartW = screenW - CONTENT_PADDING * 2 - TILE_PADDING * 2;
 
   const cycleBarData = cycles
     .filter(c => c.length_days != null)
@@ -43,7 +46,7 @@ export function InsightsScreen() {
     }));
 
   const barData = cycleBarData.length >= 1 ? cycleBarData : monthLabels.map((label, i) => ({ days: 26 + (i % 3), label }));
-  const maxBar = Math.max(...barData.map(b => b.days));
+  const maxBar = Math.max(...barData.map(b => b.days), 1);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -213,7 +216,7 @@ const styles = StyleSheet.create({
   topBarLabel: { fontSize: 13, fontWeight: '700', color: Colors.ink3, letterSpacing: -0.1 },
   topBarRight: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   scroll: { flex: 1 },
-  content: { paddingHorizontal: 16, paddingBottom: 120, gap: 12 },
+  content: { paddingHorizontal: CONTENT_PADDING, paddingBottom: 120, gap: 12 },
 
   heroSection: { paddingTop: 4, paddingBottom: 4 },
   heroEyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, color: Colors.ink3, marginBottom: 8 },
