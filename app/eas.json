@@ -24,7 +24,7 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "kwkang@ssrinc.co.kr",
+        "appleId": "$APPLE_ID",
         "ascAppId": "$APP_STORE_CONNECT_APP_ID",
         "appleTeamId": "$APPLE_TEAM_ID"
       },
