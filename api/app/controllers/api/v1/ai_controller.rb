@@ -6,6 +6,7 @@ module Api
         conversation = find_or_create_conversation
 
         context = Ai::ContextBuilder.new(current_user).build
+        conversation.messages_will_change!
         conversation.messages << { "role" => "user", "content" => message, "ts" => Time.current.iso8601 }
         conversation.update!(context_snapshot: context)
 
