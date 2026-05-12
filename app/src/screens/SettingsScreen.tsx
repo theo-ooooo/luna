@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Radius, Shadow } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
 import Toast from 'react-native-toast-message';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { useUpdateProfile } from '../hooks/useProfile';
 
@@ -14,6 +15,7 @@ export function SettingsScreen() {
   const user = useAuthStore(s => s.user);
   const clearAuth = useAuthStore(s => s.clearAuth);
   const update = useUpdateProfile();
+  const qc = useQueryClient();
 
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [cycleLen, setCycleLen] = useState(user?.cycle_length_default ?? 28);
@@ -42,7 +44,7 @@ export function SettingsScreen() {
   function handleLogout() {
     Alert.alert('로그아웃', '정말 로그아웃할까요?', [
       { text: '취소', style: 'cancel' },
-      { text: '로그아웃', style: 'destructive', onPress: clearAuth },
+      { text: '로그아웃', style: 'destructive', onPress: () => { qc.clear(); clearAuth(); } },
     ]);
   }
 
