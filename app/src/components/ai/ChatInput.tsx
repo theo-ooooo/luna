@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Radius } from '../../theme/tokens';
 import { Icon } from '../ui/Icon';
 
@@ -10,6 +11,7 @@ interface ChatInputProps {
 
 export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   const [text, setText] = useState('');
+  const insets = useSafeAreaInsets();
 
   function handleSend() {
     if (!text.trim() || disabled) return;
@@ -18,7 +20,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: insets.bottom + 80 }]}>
       <TextInput
         style={styles.input}
         value={text}

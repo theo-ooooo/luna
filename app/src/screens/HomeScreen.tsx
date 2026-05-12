@@ -69,6 +69,53 @@ export function HomeScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <HeroCard phaseKey={phaseKey} cycleDay={cycleDay} daysUntilPeriod={dPeriod} />
 
+        {/* 생리 시작/종료 카드 — HeroCard 바로 아래 배치, 로딩 중엔 숨겨서 오작동 방지 */}
+        {!cycleLoading && isActivePeriod ? (
+          <View style={[styles.periodCard, Shadow.card]}>
+            <View style={styles.periodCardHeader}>
+              <View style={styles.activeDot} />
+              <Text style={styles.periodCardTitle}>생리 중</Text>
+              <Text style={styles.periodCardSince}>
+                {latestCycle.started_on.slice(5).replace('-', '/')} 시작
+              </Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.periodBtn, styles.periodBtnEnd]}
+              onPress={handleEndPeriod}
+              disabled={endPeriod.isPending}
+            >
+              <Text style={[styles.periodBtnText, styles.periodBtnTextDark]}>{endPeriod.isPending ? '기록 중…' : '생리 종료'}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : !cycleLoading ? (
+          <View style={[styles.periodCard, Shadow.card]}>
+            <Text style={styles.periodCardTitle}>생리가 시작됐나요?</Text>
+            <View style={styles.flowRow}>
+              {([1, 2, 3] as const).map((lv) => {
+                const labels = { 1: '가벼움', 2: '보통', 3: '많음' };
+                return (
+                  <TouchableOpacity
+                    key={lv}
+                    style={[styles.flowChip, selectedFlow === lv && styles.flowChipActive]}
+                    onPress={() => setSelectedFlow(lv)}
+                  >
+                    <Text style={[styles.flowChipText, selectedFlow === lv && styles.flowChipTextActive]}>
+                      {labels[lv]}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <TouchableOpacity
+              style={[styles.periodBtn, styles.periodBtnStart]}
+              onPress={handleStartPeriod}
+              disabled={startPeriod.isPending}
+            >
+              <Text style={styles.periodBtnText}>{startPeriod.isPending ? '기록 중…' : '생리 시작'}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
         <View style={styles.bento}>
           {/* AI 인사이트 */}
           <View style={[styles.aiCard, Shadow.card]}>
@@ -92,53 +139,6 @@ export function HomeScreen() {
           </StatTile>
 
           <CycleRingTile day={cycleDay} cycleLength={cycleLength} phaseKey={phaseKey} startLabel={prediction ? `${cycleLength}일 평균 주기` : '데이터 없음'} />
-
-          {/* 생리 시작/종료 카드 — 로딩 중엔 숨겨서 로딩 전 오작동 방지 */}
-          {!cycleLoading && isActivePeriod ? (
-            <View style={[styles.periodCard, Shadow.card]}>
-              <View style={styles.periodCardHeader}>
-                <View style={styles.activeDot} />
-                <Text style={styles.periodCardTitle}>생리 중</Text>
-                <Text style={styles.periodCardSince}>
-                  {latestCycle.started_on.slice(5).replace('-', '/')} 시작
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={[styles.periodBtn, styles.periodBtnEnd]}
-                onPress={handleEndPeriod}
-                disabled={endPeriod.isPending}
-              >
-                <Text style={styles.periodBtnText}>{endPeriod.isPending ? '기록 중…' : '생리 종료'}</Text>
-              </TouchableOpacity>
-            </View>
-          ) : !cycleLoading ? (
-            <View style={[styles.periodCard, Shadow.card]}>
-              <Text style={styles.periodCardTitle}>생리가 시작됐나요?</Text>
-              <View style={styles.flowRow}>
-                {([1, 2, 3] as const).map((lv) => {
-                  const labels = { 1: '가벼움', 2: '보통', 3: '많음' };
-                  return (
-                    <TouchableOpacity
-                      key={lv}
-                      style={[styles.flowChip, selectedFlow === lv && styles.flowChipActive]}
-                      onPress={() => setSelectedFlow(lv)}
-                    >
-                      <Text style={[styles.flowChipText, selectedFlow === lv && styles.flowChipTextActive]}>
-                        {labels[lv]}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <TouchableOpacity
-                style={[styles.periodBtn, styles.periodBtnStart]}
-                onPress={handleStartPeriod}
-                disabled={startPeriod.isPending}
-              >
-                <Text style={styles.periodBtnText}>{startPeriod.isPending ? '기록 중…' : '생리 시작'}</Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -182,4 +182,5 @@ const styles = StyleSheet.create({
   periodBtnStart: { backgroundColor: Colors.coral },
   periodBtnEnd: { backgroundColor: Colors.bgAlt },
   periodBtnText: { fontSize: 14, fontWeight: '700', color: Colors.inkInv },
+  periodBtnTextDark: { color: Colors.ink1 },
 });

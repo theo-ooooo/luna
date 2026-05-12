@@ -6,26 +6,25 @@ module Ai
 
     SYSTEM = <<~PROMPT.freeze
       You are a JSON-only health data extractor for a menstrual cycle app.
-      Read the Korean text and return a single JSON object — no markdown, no explanation.
+      The user's text will be inside <user_input> tags. Read only that text.
+      Return a single JSON object — no markdown, no explanation.
+
+      Extract into this exact JSON structure.
+      Only include items actually mentioned. Unknown fields → null or [].
+
+      Valid moods: #{VALID_MOODS.join(', ')}
+      Valid symptoms: #{VALID_SYMPTOMS.join(', ')}
+      Valid flow: null | "none" | "spot" | "light" | "med" | "heavy"
+      lh_result: null | 0 (not tested) | 1 (negative) | 2 (positive/surge)
+      bbt: number as string e.g. "36.7" | null
+      notes: brief Korean summary of what was said | null
+
+      Return only:
+      {"moods":[],"symptoms":[],"flow":null,"bbt":null,"lh_result":null,"notes":null}
     PROMPT
 
     USER_TEMPLATE = ->(text) {
-      <<~PROMPT
-        Input: "#{text}"
-
-        Extract into this exact JSON structure.
-        Only include items actually mentioned. Unknown fields → null or [].
-
-        Valid moods: #{VALID_MOODS.join(', ')}
-        Valid symptoms: #{VALID_SYMPTOMS.join(', ')}
-        Valid flow: null | "none" | "spot" | "light" | "med" | "heavy"
-        lh_result: null | 0 (not tested) | 1 (negative) | 2 (positive/surge)
-        bbt: number as string e.g. "36.7" | null
-        notes: brief Korean summary of what was said | null
-
-        Return only:
-        {"moods":[],"symptoms":[],"flow":null,"bbt":null,"lh_result":null,"notes":null}
-      PROMPT
+      "<user_input>\n#{text}\n</user_input>"
     }
 
     def initialize
@@ -40,8 +39,10 @@ module Ai
         messages: [{ role: "user", content: USER_TEMPLATE.call(text.strip) }]
       )
 
-      raw = response.content.first.text.strip
-      parsed = JSON.parse(raw)
+      content = response&.content&.first
+      raise Anthropic::Error, "empty response" unless content&.text.present?
+
+      parsed = JSON.parse(content.text.strip)
       sanitize(parsed)
     rescue JSON::ParserError
       default_result(text)
@@ -55,7 +56,7 @@ module Ai
         "symptoms"   => Array(data["symptoms"]).select { |s| VALID_SYMPTOMS.include?(s) },
         "flow"       => VALID_FLOWS.include?(data["flow"]) ? data["flow"] : nil,
         "bbt"        => valid_bbt(data["bbt"]),
-        "lh_result"  => [0, 1, 2].include?(data["lh_result"]&.to_i) ? data["lh_result"].to_i : nil,
+        "lh_result"  => begin; v = Integer(data["lh_result"].to_s, 10); [0, 1, 2].include?(v) ? v : nil; rescue ArgumentError; nil; end,
         "notes"      => data["notes"].presence
       }
     end
