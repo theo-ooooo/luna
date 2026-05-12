@@ -1,7 +1,7 @@
 import { useState } from 'react';
+import type { FlowId, LHResult } from '../types/record';
 
-export type FlowId = 'none' | 'spot' | 'light' | 'med' | 'heavy';
-export type LHResult = 0 | 1 | 2;
+export type { FlowId, LHResult };
 
 export interface RecordFormState {
   flow: FlowId | null;

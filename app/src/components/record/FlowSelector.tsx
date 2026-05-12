@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors, Radius } from '../../theme/tokens';
-import { FlowId } from '../../hooks/useRecordForm';
+import type { FlowId } from '../../types/record';
 
 const FLOW_OPTIONS: { id: FlowId; label: string; dots: number }[] = [
   { id: 'none',  label: '없음',   dots: 0 },

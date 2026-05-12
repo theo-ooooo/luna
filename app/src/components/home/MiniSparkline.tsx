@@ -18,8 +18,9 @@ export function MiniSparkline({
   height = 28,
 }: MiniSparklineProps) {
   const w = 100;
+  const span = Math.max(data.length - 1, 1);
   const pts = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * w;
+    const x = (i / span) * w;
     const y = height - ((v - min) / (max - min)) * height;
     return `${x},${y}`;
   }).join(' ');
