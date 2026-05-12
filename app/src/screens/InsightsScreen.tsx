@@ -24,8 +24,8 @@ export function InsightsScreen() {
     return `${d.getMonth() + 1}월`;
   }), [now]);
   const { data: report, isLoading: reportLoading } = useMonthlyReport(now.getFullYear(), now.getMonth() + 1);
-  const { data: bbtHistory } = useBbtHistory();
-  const { data: heatmap } = useSymptomHeatmap();
+  const { data: bbtHistory, isError: bbtError } = useBbtHistory();
+  const { data: heatmap, isError: heatmapError } = useSymptomHeatmap();
   const { data: stats } = useStats();
 
   const avgCycle = Number(prediction?.avg_cycle_length ?? 28);
@@ -91,7 +91,9 @@ export function InsightsScreen() {
               <Text style={styles.tileTitle}>기초체온 변화</Text>
             </View>
           </View>
-          {bbtHistory && bbtHistory.data.length > 0 ? (
+          {bbtError ? (
+            <Text style={styles.tileEmpty}>데이터를 불러오지 못했어요. 잠시 후 다시 시도해주세요.</Text>
+          ) : bbtHistory && bbtHistory.data.length > 0 ? (
             <BbtChart
               width={chartW}
               data={bbtHistory.data.map(p => p.bbt)}
@@ -109,12 +111,14 @@ export function InsightsScreen() {
         {/* Symptom heatmap */}
         <View style={[styles.tile, Shadow.card]}>
           <Text style={styles.tileEyebrow}>증상 빈도 · 12주</Text>
-          {heatmap && heatmap.grid.some(row => row.some(v => v > 0)) ? (
+          {heatmapError ? (
+            <Text style={styles.tileEmpty}>데이터를 불러오지 못했어요. 잠시 후 다시 시도해주세요.</Text>
+          ) : heatmap && heatmap.grid.some(row => row.some(v => v > 0)) ? (
             <View style={styles.heatmapGrid}>
               {heatmap.symptoms.map((symptom, r) => (
                 <View key={symptom} style={styles.heatmapRow}>
                   <Text style={styles.heatmapLabel}>{symptom}</Text>
-                  {heatmap.grid[r].map((v, c) => (
+                  {(heatmap.grid[r] ?? []).map((v, c) => (
                     <View key={c} style={[styles.heatCell, { backgroundColor: heatColor(v) }]} />
                   ))}
                 </View>
@@ -207,7 +211,7 @@ function BbtChart({ width, data, ovDay }: { width: number; data: number[]; ovDay
       </Svg>
       <View style={styles.chartLegend}>
         <View style={styles.legendItem}><View style={[styles.legendLine, { backgroundColor: Colors.coral }]} /><Text style={styles.legendText}>난포기</Text></View>
-        <View style={styles.legendItem}><View style={[styles.legendLine, { backgroundColor: Colors.lavenderDeep }]} /><Text style={styles.legendText}>황체기</Text></View>
+        {hasOv && <View style={styles.legendItem}><View style={[styles.legendLine, { backgroundColor: Colors.lavenderDeep }]} /><Text style={styles.legendText}>황체기</Text></View>}
       </View>
     </View>
   );

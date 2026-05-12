@@ -9,10 +9,13 @@ module Api
           (lengths.sum.to_f / lengths.size).round(1)
         end
 
-        cycle_date_range = cycles.map(&:started_on).minmax
-        avg_bbt = if cycle_date_range.first
+        # Include open (in-progress) cycle in BBT range
+        open_cycle = current_user.cycles.where(ended_on: nil).order(started_on: :desc).first
+        completed_start = cycles.map(&:started_on).min
+        bbt_from = [open_cycle&.started_on, completed_start].compact.min
+        avg_bbt = if bbt_from
           current_user.daily_logs
-            .where(logged_on: cycle_date_range.first..Date.current)
+            .where(logged_on: bbt_from..Date.current)
             .where.not(bbt: nil)
             .average(:bbt)&.to_f&.round(2)
         end
