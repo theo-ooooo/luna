@@ -30,7 +30,11 @@
 - **디자인/UX** → `agents/design.md`
   - 와이어프레임, 디자인 시스템 (Claude Code Design 기반)
 - **문서/기획 산출물** → `agents/docs.md`
-- **QA/테스트** → `agents/qa.md`
+- **QA/검증** → `agents/qa.md`
+  - 시나리오 체크리스트(SC-01~06), GATE 4 통과 판정
+  - Critical/High 버그 0건 확인 후 오케스트레이터에게 결과 반환
+- **코드 리뷰** → `agents/reviewer.md`
+  - PR 생성 직후 자동 실행, 블로커+개선권고 모두 처리
 
 ## 확정 기술 스택
 
