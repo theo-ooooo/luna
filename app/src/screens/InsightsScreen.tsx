@@ -33,7 +33,7 @@ export function InsightsScreen() {
   }), [now]);
   const { data: report, isLoading: reportLoading } = useMonthlyReport(now.getFullYear(), now.getMonth() + 1);
 
-  const avgCycle = prediction?.avg_cycle_length ?? 28;
+  const avgCycle = Number(prediction?.avg_cycle_length ?? 28);
   const chartW = screenW - CONTENT_PADDING * 2 - TILE_PADDING * 2;
 
   const cycleBarData = [...cycles]
