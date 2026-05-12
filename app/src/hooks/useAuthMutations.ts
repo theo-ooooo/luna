@@ -17,7 +17,7 @@ export function useLogin() {
   const setAuth = useAuthStore(s => s.setAuth);
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
-      api.post<AuthResponse>('/api/v1/auth/login', { email, password }),
+      api.post<AuthResponse>('/api/v1/auth/login', { user: { email, password } }),
     onSuccess: ({ token, user }) => setAuth(token, user),
   });
 }
@@ -26,7 +26,7 @@ export function useSignup() {
   const setAuth = useAuthStore(s => s.setAuth);
   return useMutation({
     mutationFn: ({ email, password, nickname }: { email: string; password: string; nickname: string }) =>
-      api.post<AuthResponse>('/api/v1/auth/signup', { email, password, nickname }),
+      api.post<AuthResponse>('/api/v1/auth/signup', { user: { email, password, password_confirmation: password, nickname } }),
     onSuccess: ({ token, user }) => setAuth(token, user),
   });
 }
