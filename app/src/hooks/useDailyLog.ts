@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
-import type { LHResult } from '../types/record';
+import type { FlowId, LHResult } from '../types/record';
 
 interface DailyLog {
   id: number;
@@ -10,6 +10,7 @@ interface DailyLog {
   fatigue: number;
   bloating: number;
   mood: number | null;
+  discharge_type: string | null;
   bbt: number | null;
   lh_result: LHResult | null;
   notes: string | null;
@@ -21,9 +22,17 @@ const MOOD_SCORE: Record<string, number> = {
   '좋음': 5, '평온': 4, '짜증': 3, '피곤': 2, '우울': 2, '불안': 1,
 };
 
+// FlowId → discharge_type: partial mapping (light/med/heavy have no DB equivalent in daily_logs)
+// Full period flow tracking requires a flow_level field on daily_logs (future schema work)
+const FLOW_TO_DISCHARGE: Partial<Record<FlowId, string>> = {
+  none: 'none',
+  spot: 'spotting',
+};
+
 export function buildLogFields({
-  moods, symptoms, bbt, lhResult, notes,
+  flow, moods, symptoms, bbt, lhResult, notes,
 }: {
+  flow: FlowId | null;
   moods: string[];
   symptoms: string[];
   bbt: string;
@@ -37,6 +46,7 @@ export function buildLogFields({
     fatigue: moods.includes('피곤') ? 1 : 0,
     bloating: symptoms.includes('부종') ? 1 : 0,
     mood: moods.length > 0 ? (MOOD_SCORE[moods[0]] ?? null) : null,
+    discharge_type: flow ? (FLOW_TO_DISCHARGE[flow] ?? null) : null,
     bbt: bbtNum && !isNaN(bbtNum) ? bbtNum : null,
     lh_result: lhResult,
     notes: notes || null,
@@ -44,7 +54,8 @@ export function buildLogFields({
 }
 
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 export function useTodayLog() {
