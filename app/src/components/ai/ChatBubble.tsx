@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Radius } from '../../theme/tokens';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Animated } from 'react-native';
+import { Colors } from '../../theme/tokens';
 import { Icon } from '../ui/Icon';
 import type { ChatMessage } from '../../types/chat';
 
@@ -15,11 +15,11 @@ export function ChatBubble({ message }: ChatBubbleProps) {
     <View style={[styles.row, isUser && styles.rowUser]}>
       {!isUser && (
         <View style={styles.avatar}>
-          <Icon name="spark" size={14} color={Colors.coral} />
+          <Icon name="spark" size={13} strokeWidth={2.4} color={Colors.ink1} />
         </View>
       )}
-      <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAssistant]}>
-        <Text style={[styles.text, isUser ? styles.textUser : styles.textAssistant]}>
+      <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAI]}>
+        <Text style={[styles.text, isUser ? styles.textUser : styles.textAI]}>
           {message.content}
           {message.isStreaming && <Text style={styles.cursor}>▌</Text>}
         </Text>
@@ -28,19 +28,69 @@ export function ChatBubble({ message }: ChatBubbleProps) {
   );
 }
 
+export function ThinkingBubble() {
+  const dots = [useRef(new Animated.Value(0)).current, useRef(new Animated.Value(0)).current, useRef(new Animated.Value(0)).current];
+
+  useEffect(() => {
+    const anims = dots.map((dot, i) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.delay(i * 150),
+          Animated.timing(dot, { toValue: -4, duration: 300, useNativeDriver: true }),
+          Animated.timing(dot, { toValue: 0, duration: 300, useNativeDriver: true }),
+          Animated.delay((2 - i) * 150 + 300),
+        ]),
+      ),
+    );
+    anims.forEach(a => a.start());
+    return () => anims.forEach(a => a.stop());
+  }, []);
+
+  return (
+    <View style={styles.row}>
+      <View style={styles.avatar}>
+        <Icon name="spark" size={13} strokeWidth={2.4} color={Colors.ink1} />
+      </View>
+      <View style={[styles.bubble, styles.bubbleAI]}>
+        <View style={styles.dotRow}>
+          {dots.map((dot, i) => (
+            <Animated.View
+              key={i}
+              style={[styles.dot, { transform: [{ translateY: dot }] }]}
+            />
+          ))}
+        </View>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 12 },
+  row: { flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 10 },
   rowUser: { flexDirection: 'row-reverse' },
   avatar: {
     width: 28, height: 28, borderRadius: 14,
-    backgroundColor: Colors.bgCard,
+    backgroundColor: Colors.lavender,
     alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0,
   },
-  bubble: { maxWidth: '75%', borderRadius: Radius.tile, paddingVertical: 10, paddingHorizontal: 14 },
-  bubbleUser: { backgroundColor: Colors.bgInk },
-  bubbleAssistant: { backgroundColor: Colors.bgCard },
-  text: { fontSize: 14, lineHeight: 22 },
-  textUser: { color: Colors.inkInv },
-  textAssistant: { color: Colors.ink1 },
-  cursor: { color: Colors.coral },
+  bubble: {
+    maxWidth: '76%',
+    paddingVertical: 12, paddingHorizontal: 16,
+    borderRadius: 20,
+  },
+  bubbleAI: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderTopLeftRadius: 6,
+  },
+  bubbleUser: {
+    backgroundColor: Colors.lavender,
+    borderTopRightRadius: 6,
+  },
+  text: { fontSize: 13, lineHeight: 20 },
+  textAI: { color: Colors.inkInv, fontWeight: '400' },
+  textUser: { color: Colors.ink1, fontWeight: '600' },
+  cursor: { color: Colors.lavender },
+  dotRow: { flexDirection: 'row', gap: 4, paddingVertical: 2, paddingHorizontal: 4 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.lavender },
 });

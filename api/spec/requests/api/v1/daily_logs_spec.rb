@@ -44,10 +44,10 @@ RSpec.describe "Api::V1::DailyLogs", type: :request do
       expect(response).to have_http_status(:unprocessable_content)
     end
 
-    it "중복 날짜 422" do
+    it "중복 날짜 upsert — 기존 로그 업데이트 200" do
       create(:daily_log, user: user, logged_on: Date.current)
       post "/api/v1/daily_logs", params: params, headers: headers, as: :json
-      expect(response).to have_http_status(:unprocessable_content)
+      expect(response).to have_http_status(:ok)
     end
   end
 

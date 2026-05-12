@@ -47,6 +47,18 @@ module Api
         })
       end
 
+      def parse_log
+        text = params.require(:text).to_s.strip
+        return failure("VALIDATION_ERROR", "입력 텍스트가 비어있습니다.", status: :bad_request) if text.blank?
+        return failure("VALIDATION_ERROR", "텍스트는 200자 이내로 입력해주세요.", status: :bad_request) if text.length > 200
+
+        result = Ai::ParseLogService.new.parse(text)
+        success(result)
+      rescue Anthropic::Errors::Error => e
+        Rails.logger.error("AI parse_log error: #{e.message}")
+        failure("AI_UNAVAILABLE", "AI 서비스를 일시적으로 사용할 수 없습니다.", status: :service_unavailable)
+      end
+
       def monthly_report
         year  = (params[:year]  || Date.current.year).to_i
         month = (params[:month] || Date.current.month).to_i
