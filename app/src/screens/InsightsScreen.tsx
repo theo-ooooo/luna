@@ -1,11 +1,12 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, useWindowDimensions, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path, Line, Circle, Rect, Text as SvgText, Defs, LinearGradient, Stop } from 'react-native-svg';
+import Svg, { Path, Line, Circle, Rect, Text as SvgText } from 'react-native-svg';
 import { Colors, Radius, Shadow } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
 import { usePrediction } from '../hooks/usePrediction';
 import { useCycleList } from '../hooks/useCycles';
+import { useMonthlyReport } from '../hooks/useMonthlyReport';
 
 // Static mock data — BBT and symptoms require historical daily_logs aggregation (future API)
 const BBT_DATA = [36.4, 36.5, 36.4, 36.5, 36.4, 36.3, 36.5, 36.6, 36.5, 36.4, 36.3, 36.7, 36.9, 36.8];
@@ -24,6 +25,8 @@ export function InsightsScreen() {
   const { width: screenW } = useWindowDimensions();
   const { data: prediction } = usePrediction();
   const { data: cycles = [] } = useCycleList(6);
+  const now = new Date();
+  const { data: report, isLoading: reportLoading } = useMonthlyReport(now.getFullYear(), now.getMonth() + 1);
 
   const avgCycle = prediction?.avg_cycle_length ?? 28;
   const chartW = screenW - 32 - 36; // tile padding
@@ -62,13 +65,15 @@ export function InsightsScreen() {
             <View style={styles.aiIconWrap}>
               <Icon name="spark" size={12} strokeWidth={2.4} color={Colors.lime} />
             </View>
-            <Text style={styles.aiCardEyebrow}>이번 달 요약</Text>
+            <Text style={styles.aiCardEyebrow}>{now.getMonth() + 1}월 AI 요약</Text>
           </View>
-          <Text style={styles.aiCardText}>
-            5월은 평소보다{' '}
-            <Text style={styles.aiHighlight}>주기가 1일 길었어요</Text>
-            . 두통은 절반으로 줄었고, 수면이 평균 30분 늘었습니다.
-          </Text>
+          {reportLoading ? (
+            <ActivityIndicator size="small" color={Colors.ink2} style={{ alignSelf: 'flex-start', marginTop: 4 }} />
+          ) : report?.summary ? (
+            <Text style={styles.aiCardText}>{report.summary}</Text>
+          ) : (
+            <Text style={styles.aiCardTextMuted}>이번 달 주기 데이터가 쌓이면 AI 요약이 표시돼요.</Text>
+          )}
         </View>
 
         {/* KPI tiles */}
@@ -156,8 +161,9 @@ function BbtChart({ width, data, ovDay }: { width: number; data: number[]; ovDay
   const innerW = width - padX * 2;
   const innerH = h - padY * 2;
   const divisor = Math.max(data.length - 1, 1);
+  const clamp = (v: number) => Math.max(minV, Math.min(maxV, v));
   const xs = (i: number) => padX + (i / divisor) * innerW;
-  const ys = (v: number) => h - padY - ((v - minV) / (maxV - minV)) * innerH;
+  const ys = (v: number) => h - padY - ((clamp(v) - minV) / (maxV - minV)) * innerH;
 
   const preOvPath  = data.slice(0, ovDay + 1).map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
   const postOvPath = data.slice(ovDay).map((v, i) => `${i === 0 ? 'M' : 'L'}${xs(i + ovDay).toFixed(1)},${ys(v).toFixed(1)}`).join(' ');
@@ -167,12 +173,6 @@ function BbtChart({ width, data, ovDay }: { width: number; data: number[]; ovDay
   return (
     <View>
       <Svg width={width} height={h}>
-        <Defs>
-          <LinearGradient id="bbtFill" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={Colors.coral} stopOpacity="0.2" />
-            <Stop offset="1" stopColor={Colors.coral} stopOpacity="0" />
-          </LinearGradient>
-        </Defs>
         {gridLevels.map(v => (
           <React.Fragment key={v}>
             <Line x1={padX} y1={ys(v)} x2={width - padX} y2={ys(v)} stroke={Colors.bgAlt} strokeWidth={1} strokeDasharray="2,4" />
@@ -225,6 +225,7 @@ const styles = StyleSheet.create({
   aiIconWrap: { width: 24, height: 24, borderRadius: 12, backgroundColor: Colors.ink1, alignItems: 'center', justifyContent: 'center' },
   aiCardEyebrow: { fontSize: 11, fontWeight: '700', color: Colors.ink1, letterSpacing: 0.6 },
   aiCardText: { fontSize: 14, lineHeight: 22, color: Colors.ink1, fontWeight: '600', letterSpacing: -0.1 },
+  aiCardTextMuted: { fontSize: 13, lineHeight: 20, color: Colors.ink2, fontWeight: '500', letterSpacing: -0.1 },
   aiHighlight: { backgroundColor: Colors.ink1, color: Colors.lime, paddingHorizontal: 4, borderRadius: 4 },
 
   kpiRow: { flexDirection: 'row', gap: 10 },
