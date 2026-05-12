@@ -57,7 +57,7 @@ export function EmailScreen({ navigation }: Props) {
               autoFocus
               accessibilityLabel="이메일 입력"
             />
-            {auto.show && <DomainChips query={auto.query} matches={auto.matches} onPick={pickDomain} />}
+            {auto.show && <DomainChips local={auto.local} query={auto.query} matches={auto.matches} onPick={pickDomain} />}
 
             {checkEmail.isError && (
               <Text style={styles.error}>이메일 확인에 실패했어요. 다시 시도해주세요.</Text>
