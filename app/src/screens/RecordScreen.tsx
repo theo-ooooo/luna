@@ -72,7 +72,7 @@ export function RecordScreen() {
           accessibilityLabel="저장"
         >
           <Text style={styles.saveBtnText}>저장</Text>
-          <Icon name="check" size={14} strokeWidth={2.4} color={Colors.bgInk} />
+          <Icon name="check" size={14} strokeWidth={2.4} color={Colors.inkInv} />
         </TouchableOpacity>
       </View>
 
