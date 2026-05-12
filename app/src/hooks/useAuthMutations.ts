@@ -34,9 +34,10 @@ export function useSignup() {
       const auth = await api.post<AuthResponse>('/api/v1/auth/signup', {
         user: { email, password, password_confirmation: password, nickname, cycle_length_default: cycleLength },
       });
+      setAuth(auth.token, auth.user);
       await api.post('/api/v1/cycles', { started_on: lastPeriodDate, flow_level: 1 });
       return auth;
     },
-    onSuccess: ({ token, user }) => setAuth(token, user),
+    onSuccess: () => {},
   });
 }

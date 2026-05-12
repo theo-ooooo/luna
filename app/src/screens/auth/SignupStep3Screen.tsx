@@ -44,7 +44,7 @@ export function SignupStep3Screen({ navigation, route }: Props) {
 
         <View style={styles.stepper}>
           <TouchableOpacity style={styles.stepBtn} onPress={() => setCycleLen(v => Math.max(21, v - 1))}>
-            <Icon name="plus" size={20} strokeWidth={2.4} color={Colors.ink1} />
+            <Icon name="minus" size={20} strokeWidth={2.4} color={Colors.ink1} />
           </TouchableOpacity>
           <View style={styles.stepValue}>
             <Text style={styles.stepNumber}>{cycleLen}</Text>

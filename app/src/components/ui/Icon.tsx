@@ -6,6 +6,7 @@ export const Icons = {
   home:     'M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10',
   calendar: 'M4 5h16v15H4zM4 9h16M9 3v4M15 3v4',
   plus:     'M12 5v14M5 12h14',
+  minus:    'M5 12h14',
   spark:    'M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z',
   user:     'M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0',
   arrow:    'M5 12h14M13 5l7 7-7 7',
