@@ -13,7 +13,7 @@ export function phaseForDay(day: number, cycleLength = CYCLE_LENGTH): PhaseKey {
 }
 
 export function daysUntilPeriod(day: number, cycleLength = CYCLE_LENGTH): number {
-  return cycleLength - day + 1;
+  return Math.max(0, cycleLength - day + 1);
 }
 
 export function phaseMeta(day: number, cycleLength = CYCLE_LENGTH) {

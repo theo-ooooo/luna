@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Radius, Shadow } from '../theme/tokens';
 import { Icon, IconName } from '../components/ui/Icon';
@@ -35,7 +35,7 @@ const TABS: TabItem[] = [
   { id: 'Settings', label: '설정',  icon: 'user' },
 ];
 
-function LunaTabBar({ state, navigation }: any) {
+function LunaTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (

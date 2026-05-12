@@ -1,5 +1,3 @@
-import { StyleSheet } from 'react-native';
-
 export const Colors = {
   // Surface
   bg: '#F2EEE8',

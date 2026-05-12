@@ -1,5 +1,6 @@
 import React from 'react';
 import Svg, { Path } from 'react-native-svg';
+import { Colors } from '../../theme/tokens';
 
 export const Icons = {
   home:     'M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10',
@@ -32,7 +33,7 @@ interface IconProps {
   color?: string;
 }
 
-export function Icon({ name, size = 20, strokeWidth = 1.8, color = 'currentColor' }: IconProps) {
+export function Icon({ name, size = 20, strokeWidth = 1.8, color = Colors.ink1 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path

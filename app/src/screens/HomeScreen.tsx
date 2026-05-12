@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions,
+  View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Polyline } from 'react-native-svg';
@@ -9,7 +9,6 @@ import { LunaLogo } from '../components/ui/LunaLogo';
 import { Icon } from '../components/ui/Icon';
 import { phaseForDay, daysUntilPeriod } from '../utils/phase';
 
-const { width: SCREEN_W } = Dimensions.get('window');
 const CYCLE_LENGTH = 28;
 
 interface HomeScreenProps {
@@ -17,6 +16,8 @@ interface HomeScreenProps {
 }
 
 export function HomeScreen({ cycleDay = 14 }: HomeScreenProps) {
+  const { width: screenW } = useWindowDimensions();
+  const bentoHalfWidth = (screenW - 32 - 10) / 2;
   const phaseKey: PhaseKey = phaseForDay(cycleDay);
   const phase = Phase[phaseKey];
   const dPeriod = daysUntilPeriod(cycleDay);
@@ -87,15 +88,15 @@ export function HomeScreen({ cycleDay = 14 }: HomeScreenProps) {
           </View>
 
           {/* Mood tile */}
-          <StatTile eyebrow="기분" value="좋음" detail="3일 연속" />
+          <StatTile eyebrow="기분" value="좋음" detail="3일 연속" width={bentoHalfWidth} />
           {/* BBT tile */}
-          <StatTile eyebrow="기초체온" value="36.7°" detail="평균 +0.1°">
+          <StatTile eyebrow="기초체온" value="36.7°" detail="평균 +0.1°" width={bentoHalfWidth}>
             <MiniSparkline />
           </StatTile>
           {/* Sleep tile */}
-          <StatTile eyebrow="수면" value="7h 20m" detail="목표 달성" />
+          <StatTile eyebrow="수면" value="7h 20m" detail="목표 달성" width={bentoHalfWidth} />
           {/* Hydration tile */}
-          <StatTile eyebrow="수분" value="1.8L" detail="2L 목표">
+          <StatTile eyebrow="수분" value="1.8L" detail="2L 목표" width={bentoHalfWidth}>
             <HydroBar pct={0.9} />
           </StatTile>
 
@@ -109,11 +110,11 @@ export function HomeScreen({ cycleDay = 14 }: HomeScreenProps) {
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-function StatTile({ eyebrow, value, detail, children }: {
-  eyebrow: string; value: string; detail?: string; children?: React.ReactNode;
+function StatTile({ eyebrow, value, detail, width, children }: {
+  eyebrow: string; value: string; detail?: string; width: number; children?: React.ReactNode;
 }) {
   return (
-    <View style={[styles.bentoCard, styles.bentoHalf, Shadow.card]}>
+    <View style={[styles.bentoCard, { width, minHeight: 120 }, Shadow.card]}>
       <Text style={styles.bentoEyebrow}>{eyebrow}</Text>
       <View style={styles.statBottom}>
         <Text style={styles.statValue}>{value}</Text>
@@ -196,7 +197,7 @@ function CycleRingTile({ day, phase, pct }: {
         <Text style={styles.ringPct}>{Math.round(pct * 100)}% 진행</Text>
         <Text style={styles.ringMeta}>5월 1일 시작 · 28일 평균</Text>
         <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${pct * 100}%` as any, backgroundColor: Colors.coral }]} />
+          <View style={[styles.progressFill, { width: `${Math.round(pct * 100)}%`, backgroundColor: Colors.coral }]} />
         </View>
       </View>
     </View>
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   bentoFull: { width: '100%' },
-  bentoHalf: { width: (SCREEN_W - 32 - 10) / 2, minHeight: 120 },
+  bentoHalf: { minHeight: 120 },
   bentoHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   bentoEyebrow: {
     fontSize: 11, fontWeight: '700', letterSpacing: 1.5,
@@ -287,7 +288,7 @@ const styles = StyleSheet.create({
   // Cycle ring
   cycleRing: { flexDirection: 'row', alignItems: 'center', gap: 18 },
   ringCenter: {
-    position: 'absolute', inset: 0,
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     alignItems: 'center', justifyContent: 'center',
   },
   ringDay: { fontSize: 28, fontWeight: '900', letterSpacing: -1.1, color: Colors.ink1 },

@@ -37,6 +37,5 @@ const styles = StyleSheet.create({
   wordmark: {
     fontWeight: '900',
     letterSpacing: -0.8,
-    lineHeight: undefined,
   },
 });
