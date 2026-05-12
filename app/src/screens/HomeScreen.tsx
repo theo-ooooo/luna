@@ -61,7 +61,7 @@ export function HomeScreen() {
             <HydroBar pct={0.9} />
           </StatTile>
 
-          <CycleRingTile day={cycleDay} phaseKey={phaseKey} startLabel={prediction ? `${cycleLength}일 평균 주기` : '데이터 없음'} />
+          <CycleRingTile day={cycleDay} cycleLength={cycleLength} phaseKey={phaseKey} startLabel={prediction ? `${cycleLength}일 평균 주기` : '데이터 없음'} />
         </View>
       </ScrollView>
     </SafeAreaView>
