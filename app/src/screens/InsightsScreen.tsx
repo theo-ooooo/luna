@@ -19,13 +19,16 @@ const HEATMAP_DATA = [
   [2, 1, 0, 1, 2, 1, 2, 1, 0, 1, 2, 1],
   [0, 1, 2, 1, 0, 0, 1, 2, 1, 0, 1, 0],
 ];
-const MONTH_LABELS = ['12월', '1월', '2월', '3월', '4월', '5월'];
+const now = new Date();
+const MONTH_LABELS = Array.from({ length: 6 }, (_, i) => {
+  const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
+  return `${d.getMonth() + 1}월`;
+});
 
 export function InsightsScreen() {
   const { width: screenW } = useWindowDimensions();
   const { data: prediction } = usePrediction();
   const { data: cycles = [] } = useCycleList(6);
-  const now = new Date();
   const { data: report, isLoading: reportLoading } = useMonthlyReport(now.getFullYear(), now.getMonth() + 1);
 
   const avgCycle = prediction?.avg_cycle_length ?? 28;
@@ -40,7 +43,7 @@ export function InsightsScreen() {
       label: `${parseInt(c.started_on.slice(5, 7), 10)}월`,
     }));
 
-  const barData = cycleBarData.length >= 2 ? cycleBarData : MONTH_LABELS.map((label, i) => ({ days: 26 + (i % 3), label }));
+  const barData = cycleBarData.length >= 1 ? cycleBarData : MONTH_LABELS.map((label, i) => ({ days: 26 + (i % 3), label }));
   const maxBar = Math.max(...barData.map(b => b.days));
 
   return (
@@ -99,7 +102,7 @@ export function InsightsScreen() {
 
         {/* Symptom heatmap */}
         <View style={[styles.tile, Shadow.card]}>
-          <Text style={styles.tileEyebrow}>증상 빈도 · 12 WEEKS</Text>
+          <Text style={styles.tileEyebrow}>증상 빈도 · 6개월</Text>
           <View style={styles.heatmapGrid}>
             {SYMPTOMS.map((symptom, r) => (
               <View key={symptom} style={styles.heatmapRow}>
@@ -141,9 +144,9 @@ export function InsightsScreen() {
 }
 
 function KpiTile({ label, value, unit, bg, inkLight = false }: { label: string; value: string; unit: string; bg: string; inkLight?: boolean }) {
-  const labelColor = inkLight ? 'rgba(255,255,255,0.7)' : Colors.ink3;
-  const valueColor = inkLight ? '#ffffff' : Colors.ink1;
-  const unitColor  = inkLight ? 'rgba(255,255,255,0.7)' : Colors.ink3;
+  const labelColor = inkLight ? Colors.coralSoft : Colors.ink3;
+  const valueColor = inkLight ? Colors.bgCard : Colors.ink1;
+  const unitColor  = inkLight ? Colors.coralSoft : Colors.ink3;
   return (
     <View style={[styles.kpiTile, { backgroundColor: bg }]}>
       <Text style={[styles.kpiLabel, { color: labelColor }]}>{label}</Text>
