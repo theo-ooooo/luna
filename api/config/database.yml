@@ -24,6 +24,7 @@ development:
   <<: *default
   database: luna_development
   host: <%= ENV.fetch("DB_HOST", "localhost") %>
+  port: <%= ENV.fetch("DB_PORT", "5432") %>
   username: <%= ENV.fetch("DB_USER", "luna") %>
   password: <%= ENV.fetch("DB_PASSWORD", "luna") %>
 
