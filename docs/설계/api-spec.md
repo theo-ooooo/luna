@@ -230,7 +230,7 @@ Accept: application/json
 
 ---
 
-### PUT /cycles/:id
+### PATCH /cycles/:id
 주기 종료일·출혈량 수정
 
 **Request Body**

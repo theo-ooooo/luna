@@ -9,11 +9,16 @@ interface Cycle {
   length_days: number | null;
 }
 
+interface CyclesResponse {
+  cycles: Cycle[];
+  meta: { total: number; page: number; per: number };
+}
+
 export function useLatestCycle() {
   return useQuery({
     queryKey: ['cycles', 'latest'],
     queryFn: async () => {
-      const res = await api.get<{ cycles: Cycle[] }>('/api/v1/cycles?page=1&per=1');
+      const res = await api.get<CyclesResponse>('/api/v1/cycles?page=1&per=1');
       return res.cycles[0] ?? null;
     },
   });
