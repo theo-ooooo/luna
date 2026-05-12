@@ -36,7 +36,7 @@ export function InsightsScreen() {
   const avgCycle = prediction?.avg_cycle_length ?? 28;
   const chartW = screenW - CONTENT_PADDING * 2 - TILE_PADDING * 2;
 
-  const cycleBarData = cycles
+  const cycleBarData = [...cycles]
     .filter(c => c.length_days != null)
     .reverse()
     .map(c => ({
