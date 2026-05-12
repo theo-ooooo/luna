@@ -6,6 +6,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Radius, Shadow } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
+import Toast from 'react-native-toast-message';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { useUpdateProfile } from '../hooks/useProfile';
 
@@ -13,6 +15,7 @@ export function SettingsScreen() {
   const user = useAuthStore(s => s.user);
   const clearAuth = useAuthStore(s => s.clearAuth);
   const update = useUpdateProfile();
+  const qc = useQueryClient();
 
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [cycleLen, setCycleLen] = useState(user?.cycle_length_default ?? 28);
@@ -29,19 +32,19 @@ export function SettingsScreen() {
   }, [user]);
 
   function handleSave() {
-    update.reset();
-    update.mutate({
-      nickname: nickname.trim() || undefined,
-      cycle_length_default: cycleLen,
-      luteal_phase_length: lutealLen,
-      notifications_enabled: notiEnabled,
-    });
+    update.mutate(
+      { nickname: nickname.trim() || undefined, cycle_length_default: cycleLen, luteal_phase_length: lutealLen, notifications_enabled: notiEnabled },
+      {
+        onSuccess: () => Toast.show({ type: 'success', text1: '설정 저장 완료!' }),
+        onError: (err) => Toast.show({ type: 'error', text1: '저장 실패', text2: (err as Error).message ?? '다시 시도해주세요.' }),
+      },
+    );
   }
 
   function handleLogout() {
     Alert.alert('로그아웃', '정말 로그아웃할까요?', [
       { text: '취소', style: 'cancel' },
-      { text: '로그아웃', style: 'destructive', onPress: clearAuth },
+      { text: '로그아웃', style: 'destructive', onPress: () => { qc.clear(); clearAuth(); } },
     ]);
   }
 
@@ -72,13 +75,6 @@ export function SettingsScreen() {
             <Text style={styles.profileSince}>Luna 사용 중</Text>
           </View>
         </View>
-
-        {update.isError && (
-          <Text style={styles.errorText}>{(update.error as Error)?.message ?? '저장에 실패했어요.'}</Text>
-        )}
-        {update.isSuccess && (
-          <Text style={styles.successText}>저장됐어요!</Text>
-        )}
 
         {/* 프로필 설정 */}
         <Section title="프로필">
@@ -182,8 +178,6 @@ const styles = StyleSheet.create({
   profileInfo: { flex: 1 },
   profileEmail: { fontSize: 13, fontWeight: '700', color: Colors.ink1 },
   profileSince: { fontSize: 11, color: Colors.ink3, marginTop: 2 },
-  errorText: { fontSize: 13, color: Colors.coral, textAlign: 'center' },
-  successText: { fontSize: 13, color: Colors.ink2, textAlign: 'center' },
   section: { backgroundColor: Colors.bgCard, borderRadius: Radius.tile, padding: 18 },
   sectionTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: Colors.ink3, marginBottom: 14 },
   settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 40 },

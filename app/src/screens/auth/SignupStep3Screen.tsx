@@ -5,6 +5,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors, Radius } from '../../theme/tokens';
 import { Icon } from '../../components/ui/Icon';
 import { PrimaryButton } from '../../components/auth/PrimaryButton';
+import Toast from 'react-native-toast-message';
 import { useSignup } from '../../hooks/useAuthMutations';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 
@@ -17,7 +18,10 @@ export function SignupStep3Screen({ navigation, route }: Props) {
   const signup = useSignup();
 
   function handleStart() {
-    signup.mutate({ email, password, nickname, cycleLength: cycleLen, lastPeriodDate });
+    signup.mutate(
+      { email, password, nickname, cycleLength: cycleLen, lastPeriodDate },
+      { onError: (err) => Toast.show({ type: 'error', text1: '가입 실패', text2: (err as Error).message ?? '가입에 실패했어요.' }) },
+    );
   }
 
   const nextPeriod = new Date(lastPeriodDate);
@@ -74,9 +78,6 @@ export function SignupStep3Screen({ navigation, route }: Props) {
           </View>
         </View>
 
-        {signup.isError && (
-          <Text style={styles.error}>{(signup.error as Error)?.message ?? '가입에 실패했어요.'}</Text>
-        )}
       </ScrollView>
 
       <View style={styles.footer}>
@@ -117,6 +118,5 @@ const styles = StyleSheet.create({
   previewTitle: { fontSize: 12, fontWeight: '800', color: Colors.ink1 },
   previewDate: { fontSize: 11, color: Colors.ink2, marginTop: 4, lineHeight: 17 },
   previewEmphasis: { fontWeight: '800', color: Colors.ink1 },
-  error: { fontSize: 13, color: Colors.coral, textAlign: 'center', marginTop: 12 },
   footer: { paddingHorizontal: 24, paddingBottom: 36 },
 });

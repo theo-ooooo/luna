@@ -3,9 +3,11 @@ import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
+import Toast from 'react-native-toast-message';
 import { TabNavigator } from './src/navigation/TabNavigator';
 import { AuthNavigator } from './src/navigation/AuthNavigator';
 import { useAuthStore } from './src/store/authStore';
+import { toastConfig } from './src/components/ui/LunaToast';
 
 function RootNavigator() {
   const token = useAuthStore(s => s.token);
@@ -24,6 +26,7 @@ export default function App() {
           <StatusBar style="dark" />
           <RootNavigator />
         </NavigationContainer>
+        <Toast position="bottom" bottomOffset={100} config={toastConfig} />
       </SafeAreaProvider>
     </QueryClientProvider>
   );

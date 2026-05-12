@@ -23,8 +23,11 @@ module Api
       end
 
       def create
-        log = current_user.daily_logs.create!(log_params)
-        success(log_json(log), status: :created)
+        date = log_params[:logged_on].presence || Date.current.to_s
+        log  = current_user.daily_logs.find_or_initialize_by(logged_on: date)
+        log.assign_attributes(log_params.except(:logged_on))
+        log.save!
+        success(log_json(log), status: log.previously_new_record? ? :created : :ok)
       end
 
       def update
