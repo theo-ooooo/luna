@@ -1,0 +1,21 @@
+# Ruby / Rails
+api/*.gem
+api/.bundle/
+api/log/
+api/tmp/
+api/vendor/bundle
+api/.env
+api/config/master.key
+api/config/credentials/*.key
+
+# Node / React Native
+app/node_modules/
+app/.expo/
+app/ios/Pods/
+app/android/.gradle/
+app/android/local.properties
+app/.env
+
+# OS
+.DS_Store
+*.swp
