@@ -60,7 +60,7 @@ module Api
       end
 
       def symptom_heatmap
-        from = 12.weeks.ago.beginning_of_week(:monday).to_date
+        from = 11.weeks.ago.beginning_of_week(:monday).to_date
         logs = current_user.daily_logs
           .where(logged_on: from..Date.current)
           .order(:logged_on)
