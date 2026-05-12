@@ -5,6 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 interface User {
   id: number;
   email: string;
+  nickname?: string;
   cycle_length_default: number;
   luteal_phase_length: number;
 }
