@@ -6,6 +6,7 @@ import { Icon } from '../components/ui/Icon';
 import { FlowSelector } from '../components/record/FlowSelector';
 import { TagChipGroup } from '../components/record/TagChipGroup';
 import { useRecordForm } from '../hooks/useRecordForm';
+import { useTodayLog, useSaveDailyLog, buildLogFields } from '../hooks/useDailyLog';
 
 const MOODS = ['좋음', '평온', '피곤', '짜증', '우울', '불안'] as const;
 const MOOD_EMOJI: Record<string, string> = {
@@ -16,12 +17,14 @@ const LH_OPTIONS = [{ val: 0 as const, label: '미측정' }, { val: 1 as const, 
 
 export function RecordScreen() {
   const form = useRecordForm();
+  const { data: todayLog } = useTodayLog();
+  const save = useSaveDailyLog();
 
   const today = new Date();
   const dateLabel = `${today.getMonth() + 1}월 ${today.getDate()}일 · ${'일월화수목금토'[today.getDay()]}`;
 
   function handleSave() {
-    // TODO: api.post('/api/v1/daily_logs', { ...form state })
+    save.mutate({ id: todayLog?.id, fields: buildLogFields(form) });
   }
 
   return (
@@ -29,8 +32,8 @@ export function RecordScreen() {
       <View style={styles.topBar}>
         <View style={styles.topBarLeft} />
         <Text style={styles.topBarLabel}>03 · 기록</Text>
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSave} accessibilityRole="button" accessibilityLabel="저장">
-          <Text style={styles.saveBtnText}>저장</Text>
+        <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={save.isPending} accessibilityRole="button" accessibilityLabel="저장">
+          <Text style={styles.saveBtnText}>{save.isPending ? '저장 중…' : save.isSuccess ? '저장됨' : '저장'}</Text>
           <Icon name="check" size={14} strokeWidth={2.4} color={Colors.inkInv} />
         </TouchableOpacity>
       </View>
@@ -40,6 +43,10 @@ export function RecordScreen() {
           <Text style={styles.heroDate}>{dateLabel}</Text>
           <Text style={styles.heroTitle}>오늘 어떠셨나요?</Text>
         </View>
+
+        {save.isError && (
+          <Text style={styles.errorText}>{(save.error as Error)?.message ?? '저장에 실패했어요.'}</Text>
+        )}
 
         <Section title="출혈량">
           <FlowSelector value={form.flow} onChange={form.setFlow} />
@@ -139,4 +146,5 @@ const styles = StyleSheet.create({
   tagChipText: { fontSize: 13, fontWeight: '600', color: Colors.ink2 },
   tagChipTextActive: { color: Colors.inkInv },
   notesInput: { fontSize: 14, color: Colors.ink1, lineHeight: 22, borderWidth: 1.5, borderColor: Colors.borderSoft, borderRadius: 12, padding: 12, minHeight: 96 },
+  errorText: { fontSize: 13, color: Colors.coral, textAlign: 'center' },
 });
