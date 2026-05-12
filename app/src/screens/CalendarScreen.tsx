@@ -5,18 +5,20 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Phase, PhaseKey, Radius, Shadow } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
-import { phaseForDay, CYCLE_DEFAULTS } from '../utils/phase';
+import { phaseForDay } from '../utils/phase';
 
 const WEEK_HEADERS = ['일', '월', '화', '수', '목', '금', '토'] as const;
-const TODAY_DAY = 14; // TODO: derive from real cycle data
+
+const _now = new Date();
+const TODAY = { year: _now.getFullYear(), month: _now.getMonth() + 1, day: _now.getDate() };
 
 export function CalendarScreen() {
   const { width: screenW } = useWindowDimensions();
   const cellSize = Math.floor((screenW - 32 - 24) / 7);
 
-  const [year, setYear] = useState(2026);
-  const [month, setMonth] = useState(5);
-  const [selectedDay, setSelectedDay] = useState(TODAY_DAY);
+  const [year, setYear] = useState(TODAY.year);
+  const [month, setMonth] = useState(TODAY.month);
+  const [selectedDay, setSelectedDay] = useState(TODAY.day);
 
   const daysInMonth = new Date(year, month, 0).getDate();
   const firstWeekday = new Date(year, month - 1, 1).getDay();
@@ -33,13 +35,19 @@ export function CalendarScreen() {
     .toLocaleString('en', { month: 'short' })
     .toUpperCase();
 
+  function clampDay(newYear: number, newMonth: number) {
+    const max = new Date(newYear, newMonth, 0).getDate();
+    setSelectedDay(d => Math.min(d, max));
+  }
   function prevMonth() {
-    if (month === 1) { setYear(y => y - 1); setMonth(12); }
-    else setMonth(m => m - 1);
+    const ny = month === 1 ? year - 1 : year;
+    const nm = month === 1 ? 12 : month - 1;
+    setYear(ny); setMonth(nm); clampDay(ny, nm);
   }
   function nextMonth() {
-    if (month === 12) { setYear(y => y + 1); setMonth(1); }
-    else setMonth(m => m + 1);
+    const ny = month === 12 ? year + 1 : year;
+    const nm = month === 12 ? 1 : month + 1;
+    setYear(ny); setMonth(nm); clampDay(ny, nm);
   }
 
   return (
@@ -106,7 +114,7 @@ export function CalendarScreen() {
             }
             const phaseKey: PhaseKey = phaseForDay(d);
             const phase = Phase[phaseKey];
-            const isToday = d === TODAY_DAY;
+            const isToday = d === TODAY.day && month === TODAY.month && year === TODAY.year;
             const isSelected = d === selectedDay;
 
             return (
@@ -154,7 +162,7 @@ export function CalendarScreen() {
                 {selectedDay}<Text style={{ color: selectedPhase.color }}>.</Text>
               </Text>
               <Text style={styles.detailDayMeta}>
-                {month}월 · {selectedDay === TODAY_DAY ? '오늘' : `Day ${selectedDay}`}
+                {month}월 · {selectedDay === TODAY.day ? '오늘' : `Day ${selectedDay}`}
               </Text>
             </View>
             <Text style={styles.detailDesc}>{selectedPhase.desc}</Text>
