@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import type { NotificationPrefs } from '../store/notificationStore';
 
@@ -10,6 +11,20 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   }),
 });
+
+const ANDROID_CHANNEL_ID = 'luna-default';
+
+// Android 8+ requires a notification channel — call once at app start
+export async function setupAndroidChannel() {
+  if (Platform.OS !== 'android') return;
+  await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
+    name: 'Luna 알림',
+    importance: Notifications.AndroidImportance.HIGH,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: '#F2847C',
+    sound: null,
+  });
+}
 
 // Parses "YYYY-MM-DD" in local timezone, avoiding the UTC-midnight trap of new Date(str)
 function parseLocalDate(s: string): Date {
@@ -112,7 +127,7 @@ async function scheduleAt(id: string, date: Date, title: string, body: string) {
   if (date <= new Date()) return;
   await Notifications.scheduleNotificationAsync({
     identifier: id,
-    content: { title, body },
+    content: { title, body, ...(Platform.OS === 'android' && { channelId: ANDROID_CHANNEL_ID }) },
     trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
   });
 }
@@ -120,7 +135,7 @@ async function scheduleAt(id: string, date: Date, title: string, body: string) {
 async function scheduleDailyRepeat(id: string, hour: number, minute: number, title: string, body: string) {
   await Notifications.scheduleNotificationAsync({
     identifier: id,
-    content: { title, body },
+    content: { title, body, ...(Platform.OS === 'android' && { channelId: ANDROID_CHANNEL_ID }) },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour,
