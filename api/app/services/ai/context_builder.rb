@@ -1,5 +1,8 @@
 module Ai
   class ContextBuilder
+    # Claude API 전송 컨텍스트 구성.
+    # 규칙: 사용자 식별 정보(id/email/nickname) 미포함.
+    # bbt는 범주화(low/normal/elevated/high)로 변환, lh_result는 코드값 그대로.
     def initialize(user)
       @user = user
     end
@@ -42,9 +45,21 @@ module Ai
           bloating: log.bloating
         }.reject { |_, v| v.zero? },
         mood: log.mood,
-        bbt: log.bbt,
-        lh_result: log.lh_result
+        bbt_category: categorize_bbt(log.bbt),
+        lh_surge: log.lh_result == 2 ? true : (log.lh_result == 1 ? false : nil)
       }.compact
+    end
+
+    # 원시 체온값 대신 단계값으로 전송 — 개인 생체정보 최소화
+    def categorize_bbt(bbt)
+      return nil if bbt.nil?
+      case bbt.to_f
+      when ..36.2            then "low"
+      when 36.2...36.5       then "normal_low"
+      when 36.5...36.8       then "normal"
+      when 36.8...37.1       then "elevated"
+      else                        "high"
+      end
     end
   end
 end
