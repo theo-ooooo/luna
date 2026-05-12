@@ -22,11 +22,15 @@ export function EmailScreen({ navigation }: Props) {
 
   async function handleContinue() {
     const trimmed = email.trim();
-    const result = await checkEmail.mutateAsync(trimmed);
-    if (result.exists) {
-      navigation.navigate('Password', { email: trimmed });
-    } else {
-      navigation.navigate('SignupStep1', { email: trimmed });
+    try {
+      const result = await checkEmail.mutateAsync(trimmed);
+      if (result.exists) {
+        navigation.navigate('Password', { email: trimmed });
+      } else {
+        navigation.navigate('SignupStep1', { email: trimmed });
+      }
+    } catch {
+      // error state handled by checkEmail.isError in the UI
     }
   }
 

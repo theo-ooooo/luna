@@ -5,7 +5,7 @@ module Api
 
       def check_email
         exists = User.exists?(email: params.require(:email).to_s.downcase.strip)
-        render json: { exists: exists }
+        success({ exists: exists })
       end
     end
   end
