@@ -17,17 +17,19 @@ export function SettingsScreen() {
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [cycleLen, setCycleLen] = useState(user?.cycle_length_default ?? 28);
   const [lutealLen, setLutealLen] = useState(user?.luteal_phase_length ?? 14);
-  const [notiEnabled, setNotiEnabled] = useState(false);
+  const [notiEnabled, setNotiEnabled] = useState(user?.notifications_enabled ?? false);
 
   useEffect(() => {
     if (user) {
       setNickname(user.nickname ?? '');
       setCycleLen(user.cycle_length_default);
       setLutealLen(user.luteal_phase_length);
+      setNotiEnabled(user.notifications_enabled ?? false);
     }
   }, [user]);
 
   function handleSave() {
+    update.reset();
     update.mutate({
       nickname: nickname.trim() || undefined,
       cycle_length_default: cycleLen,

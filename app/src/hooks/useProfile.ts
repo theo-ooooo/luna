@@ -26,8 +26,8 @@ export function useUpdateProfile() {
   return useMutation({
     mutationFn: (data: ProfileUpdate) =>
       api.patch<UserResponse>('/api/v1/users/me', data),
-    onSuccess: (user) => {
-      if (token) setAuth(token, user);
+    onSuccess: (updatedUser) => {
+      if (token) setAuth(token, updatedUser);
       qc.invalidateQueries({ queryKey: ['prediction'] });
     },
   });

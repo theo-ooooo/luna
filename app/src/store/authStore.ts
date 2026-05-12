@@ -8,6 +8,7 @@ interface User {
   nickname?: string;
   cycle_length_default: number;
   luteal_phase_length: number;
+  notifications_enabled?: boolean;
 }
 
 interface AuthState {
