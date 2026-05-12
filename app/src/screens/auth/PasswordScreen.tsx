@@ -64,9 +64,6 @@ export function PasswordScreen({ navigation, route }: Props) {
             </PrimaryButton>
           </View>
 
-          <TouchableOpacity style={styles.switchBtn} onPress={() => navigation.navigate('SignupStep1', { email })}>
-            <Text style={styles.switchText}>계정이 없으신가요? <Text style={styles.switchAccent}>새 계정 만들기</Text></Text>
-          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -90,7 +87,4 @@ const styles = StyleSheet.create({
   form: { gap: 12 },
   forgotLink: { fontSize: 11, fontWeight: '600', color: Colors.ink3 },
   error: { fontSize: 13, color: Colors.coral, textAlign: 'center' },
-  switchBtn: { marginTop: 'auto', paddingTop: 28, alignItems: 'center' },
-  switchText: { fontSize: 13, color: Colors.ink3 },
-  switchAccent: { color: Colors.coral, fontWeight: '700' },
 });

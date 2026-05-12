@@ -2,6 +2,13 @@ import { useMutation } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
 
+export function useCheckEmail() {
+  return useMutation({
+    mutationFn: (email: string) =>
+      api.post<{ exists: boolean }>('/api/v1/auth/check_email', { email }),
+  });
+}
+
 interface AuthResponse {
   token: string;
   user: {

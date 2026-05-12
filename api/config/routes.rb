@@ -11,6 +11,8 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      post  "auth/check_email", to: "auth#check_email"
+
       get   "users/me",  to: "users#show"
       patch "users/me",  to: "users#update"
 
