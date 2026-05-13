@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -14,16 +14,13 @@ import { phaseForDay, daysUntilPeriod, CYCLE_DEFAULTS } from '../utils/phase';
 import { usePrediction } from '../hooks/usePrediction';
 import { useLatestCycle, useStartPeriod, useEndPeriod } from '../hooks/useCycles';
 
-const RECENT_DATES = Array.from({ length: 7 }, (_, i) => {
-  const d = new Date();
-  d.setDate(d.getDate() - i);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-});
-
-function formatDateChip(dateStr: string, index: number): string {
-  if (index === 0) return '오늘';
-  if (index === 1) return '어제';
+function formatDateChip(dateStr: string): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const d = new Date(dateStr + 'T00:00:00');
+  const diffDays = Math.round((today.getTime() - d.getTime()) / 86_400_000);
+  if (diffDays === 0) return '오늘';
+  if (diffDays === 1) return '어제';
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
@@ -35,7 +32,12 @@ export function HomeScreen() {
   const startPeriod = useStartPeriod();
   const endPeriod = useEndPeriod();
   const [selectedFlow, setSelectedFlow] = useState<1 | 2 | 3>(2);
-  const [selectedDate, setSelectedDate] = useState(RECENT_DATES[0]);
+  const recentDates = useMemo(() => Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }), []);
+  const [selectedDate, setSelectedDate] = useState(() => recentDates[0]);
 
   const cycleDay = prediction?.cycle_day ?? 1;
   const cycleLength: number = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
@@ -107,14 +109,14 @@ export function HomeScreen() {
             <View style={styles.dateSectionRow}>
               <Text style={styles.dateSectionLabel}>시작일</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateScrollContent}>
-                {RECENT_DATES.map((dateStr, i) => (
+                {recentDates.map((dateStr) => (
                   <TouchableOpacity
                     key={dateStr}
                     style={[styles.dateChip, selectedDate === dateStr && styles.dateChipActive]}
                     onPress={() => setSelectedDate(dateStr)}
                   >
                     <Text style={[styles.dateChipText, selectedDate === dateStr && styles.dateChipTextActive]}>
-                      {formatDateChip(dateStr, i)}
+                      {formatDateChip(dateStr)}
                     </Text>
                   </TouchableOpacity>
                 ))}
