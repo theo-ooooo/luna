@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
-import type { NotificationPrefs, NotificationLogEntry } from '../store/notificationStore';
+import type { NotificationPrefs } from '../store/notificationStore';
+import type { NotificationLogEntry } from '../types/notification';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({

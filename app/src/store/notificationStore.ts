@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { NotificationLogEntry } from '../types/notification';
+
+export type { NotificationLogEntry };
 
 export interface NotificationPrefs {
   periodReminder: boolean;
@@ -9,16 +12,6 @@ export interface NotificationPrefs {
   logNudge: boolean;
   dailyReminder: boolean;
   monthlyReport: boolean;
-}
-
-/** 스케줄된 알림 한 건의 로컬 표현 (서버 동기화용) */
-export interface NotificationLogEntry {
-  /** expo-notifications identifier (예: 'luna-period-d3') */
-  id: string;
-  title: string;
-  body: string;
-  /** 알림 예약 시각 (Unix ms) */
-  scheduledFor: number;
 }
 
 interface NotificationState {
