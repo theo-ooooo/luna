@@ -1,22 +1,43 @@
-import React from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, TouchableOpacity, ActionSheetIOS, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Phase, Radius } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
 import { ChatMessageList } from '../components/ai/ChatMessageList';
 import { ChatInput } from '../components/ai/ChatInput';
+import { ConversationHistoryModal } from '../components/ai/ConversationHistoryModal';
 import { useAiChat } from '../hooks/useAiChat';
 import { usePrediction } from '../hooks/usePrediction';
 import { phaseForDay, CYCLE_DEFAULTS } from '../utils/phase';
 
 export function AIScreen() {
-  const { messages, isStreaming, sendMessage } = useAiChat();
+  const { messages, isStreaming, sendMessage, resetConversation, loadConversation } = useAiChat();
   const { data: prediction } = usePrediction();
+  const [showHistory, setShowHistory] = useState(false);
 
   const cycleDay = prediction?.cycle_day ?? 1;
   const cycleLength = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
   const phaseKey = phaseForDay(cycleDay, cycleLength);
   const phase = Phase[phaseKey];
+
+  function openMenu() {
+    const options = ['취소', '새 대화 시작', '이전 대화 보기'];
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, cancelButtonIndex: 0, destructiveButtonIndex: 1 },
+        (i) => {
+          if (i === 1) resetConversation();
+          if (i === 2) setShowHistory(true);
+        }
+      );
+    } else {
+      Alert.alert('메뉴', '', [
+        { text: '새 대화 시작', style: 'destructive', onPress: resetConversation },
+        { text: '이전 대화 보기', onPress: () => setShowHistory(true) },
+        { text: '취소', style: 'cancel' },
+      ]);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -37,7 +58,7 @@ export function AIScreen() {
             </View>
           </View>
         </View>
-        <TouchableOpacity style={styles.dotsBtn} accessibilityRole="button" accessibilityLabel="더보기">
+        <TouchableOpacity style={styles.dotsBtn} onPress={openMenu} accessibilityRole="button" accessibilityLabel="더보기">
           <Icon name="dots" size={18} strokeWidth={2.4} color={Colors.inkInv} />
         </TouchableOpacity>
       </View>
@@ -58,6 +79,12 @@ export function AIScreen() {
         <ChatMessageList messages={messages} isStreaming={isStreaming} />
         <ChatInput onSend={sendMessage} disabled={isStreaming} />
       </KeyboardAvoidingView>
+
+      <ConversationHistoryModal
+        visible={showHistory}
+        onClose={() => setShowHistory(false)}
+        onSelect={loadConversation}
+      />
     </SafeAreaView>
   );
 }

@@ -38,6 +38,22 @@ module Api
         end
       end
 
+      def list_conversations
+        conversations = current_user.ai_conversations
+                                    .where("jsonb_array_length(messages) > 0")
+                                    .order(updated_at: :desc)
+                                    .limit(30)
+        success(conversations.map { |c|
+          first_user_msg = c.messages.find { |m| m["role"] == "user" }
+          {
+            id: c.id,
+            preview: first_user_msg&.dig("content")&.truncate(60) || "",
+            message_count: c.messages.size,
+            updated_at: c.updated_at
+          }
+        })
+      end
+
       def show_conversation
         conversation = current_user.ai_conversations.find(params[:id])
         success({

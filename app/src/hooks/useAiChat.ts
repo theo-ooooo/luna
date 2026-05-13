@@ -96,5 +96,26 @@ export function useAiChat() {
     }));
   }, []);
 
-  return { messages, isStreaming, sendMessage };
+  const resetConversation = useCallback(() => {
+    xhrRef.current?.abort();
+    conversationIdRef.current = null;
+    isStreamingRef.current = false;
+    setIsStreaming(false);
+    setMessages([]);
+  }, []);
+
+  const loadConversation = useCallback((id: number, serverMessages: Array<{ role: string; content: string; ts: string }>) => {
+    xhrRef.current?.abort();
+    conversationIdRef.current = id;
+    isStreamingRef.current = false;
+    setIsStreaming(false);
+    setMessages(serverMessages.map((m, i) => ({
+      id: `loaded-${id}-${i}`,
+      role: m.role as 'user' | 'assistant',
+      content: m.content,
+      ts: new Date(m.ts),
+    })));
+  }, []);
+
+  return { messages, isStreaming, sendMessage, resetConversation, loadConversation };
 }

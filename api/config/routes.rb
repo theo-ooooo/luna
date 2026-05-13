@@ -34,10 +34,11 @@ Rails.application.routes.draw do
       end
 
       scope :ai do
-        post "chat",                      to: "ai#chat",              as: :ai_chat
-        post "parse_log",                 to: "ai#parse_log",         as: :ai_parse_log
-        get  "conversations/:id",         to: "ai#show_conversation", as: :ai_conversation
-        get  "monthly_report",            to: "ai#monthly_report",    as: :ai_monthly_report
+        post "chat",                      to: "ai#chat",                 as: :ai_chat
+        post "parse_log",                 to: "ai#parse_log",            as: :ai_parse_log
+        get  "conversations",             to: "ai#list_conversations",   as: :ai_conversations
+        get  "conversations/:id",         to: "ai#show_conversation",    as: :ai_conversation
+        get  "monthly_report",            to: "ai#monthly_report",       as: :ai_monthly_report
       end
     end
   end
