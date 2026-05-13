@@ -4,7 +4,7 @@ import {
   TextInput, StyleSheet, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useTabBarClearance } from '../navigation/TabNavigator';
 import { Colors, Radius, Shadow } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
 import Toast from 'react-native-toast-message';
@@ -50,7 +50,7 @@ export function SettingsScreen() {
     ]);
   }
 
-  const tabBarHeight = useBottomTabBarHeight();
+  const tabBarClearance = useTabBarClearance();
   const initial = (user?.nickname || user?.email || 'L')[0].toUpperCase();
 
   return (
@@ -171,7 +171,7 @@ export function SettingsScreen() {
         </Section>
       </ScrollView>
 
-      <View style={[styles.bottomBar, { paddingBottom: tabBarHeight + 8 }]}>
+      <View style={[styles.bottomBar, { paddingBottom: tabBarClearance }]}>
         <TouchableOpacity
           style={[styles.saveBtn, update.isPending && styles.saveBtnDisabled]}
           onPress={handleSave}

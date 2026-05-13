@@ -2,6 +2,15 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// tabBarWrapper.bottom(8) + tabBar.paddingVertical×2(16) + tabItem content(41)
+const TAB_BAR_CONTENT_HEIGHT = 65;
+
+/** 저장 버튼 등 floating 탭바와 겹치지 않도록 필요한 하단 여백 */
+export function useTabBarClearance() {
+  const insets = useSafeAreaInsets();
+  return TAB_BAR_CONTENT_HEIGHT + Math.max(insets.bottom, 8);
+}
 import { Colors, Radius, Shadow } from '../theme/tokens';
 import { Icon, IconName } from '../components/ui/Icon';
 import { HomeScreen } from '../screens/HomeScreen';
