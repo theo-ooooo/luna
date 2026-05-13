@@ -18,10 +18,19 @@ module Api
 
       def create
         cycle = current_user.cycles.build(create_params)
-        cycle.started_on ||= Date.current
+        cycle.started_on = cycle.started_on.presence || Date.current
         cycle.save!
         PredictionService.new(current_user).compute!
         success(cycle_json(cycle), status: :created)
+      rescue ActiveRecord::RecordInvalid => e
+        errors = e.record.errors
+        if errors.of_kind?(:started_on, :taken)
+          failure("DUPLICATE_DATE", "이미 해당 날짜에 주기가 존재합니다.")
+        elsif errors.of_kind?(:started_on, :future_date)
+          failure("FUTURE_DATE", "미래 날짜는 입력할 수 없습니다.")
+        else
+          failure("VALIDATION_ERROR", e.record.errors.full_messages.first)
+        end
       end
 
       def update

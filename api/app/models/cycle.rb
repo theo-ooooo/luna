@@ -29,7 +29,7 @@ class Cycle < ApplicationRecord
   end
 
   def no_future_dates
-    errors.add(:started_on, :invalid) if started_on && started_on > Date.current
-    errors.add(:ended_on, :invalid) if ended_on && ended_on > Date.current
+    errors.add(:started_on, :future_date) if started_on && started_on > Date.current
+    errors.add(:ended_on, :future_date) if ended_on && ended_on > Date.current
   end
 end
