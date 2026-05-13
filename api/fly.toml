@@ -8,12 +8,12 @@ console_command = "/rails/bin/rails console"
   release_command = "./bin/rails db:migrate"
 
 [env]
-  PORT = "80"
+  PORT = "8080"
   RAILS_LOG_TO_STDOUT = "true"
   RAILS_SERVE_STATIC_FILES = "true"
 
 [http_service]
-  internal_port = 80
+  internal_port = 8080
   force_https = true
   auto_stop_machines = "stop"
   auto_start_machines = true
