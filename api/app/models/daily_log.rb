@@ -26,6 +26,6 @@ class DailyLog < ApplicationRecord
   end
 
   def invalidate_daily_insight
-    user.ai_daily_insights.where(date: logged_on).update_all(stale: true)
+    user.ai_daily_insights.where(date: logged_on..(logged_on + 7)).update_all(stale: true)
   end
 end

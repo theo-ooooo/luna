@@ -76,7 +76,7 @@ module Api
       end
 
       def daily_insight
-        date = params.fetch(:date, Date.current.iso8601)
+        date = Date.iso8601(params.fetch(:date, Date.current.iso8601))
         record = AiDailyInsight.for(current_user, date)
         if record.persisted? && !record.stale?
           return success(record.slice(:date, :content, :generated_at))
@@ -90,7 +90,9 @@ module Api
           record = AiDailyInsight.find_by!(user: current_user, date: date)
           return success(record.slice(:date, :content, :generated_at))
         end
-        success(result)
+        success(record.slice(:date, :content, :generated_at))
+      rescue ArgumentError
+        failure("VALIDATION_ERROR", "date 형식이 올바르지 않습니다.", status: :bad_request)
       rescue Faraday::Error, OpenAI::Error, RuntimeError => e
         Rails.logger.error("AI daily_insight error: #{e.message}")
         failure("AI_UNAVAILABLE", "AI 서비스를 일시적으로 사용할 수 없습니다.", status: :service_unavailable)

@@ -244,9 +244,7 @@ export function HomeScreen() {
                 <Text style={styles.aiText}>
                   {insight?.content ?? '오늘의 인사이트를 준비 중이에요.'}
                 </Text>
-                {formatGeneratedAt(insight?.generated_at) != null && (
-                  <Text style={styles.aiTimestamp}>{formatGeneratedAt(insight?.generated_at)}</Text>
-                )}
+                {(() => { const ts = formatGeneratedAt(insight?.generated_at); return ts != null && <Text style={styles.aiTimestamp}>{ts}</Text>; })()}
               </>
             )}
           </View>

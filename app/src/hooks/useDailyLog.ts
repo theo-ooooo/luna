@@ -90,6 +90,7 @@ export function useSaveDailyLog(date: string = todayStr()) {
       qc.invalidateQueries({ queryKey: ['monthly-report'] });
       qc.invalidateQueries({ queryKey: ['prediction'] });
       qc.invalidateQueries({ queryKey: ['cycles'] });
+      qc.invalidateQueries({ queryKey: ['ai-daily-insight'] });
       if (isToday) {
         import('../services/notifications').then(({ cancelLogNudge }) => cancelLogNudge()).catch(() => {});
       }
