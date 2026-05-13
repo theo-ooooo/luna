@@ -17,8 +17,8 @@ class User < ApplicationRecord
   validates :luteal_phase_length, numericality: { in: 5..20 }
 
   def avg_cycle_length_days
-    recent = cycles.recent(6)
-    return cycle_length_default if recent.empty?
-    recent.average(:length_days)&.to_i || cycle_length_default
+    lengths = cycles.recent(6).map(&:length_days).compact
+    return cycle_length_default if lengths.empty?
+    (lengths.sum.to_f / lengths.size).round
   end
 end
