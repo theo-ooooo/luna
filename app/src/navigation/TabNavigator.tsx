@@ -13,7 +13,7 @@ import { SettingsScreen } from '../screens/SettingsScreen';
 export type TabParamList = {
   Home: undefined;
   Insights: undefined;
-  Record: undefined;
+  Record: { date?: string } | undefined;
   AI: undefined;
   Settings: undefined;
 };

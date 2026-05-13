@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import Toast from 'react-native-toast-message';
 import { Colors, Radius, Shadow } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
@@ -25,12 +25,13 @@ function dateStr(d: Date) {
 }
 
 export function RecordScreen() {
+  const route = useRoute<BottomTabScreenProps<TabParamList, 'Record'>['route']>();
   const minDate = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() - 30);
     return dateStr(d);
   }, []);
-  const [selectedDate, setSelectedDate] = useState(() => dateStr(new Date()));
+  const [selectedDate, setSelectedDate] = useState(() => route.params?.date ?? dateStr(new Date()));
   const todayDate = dateStr(new Date());
   const isToday = selectedDate === todayDate;
 

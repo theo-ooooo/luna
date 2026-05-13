@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import Toast from 'react-native-toast-message';
 import { Colors, Radius, Shadow } from '../theme/tokens';
 import { LunaLogo } from '../components/ui/LunaLogo';
@@ -10,11 +12,14 @@ import { StatTile } from '../components/home/StatTile';
 import { MiniSparkline } from '../components/home/MiniSparkline';
 import { CycleRingTile } from '../components/home/CycleRingTile';
 import { CycleHistoryModal } from '../components/home/CycleHistoryModal';
+import { DateSearchSheet } from '../components/home/DateSearchSheet';
+import { NotificationSheet } from '../components/home/NotificationSheet';
 import { phaseForDay, daysUntilPeriod, CYCLE_DEFAULTS } from '../utils/phase';
 import { usePrediction } from '../hooks/usePrediction';
 import { useLatestCycle, useStartPeriod, useEndPeriod } from '../hooks/useCycles';
 import { useTodayLog } from '../hooks/useDailyLog';
 import { useBbtHistory } from '../hooks/useBbtHistory';
+import type { TabParamList } from '../navigation/TabNavigator';
 
 const MOOD_LABELS: Record<number, string> = { 5: '좋음', 4: '평온', 3: '짜증', 2: '피곤', 1: '불안' };
 
@@ -31,6 +36,7 @@ function formatDateChip(dateStr: string): string {
 export function HomeScreen() {
   const { width: screenW } = useWindowDimensions();
   const bentoHalfWidth = (screenW - 32 - 10) / 2;
+  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
   const { data: prediction } = usePrediction();
   const { data: latestCycle, isLoading: cycleLoading } = useLatestCycle();
   const { data: todayLog } = useTodayLog();
@@ -39,6 +45,8 @@ export function HomeScreen() {
   const endPeriod = useEndPeriod();
   const [selectedFlow, setSelectedFlow] = useState<1 | 2 | 3>(2);
   const [showCycleHistory, setShowCycleHistory] = useState(false);
+  const [showDateSearch, setShowDateSearch] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const recentDates = useMemo(() => Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
@@ -108,10 +116,10 @@ export function HomeScreen() {
       <View style={styles.topBar}>
         <LunaLogo size={18} />
         <View style={styles.topBarRight}>
-          <TouchableOpacity style={styles.iconBtn} accessibilityRole="button" accessibilityLabel="검색">
+          <TouchableOpacity style={styles.iconBtn} onPress={() => setShowDateSearch(true)} accessibilityRole="button" accessibilityLabel="검색">
             <Icon name="search" size={20} color={Colors.ink1} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn} accessibilityRole="button" accessibilityLabel="알림">
+          <TouchableOpacity style={styles.iconBtn} onPress={() => setShowNotifications(true)} accessibilityRole="button" accessibilityLabel="알림">
             <Icon name="bell" size={20} color={Colors.ink1} />
           </TouchableOpacity>
         </View>
@@ -230,6 +238,12 @@ export function HomeScreen() {
       </ScrollView>
 
       <CycleHistoryModal visible={showCycleHistory} onClose={() => setShowCycleHistory(false)} />
+      <DateSearchSheet
+        visible={showDateSearch}
+        onClose={() => setShowDateSearch(false)}
+        onSelect={(date) => navigation.navigate('Record', { date })}
+      />
+      <NotificationSheet visible={showNotifications} onClose={() => setShowNotifications(false)} />
     </SafeAreaView>
   );
 }
