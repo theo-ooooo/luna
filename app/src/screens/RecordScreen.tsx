@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import Toast from 'react-native-toast-message';
 import { Colors, Radius, Shadow } from '../theme/tokens';
@@ -44,6 +45,8 @@ export function RecordScreen() {
       navigation.setParams({ date: undefined });
     }
   }, [route.params?.date, navigation]));
+
+  const tabBarHeight = useBottomTabBarHeight();
 
   const { data: logForDate } = useLogForDate(selectedDate);
   const form = useRecordForm(logForDate, selectedDate);
@@ -99,7 +102,7 @@ export function RecordScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
         <View style={styles.topBarLeft} />
         <Text style={styles.topBarLabel}>03 · 기록</Text>
@@ -213,7 +216,7 @@ export function RecordScreen() {
         </Section>
       </ScrollView>
 
-      <View style={styles.bottomBar}>
+      <View style={[styles.bottomBar, { paddingBottom: tabBarHeight + 8 }]}>
         <TouchableOpacity style={[styles.saveBtn, save.isPending && styles.saveBtnPending]} onPress={handleSave} disabled={save.isPending} accessibilityRole="button" accessibilityLabel="저장">
           <Icon name="check" size={16} strokeWidth={2.4} color={Colors.inkInv} />
           <Text style={styles.saveBtnText}>{save.isPending ? '저장 중…' : '저장'}</Text>
