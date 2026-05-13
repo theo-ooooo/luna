@@ -4,11 +4,11 @@ module Api
 
     def show
       version = File.read(Rails.root.join("VERSION")).strip
-      render json: {
+      success({
         api_version: "v1",
         app_version: version,
         env: Rails.env
-      }
+      })
     end
   end
 end
