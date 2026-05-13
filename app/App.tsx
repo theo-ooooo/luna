@@ -20,10 +20,12 @@ import { OnboardingNavigator } from './src/navigation/OnboardingNavigator';
 import { useAuthStore } from './src/store/authStore';
 import { toastConfig } from './src/components/ui/LunaToast';
 import { useNotificationSetup } from './src/hooks/useNotificationSetup';
+import { useRegisterPushToken } from './src/hooks/usePushToken';
 import { setupAndroidChannel } from './src/services/notifications';
 
 function AuthenticatedRoot() {
   useNotificationSetup();
+  useRegisterPushToken();
   const onboardingDone = useAuthStore(s => s.onboardingDone);
   return onboardingDone ? <TabNavigator /> : <OnboardingNavigator />;
 }

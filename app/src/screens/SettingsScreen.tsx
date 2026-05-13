@@ -11,6 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { useUpdateProfile } from '../hooks/useProfile';
 import { useNotificationStore } from '../store/notificationStore';
+import { api } from '../api/client';
 
 export function SettingsScreen() {
   const user = useAuthStore(s => s.user);
@@ -172,6 +173,24 @@ export function SettingsScreen() {
             value={prefs.monthlyReport}
             onChange={(v) => setPrefs({ monthlyReport: v })}
           />
+        </Section>
+
+        {/* 개발자 */}
+        <Section title="개발자">
+          <TouchableOpacity
+            style={styles.logoutRow}
+            onPress={async () => {
+              try {
+                await api.post('/api/v1/push_tokens/test', {});
+                Toast.show({ type: 'success', text1: '서버에서 푸시 발송했어요!' });
+              } catch {
+                Toast.show({ type: 'error', text1: '푸시 발송 실패', text2: '푸시 토큰이 등록되지 않았을 수 있어요.' });
+              }
+            }}
+          >
+            <Text style={[styles.logoutText, { color: Colors.ink1 }]}>서버 푸시 테스트</Text>
+            <Icon name="chev" size={16} strokeWidth={2} color={Colors.ink3} />
+          </TouchableOpacity>
         </Section>
 
         {/* 계정 */}
