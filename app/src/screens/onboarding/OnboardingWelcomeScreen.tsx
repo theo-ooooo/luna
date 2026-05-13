@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   textWrap: { alignItems: 'center' },
   title: {
     fontSize: 40,
-    fontWeight: '900',
+    fontFamily: 'NotoSansKR_900Black',
     color: Colors.ink1,
     letterSpacing: -1.5,
     textAlign: 'center',
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ctaText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
+  ctaText: { fontSize: 15, fontFamily: 'NotoSansKR_700Bold', color: '#FFFFFF' },
   skipBtn: { alignItems: 'center', paddingVertical: 10 },
-  skipText: { fontSize: 13, color: Colors.ink3, fontWeight: '500' },
+  skipText: { fontSize: 13, color: Colors.ink3, fontFamily: 'NotoSansKR_500Medium' },
 });

@@ -40,5 +40,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
   btnDisabled: { backgroundColor: Colors.ink4 },
-  text: { fontSize: 14, fontWeight: '700', color: Colors.inkInv },
+  text: { fontSize: 14, fontFamily: 'NotoSansKR_700Bold', color: Colors.inkInv },
 });

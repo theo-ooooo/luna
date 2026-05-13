@@ -54,11 +54,11 @@ const styles = StyleSheet.create({
   phaseRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
   phaseDot: { width: 6, height: 6, borderRadius: 3 },
   phaseLabel: {
-    fontSize: 11, fontWeight: '600', color: 'rgba(242,238,232,0.6)',
+    fontSize: 11, fontFamily: 'NotoSansKR_600SemiBold', color: 'rgba(242,238,232,0.6)',
     letterSpacing: 1.2, textTransform: 'uppercase',
   },
   phaseWord: {
-    fontSize: 64, fontWeight: '900', letterSpacing: -3,
+    fontSize: 64, fontFamily: 'NotoSansKR_900Black', letterSpacing: -3,
     lineHeight: 64, color: Colors.inkInv, marginLeft: -2,
   },
   phaseDesc: {
@@ -70,10 +70,10 @@ const styles = StyleSheet.create({
     paddingTop: 16, borderTopWidth: 1, borderTopColor: 'rgba(242,238,232,0.12)',
   },
   footerEyebrow: {
-    fontSize: 10, fontWeight: '700', letterSpacing: 1.8,
+    fontSize: 10, fontFamily: 'NotoSansKR_700Bold', letterSpacing: 1.8,
     color: 'rgba(242,238,232,0.45)', textTransform: 'uppercase',
   },
-  footerValue: { fontSize: 28, fontWeight: '900', letterSpacing: -0.8, color: Colors.inkInv, marginTop: 4 },
+  footerValue: { fontSize: 28, fontFamily: 'NotoSansKR_900Black', letterSpacing: -0.8, color: Colors.inkInv, marginTop: 4 },
   detailBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 6 },
-  detailBtnText: { color: 'rgba(242,238,232,0.7)', fontSize: 12, fontWeight: '600' },
+  detailBtnText: { color: 'rgba(242,238,232,0.7)', fontSize: 12, fontFamily: 'NotoSansKR_600SemiBold' },
 });

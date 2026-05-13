@@ -46,8 +46,8 @@ export function DayCell({ day, month, size, isToday, isSelected, phaseKey = 'fol
 const styles = StyleSheet.create({
   cell: { borderRadius: 12, alignItems: 'center', justifyContent: 'center', position: 'relative' },
   dimmed: { opacity: 0.3 },
-  text: { fontSize: 14, fontWeight: '600', letterSpacing: -0.3 },
-  textBold: { fontWeight: '900' },
+  text: { fontSize: 14, fontFamily: 'NotoSansKR_600SemiBold', letterSpacing: -0.3 },
+  textBold: { fontFamily: 'NotoSansKR_900Black' },
   todayDot: { position: 'absolute', bottom: 4, width: 4, height: 4, borderRadius: 2 },
   selectedBar: { position: 'absolute', bottom: 4, width: 14, height: 3, borderRadius: 2 },
 });

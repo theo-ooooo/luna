@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: Colors.borderSoft,
   },
-  title: { fontSize: 17, fontWeight: '800', color: Colors.ink1, letterSpacing: -0.4 },
+  title: { fontSize: 17, fontFamily: 'NotoSansKR_800ExtraBold', color: Colors.ink1, letterSpacing: -0.4 },
   closeBtn: {
     width: 32, height: 32, borderRadius: 16,
     backgroundColor: Colors.bgAlt,
@@ -147,13 +147,13 @@ const styles = StyleSheet.create({
   listContent: { paddingVertical: 4 },
   item: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 15, gap: 12 },
   itemLeft: { flex: 1, gap: 3 },
-  itemRange: { fontSize: 15, fontWeight: '600', color: Colors.ink1 },
+  itemRange: { fontSize: 15, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.ink1 },
   itemMetaRow: { flexDirection: 'row' },
   itemMeta: { fontSize: 12, color: Colors.ink3 },
   activeBadge: {
     backgroundColor: 'rgba(255,90,71,0.10)', paddingHorizontal: 10, paddingVertical: 4,
     borderRadius: Radius.pill, borderWidth: 1, borderColor: 'rgba(255,90,71,0.22)',
   },
-  activeBadgeText: { fontSize: 11, fontWeight: '700', color: Colors.coral },
+  activeBadgeText: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', color: Colors.coral },
   separator: { height: 1, backgroundColor: Colors.borderSoft, marginHorizontal: 20 },
 });

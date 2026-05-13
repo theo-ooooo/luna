@@ -158,10 +158,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: Colors.borderSoft,
   },
-  title: { fontSize: 17, fontWeight: '800', color: Colors.ink1, letterSpacing: -0.4 },
+  title: { fontSize: 17, fontFamily: 'NotoSansKR_800ExtraBold', color: Colors.ink1, letterSpacing: -0.4 },
   closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.bgAlt, alignItems: 'center', justifyContent: 'center' },
   body: { paddingHorizontal: 20, paddingTop: 18, gap: 8 },
-  sectionLabel: { fontSize: 12, fontWeight: '600', color: Colors.ink3 },
+  sectionLabel: { fontSize: 12, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.ink3 },
   chipRow: { flexDirection: 'row', gap: 8, paddingVertical: 2 },
   flowRow: { flexDirection: 'row', gap: 8 },
   chip: {
@@ -172,12 +172,12 @@ const styles = StyleSheet.create({
   },
   chipFlex: { flex: 1, alignItems: 'center' },
   chipActive: { backgroundColor: Colors.bgInk, borderColor: Colors.coral },
-  chipText: { fontSize: 13, fontWeight: '600', color: Colors.ink2 },
+  chipText: { fontSize: 13, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.ink2 },
   chipTextActive: { color: Colors.inkInv },
   confirmBtn: {
     marginTop: 20, paddingVertical: 15, borderRadius: Radius.pill,
     backgroundColor: Colors.coral, alignItems: 'center',
   },
   confirmBtnDisabled: { opacity: 0.5 },
-  confirmBtnText: { fontSize: 15, fontWeight: '700', color: Colors.inkInv },
+  confirmBtnText: { fontSize: 15, fontFamily: 'NotoSansKR_700Bold', color: Colors.inkInv },
 });

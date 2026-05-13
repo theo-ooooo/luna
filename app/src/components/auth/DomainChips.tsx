@@ -70,8 +70,8 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.borderSoft,
   },
-  local: { fontSize: 13, fontWeight: '700', color: Colors.ink1, flexShrink: 1 },
-  at: { fontSize: 13, fontWeight: '400', color: Colors.ink3, marginHorizontal: 1 },
-  domain: { fontSize: 13, fontWeight: '400', color: Colors.ink2, flexShrink: 1 },
-  domainMatch: { fontWeight: '700', color: Colors.ink1 },
+  local: { fontSize: 13, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink1, flexShrink: 1 },
+  at: { fontSize: 13, fontFamily: 'NotoSansKR_400Regular', color: Colors.ink3, marginHorizontal: 1 },
+  domain: { fontSize: 13, fontFamily: 'NotoSansKR_400Regular', color: Colors.ink2, flexShrink: 1 },
+  domainMatch: { fontFamily: 'NotoSansKR_700Bold', color: Colors.ink1 },
 });

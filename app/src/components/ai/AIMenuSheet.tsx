@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)',
   },
-  title: { fontSize: 17, fontWeight: '800', color: Colors.inkInv, letterSpacing: -0.4 },
+  title: { fontSize: 17, fontFamily: 'NotoSansKR_800ExtraBold', color: Colors.inkInv, letterSpacing: -0.4 },
   closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
   actions: { paddingHorizontal: 16, paddingTop: 8 },
   actionItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, gap: 14 },
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
   },
   actionIconDestructive: { backgroundColor: 'rgba(255,90,71,0.12)' },
-  actionLabel: { fontSize: 15, fontWeight: '600', color: Colors.inkInv },
+  actionLabel: { fontSize: 15, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.inkInv },
   actionLabelDestructive: { color: Colors.coral },
   separator: { height: 1, backgroundColor: 'rgba(255,255,255,0.06)', marginLeft: 50 },
 });
