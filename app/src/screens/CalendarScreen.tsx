@@ -47,7 +47,6 @@ export function CalendarScreen() {
   const {
     year, month, selectedDay, today,
     daysInMonth, firstWeekday,
-    selectedPhaseKey,
     activePhaseFilter,
     setSelectedDay, prevMonth, nextMonth,
     jumpToDate, setActivePhaseFilter,
@@ -71,6 +70,14 @@ export function CalendarScreen() {
     }
     return null;
   }, [latestCycle?.started_on, prediction?.cycle_day]);
+
+  // Compute phase key for the selected day using actual cycle day
+  const selectedPhaseKey = useMemo(() => {
+    if (cycleStartMs === null) return 'follicular';
+    const dayMs = new Date(year, month - 1, selectedDay).getTime();
+    const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
+    return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength) : 'follicular';
+  }, [cycleStartMs, year, month, selectedDay, cycleLength]);
 
   // Pre-compute phase per day-of-month for the current view
   const dayPhases = useMemo(() => {
