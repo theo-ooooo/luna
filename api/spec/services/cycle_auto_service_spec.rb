@@ -68,8 +68,29 @@ RSpec.describe CycleAutoService, type: :service do
     end
 
     # ───────────────────────────────────────────────
-    # 4. 이전 주기가 이미 닫혀 있는 경우 (ended_on 존재)
-    #    → prev_cycle.ended_on.nil? == false 이므로 닫기 스킵, 새 주기 생성
+    # 4. 이전 주기가 열려(ended_on nil) 있는 경우 → 자동 종료 후 새 주기 생성
+    # ───────────────────────────────────────────────
+
+    context "이전 주기가 열려(ended_on nil) 있는 경우" do
+      let!(:prev_cycle) do
+        create(:cycle, user: user, started_on: 30.days.ago.to_date, ended_on: nil)
+      end
+
+      it "이전 주기의 ended_on 을 log.logged_on - 1 로 자동 설정한다" do
+        log = build_log(logged_on: today, flow_level: 2)
+        service.call(log)
+        expect(prev_cycle.reload.ended_on).to eq(today - 1)
+      end
+
+      it "새 주기도 생성한다" do
+        log = build_log(logged_on: today, flow_level: 2)
+        expect { service.call(log) }.to change { user.cycles.count }.by(1)
+      end
+    end
+
+    # ───────────────────────────────────────────────
+    # 4b. 이전 주기가 이미 닫혀 있는 경우 (ended_on 존재)
+    #     → prev_cycle.ended_on.nil? == false 이므로 닫기 스킵, 새 주기 생성
     # ───────────────────────────────────────────────
 
     context "이전 주기가 닫혀(ended_on 있음) 있는 경우" do
@@ -111,6 +132,12 @@ RSpec.describe CycleAutoService, type: :service do
           expect(cycle.flow_level).to eq(expected_level)
         end
       end
+
+      it "FLOW_MAP 에 없는 flow_level(예: 5) 은 기본값 1 로 저장된다" do
+        log = build_log(logged_on: today, flow_level: 5)
+        service.call(log)
+        expect(user.cycles.find_by(started_on: today).flow_level).to eq(1)
+      end
     end
 
     # ───────────────────────────────────────────────
@@ -149,6 +176,16 @@ RSpec.describe CycleAutoService, type: :service do
         service.call(log)
 
         expect(prediction_double).to have_received(:compute!)
+      end
+    end
+
+    context "조기 반환되는 경우 (active cycle 존재)" do
+      before { create(:cycle, user: user, started_on: 3.days.ago.to_date, ended_on: nil) }
+
+      it "PredictionService#compute! 를 호출하지 않는다" do
+        expect(PredictionService).not_to receive(:new)
+        log = build_log(logged_on: today, flow_level: 2)
+        service.call(log)
       end
     end
   end
