@@ -110,7 +110,7 @@ export function RecordScreen() {
         <View style={[styles.heroCard, Shadow.lift]}>
           <View style={styles.heroDateNav}>
             <TouchableOpacity onPress={goToPrevDay} style={styles.dateNavBtn} accessibilityRole="button" accessibilityLabel="이전 날">
-              <Icon name="chevDn" size={18} strokeWidth={2} color="rgba(242,238,232,0.6)" />
+              <Icon name="chevLeft" size={18} strokeWidth={2} color="rgba(242,238,232,0.6)" />
             </TouchableOpacity>
             <Text style={styles.heroDate}>{dateLabel}</Text>
             <TouchableOpacity onPress={goToNextDay} disabled={isToday} style={[styles.dateNavBtn, isToday && styles.dateNavBtnDisabled]} accessibilityRole="button" accessibilityLabel="다음 날">
