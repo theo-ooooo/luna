@@ -1,52 +1,44 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import {
-  Animated, FlatList, Modal, StyleSheet, Text,
+  Animated, Modal, SectionList, StyleSheet, Text,
   TouchableOpacity, TouchableWithoutFeedback, View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Motion } from '../../theme/tokens';
 import { Icon } from '../ui/Icon';
-import { usePrediction } from '../../hooks/usePrediction';
 import { useNotificationStore } from '../../store/notificationStore';
+import type { NotificationLogEntry } from '../../store/notificationStore';
 
-const SHEET_HEIGHT = 480;
-
-interface NotifItem {
-  id: string;
-  label: string;
-  date: Date;
-  daysFromNow: number;
-  color: string;
-}
+const SHEET_HEIGHT = 500;
 
 interface Props {
   visible: boolean;
   onClose: () => void;
 }
 
-function addDays(d: Date, n: number) {
-  const r = new Date(d);
-  r.setDate(r.getDate() + n);
-  return r;
+interface Section {
+  title: string;
+  data: NotificationLogEntry[];
+  past: boolean;
 }
 
-function fmtDate(d: Date) {
-  return `${d.getMonth() + 1}월 ${d.getDate()}일`;
-}
-
-function daysLabel(n: number) {
-  if (n === 0) return '오늘';
-  if (n === 1) return '내일';
-  if (n < 0) return `${Math.abs(n)}일 전`;
-  return `${n}일 후`;
+function timeLabel(ts: number) {
+  const d = new Date(ts);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const diff = Math.round((d.getTime() - now.getTime()) / 86_400_000);
+  const dateStr = `${d.getMonth() + 1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  if (diff === 0) return `오늘 · ${dateStr.slice(dateStr.indexOf(' ') + 1)}`;
+  if (diff === -1) return `어제 · ${dateStr.slice(dateStr.indexOf(' ') + 1)}`;
+  if (diff === 1) return `내일 · ${dateStr.slice(dateStr.indexOf(' ') + 1)}`;
+  return dateStr;
 }
 
 export function NotificationHistorySheet({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
   const opacity = useRef(new Animated.Value(0)).current;
-  const { data: prediction } = usePrediction();
-  const { prefs } = useNotificationStore();
+  const { notificationLog } = useNotificationStore();
 
   useEffect(() => {
     if (visible) {
@@ -62,38 +54,19 @@ export function NotificationHistorySheet({ visible, onClose }: Props) {
     }
   }, [visible, opacity, translateY]);
 
-  const items = useMemo<NotifItem[]>(() => {
-    if (!prediction) return [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const result: NotifItem[] = [];
-
-    const push = (date: Date, label: string, color: string, id: string) => {
-      const diff = Math.round((date.getTime() - today.getTime()) / 86_400_000);
-      if (diff >= -1 && diff <= 60) {
-        result.push({ id, label, date, daysFromNow: diff, color });
-      }
-    };
-
-    const period = new Date(prediction.predicted_period_start + 'T00:00:00');
-    push(addDays(period, -3), '생리 예정 D-3', Colors.coral, 'period-3');
-    push(addDays(period, -1), '생리 예정 D-1', Colors.coral, 'period-1');
-    push(period, '생리 예정일', Colors.coral, 'period-0');
-
-    if (prediction.predicted_ovulation_on) {
-      const ov = new Date(prediction.predicted_ovulation_on + 'T00:00:00');
-      push(addDays(ov, -2), '배란 예정 D-2', Colors.lavender, 'ov-2');
-      push(ov, '배란 예정일', Colors.lavender, 'ov-0');
-    }
-
-    if (prediction.fertile_start) {
-      push(new Date(prediction.fertile_start + 'T00:00:00'), '가임기 시작', Colors.lime, 'fertile');
-    }
-
-    return result.sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [prediction, visible]);
-
-  const noAlerts = !prefs.periodReminder && !prefs.ovulationAlert && !prefs.fertileStart;
+  const sections = useMemo<Section[]>(() => {
+    const now = Date.now();
+    const received = notificationLog
+      .filter(e => e.scheduledFor <= now)
+      .sort((a, b) => b.scheduledFor - a.scheduledFor);
+    const upcoming = notificationLog
+      .filter(e => e.scheduledFor > now)
+      .sort((a, b) => a.scheduledFor - b.scheduledFor);
+    const result: Section[] = [];
+    if (received.length > 0) result.push({ title: '받은 알림', data: received, past: true });
+    if (upcoming.length > 0) result.push({ title: '예정된 알림', data: upcoming, past: false });
+    return result;
+  }, [notificationLog]);
 
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
@@ -104,47 +77,50 @@ export function NotificationHistorySheet({ visible, onClose }: Props) {
       <Animated.View style={[styles.sheet, { transform: [{ translateY }], paddingBottom: insets.bottom + 8 }]}>
         <View style={styles.handle} />
         <View style={styles.header}>
-          <Text style={styles.title}>알림 예정</Text>
+          <Text style={styles.title}>알림 내역</Text>
           <TouchableOpacity onPress={onClose} style={styles.closeBtn} accessibilityRole="button" accessibilityLabel="닫기">
             <Icon name="close" size={16} strokeWidth={2.4} color={Colors.ink2} />
           </TouchableOpacity>
         </View>
 
-        {items.length === 0 ? (
+        {notificationLog.length === 0 ? (
           <View style={styles.empty}>
-            <Icon name="bell" size={28} strokeWidth={1.6} color={Colors.ink4} />
-            <Text style={styles.emptyText}>예측 데이터가 없어요</Text>
-            <Text style={styles.emptyDesc}>주기를 기록하면 알림 예정 목록이 표시돼요.</Text>
+            <Icon name="bell" size={32} strokeWidth={1.4} color={Colors.ink4} />
+            <Text style={styles.emptyTitle}>알림 내역이 없어요</Text>
+            <Text style={styles.emptyDesc}>앱이 알림을 예약하면{'\n'}여기에 기록이 남아요.</Text>
           </View>
         ) : (
-          <FlatList
-            data={items}
-            keyExtractor={i => i.id}
+          <SectionList
+            sections={sections}
+            keyExtractor={item => item.id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.list}
-            renderItem={({ item }) => (
-              <View style={styles.item}>
-                <View style={[styles.dot, { backgroundColor: item.color }]} />
-                <View style={styles.itemBody}>
-                  <Text style={styles.itemLabel}>{item.label}</Text>
-                  <Text style={styles.itemDate}>{fmtDate(item.date)}</Text>
+            renderSectionHeader={({ section }) => (
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>{section.title}</Text>
+              </View>
+            )}
+            renderItem={({ item, section }) => (
+              <View style={[styles.item, (section as Section).past && styles.itemPast]}>
+                <View style={styles.iconWrap}>
+                  <Icon
+                    name="bell"
+                    size={15}
+                    strokeWidth={2}
+                    color={(section as Section).past ? Colors.ink3 : Colors.coral}
+                  />
                 </View>
-                <View style={[styles.badge, item.daysFromNow < 0 && styles.badgePast, item.daysFromNow === 0 && styles.badgeToday]}>
-                  <Text style={[styles.badgeText, item.daysFromNow === 0 && styles.badgeTextToday]}>
-                    {daysLabel(item.daysFromNow)}
+                <View style={styles.itemBody}>
+                  <Text style={[styles.itemTitle, (section as Section).past && styles.itemTitlePast]}>
+                    {item.title}
                   </Text>
+                  <Text style={styles.itemBody2}>{item.body}</Text>
+                  <Text style={styles.itemTime}>{timeLabel(item.scheduledFor)}</Text>
                 </View>
               </View>
             )}
             ItemSeparatorComponent={() => <View style={styles.sep} />}
           />
-        )}
-
-        {noAlerts && (
-          <View style={styles.hint}>
-            <Icon name="bell" size={13} strokeWidth={2} color={Colors.ink3} />
-            <Text style={styles.hintText}>설정 {'>'} 알림에서 알림을 켜세요.</Text>
-          </View>
         )}
       </Animated.View>
     </Modal>
@@ -169,21 +145,19 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 17, fontWeight: '800', color: Colors.ink1, letterSpacing: -0.4 },
   closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.bgAlt, alignItems: 'center', justifyContent: 'center' },
-  list: { paddingVertical: 4 },
-  item: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 14, gap: 12 },
-  dot: { width: 10, height: 10, borderRadius: 5, flexShrink: 0 },
+  list: { paddingBottom: 8 },
+  sectionHeader: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 6, backgroundColor: Colors.bgCard },
+  sectionTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: Colors.ink3 },
+  item: { flexDirection: 'row', alignItems: 'flex-start', paddingHorizontal: 20, paddingVertical: 14, gap: 12 },
+  itemPast: { opacity: 0.6 },
+  iconWrap: { width: 34, height: 34, borderRadius: 17, backgroundColor: Colors.bgAlt, alignItems: 'center', justifyContent: 'center', marginTop: 2 },
   itemBody: { flex: 1, gap: 2 },
-  itemLabel: { fontSize: 14, fontWeight: '600', color: Colors.ink1 },
-  itemDate: { fontSize: 12, color: Colors.ink3 },
-  badge: { paddingHorizontal: 10, paddingVertical: 4, backgroundColor: Colors.bgAlt, borderRadius: 20 },
-  badgePast: { opacity: 0.5 },
-  badgeToday: { backgroundColor: Colors.coral },
-  badgeText: { fontSize: 12, fontWeight: '600', color: Colors.ink2 },
-  badgeTextToday: { color: Colors.inkInv },
+  itemTitle: { fontSize: 14, fontWeight: '700', color: Colors.ink1 },
+  itemTitlePast: { color: Colors.ink2 },
+  itemBody2: { fontSize: 13, color: Colors.ink2, lineHeight: 18 },
+  itemTime: { fontSize: 11, color: Colors.ink3, marginTop: 2 },
   sep: { height: 1, backgroundColor: Colors.borderSoft, marginHorizontal: 20 },
-  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8, paddingBottom: 40 },
-  emptyText: { fontSize: 15, fontWeight: '700', color: Colors.ink2 },
-  emptyDesc: { fontSize: 13, color: Colors.ink3, textAlign: 'center' },
-  hint: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 20, paddingBottom: 16, paddingTop: 8 },
-  hintText: { fontSize: 12, color: Colors.ink3 },
+  empty: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, paddingBottom: 40 },
+  emptyTitle: { fontSize: 15, fontWeight: '700', color: Colors.ink2 },
+  emptyDesc: { fontSize: 13, color: Colors.ink3, textAlign: 'center', lineHeight: 20 },
 });

@@ -10,7 +10,7 @@ import { useLatestCycle } from './useCycles';
 export function useNotificationSetup() {
   const { data: prediction, isSuccess: predOk } = usePrediction();
   const { data: latestCycle, isSuccess: cycleOk } = useLatestCycle();
-  const { permissionGranted, prefs, setPermissionGranted } = useNotificationStore();
+  const { permissionGranted, prefs, setPermissionGranted, setNotificationLog } = useNotificationStore();
 
   // Always re-verify permission on mount — persisted value can be stale after OS-level revocation
   useEffect(() => {
@@ -29,6 +29,6 @@ export function useNotificationSetup() {
       fertileStart: prediction?.fertile_start ?? null,
       cycleEndedOn: latestCycle?.ended_on ?? null,
       prefs,
-    });
+    }).then(setNotificationLog).catch(() => {});
   }, [permissionGranted, predOk, cycleOk, prediction, latestCycle, prefs]);
 }

@@ -11,12 +11,21 @@ export interface NotificationPrefs {
   monthlyReport: boolean;    // 월간 리포트 준비됨
 }
 
+export interface NotificationLogEntry {
+  id: string;
+  title: string;
+  body: string;
+  scheduledFor: number; // unix timestamp (ms)
+}
+
 interface NotificationState {
   permissionGranted: boolean;
-  permissionChecked: boolean;  // true after first OS check completes on this launch
+  permissionChecked: boolean;
   prefs: NotificationPrefs;
+  notificationLog: NotificationLogEntry[];
   setPermissionGranted: (v: boolean) => void;
   setPrefs: (p: Partial<NotificationPrefs>) => void;
+  setNotificationLog: (entries: NotificationLogEntry[]) => void;
 }
 
 const defaultPrefs: NotificationPrefs = {
@@ -34,14 +43,19 @@ export const useNotificationStore = create<NotificationState>()(
       permissionGranted: false,
       permissionChecked: false,
       prefs: defaultPrefs,
+      notificationLog: [],
       setPermissionGranted: (v) => set({ permissionGranted: v, permissionChecked: true }),
       setPrefs: (p) => set((s) => ({ prefs: { ...s.prefs, ...p } })),
+      setNotificationLog: (entries) => set({ notificationLog: entries }),
     }),
     {
       name: 'luna-notifications',
       storage: createJSONStorage(() => AsyncStorage),
-      // permissionChecked is session-only — always re-check on each launch
-      partialize: (s) => ({ permissionGranted: s.permissionGranted, prefs: s.prefs }),
+      partialize: (s) => ({
+        permissionGranted: s.permissionGranted,
+        prefs: s.prefs,
+        notificationLog: s.notificationLog,
+      }),
     },
   ),
 );

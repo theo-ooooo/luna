@@ -4,6 +4,7 @@ import {
   TextInput, StyleSheet, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Colors, Radius, Shadow } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
 import Toast from 'react-native-toast-message';
@@ -49,20 +50,13 @@ export function SettingsScreen() {
     ]);
   }
 
+  const tabBarHeight = useBottomTabBarHeight();
   const initial = (user?.nickname || user?.email || 'L')[0].toUpperCase();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
-        <View style={styles.topBarLeft} />
         <Text style={styles.topBarLabel}>설정</Text>
-        <TouchableOpacity
-          style={[styles.saveBtn, update.isPending && styles.saveBtnDisabled]}
-          onPress={handleSave}
-          disabled={update.isPending}
-        >
-          <Text style={styles.saveBtnText}>{update.isPending ? '저장 중…' : '저장'}</Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -176,6 +170,17 @@ export function SettingsScreen() {
           </TouchableOpacity>
         </Section>
       </ScrollView>
+
+      <View style={[styles.bottomBar, { paddingBottom: tabBarHeight + 8 }]}>
+        <TouchableOpacity
+          style={[styles.saveBtn, update.isPending && styles.saveBtnDisabled]}
+          onPress={handleSave}
+          disabled={update.isPending}
+        >
+          <Icon name="check" size={16} strokeWidth={2.4} color={Colors.inkInv} />
+          <Text style={styles.saveBtnText}>{update.isPending ? '저장 중…' : '저장'}</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -220,14 +225,14 @@ function SettingRow({ label, detail, children }: { label: string; detail?: strin
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.bg },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  topBarLeft: { width: 52 },
+  topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   topBarLabel: { fontSize: 13, fontWeight: '700', color: Colors.ink3, letterSpacing: -0.1 },
-  saveBtn: { backgroundColor: Colors.bgInk, borderRadius: Radius.pill, paddingHorizontal: 16, paddingVertical: 8 },
-  saveBtnDisabled: { opacity: 0.5 },
-  saveBtnText: { fontSize: 13, fontWeight: '700', color: Colors.inkInv },
   scroll: { flex: 1 },
-  content: { paddingHorizontal: 16, paddingBottom: 120, gap: 12 },
+  content: { paddingHorizontal: 16, paddingBottom: 24, gap: 12 },
+  bottomBar: { paddingHorizontal: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.borderSoft, backgroundColor: Colors.bg },
+  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.coral, borderRadius: Radius.pill, paddingVertical: 16 },
+  saveBtnDisabled: { opacity: 0.6 },
+  saveBtnText: { fontSize: 15, fontWeight: '800', color: Colors.inkInv, letterSpacing: -0.2 },
   profileCard: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: Colors.bgCard, borderRadius: Radius.tile, padding: 18 },
   avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.bgInk, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 20, fontWeight: '900', color: Colors.coral },
