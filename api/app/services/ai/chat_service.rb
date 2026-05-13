@@ -19,7 +19,7 @@ module Ai
       @user = user
     end
 
-    def stream(conversation, message, context: nil)
+    def stream(conversation, message, context: nil, &handler)
       client = OpenAI::Client.new(access_token: ENV.fetch("OPENAI_API_KEY"))
       context ||= Ai::ContextBuilder.new(@user).build
 
@@ -40,11 +40,11 @@ module Ai
             choice = chunk.dig("choices", 0)
             next unless choice
 
-            delta_text   = choice.dig("delta", "content")
+            delta_text    = choice.dig("delta", "content")
             finish_reason = choice["finish_reason"]
 
-            yield({ type: :delta, text: delta_text }) if delta_text.present?
-            yield({ type: :stop }) if finish_reason == "stop"
+            handler.call({ type: :delta, text: delta_text }) if delta_text.present?
+            handler.call({ type: :stop }) if finish_reason == "stop"
           }
         }
       )
