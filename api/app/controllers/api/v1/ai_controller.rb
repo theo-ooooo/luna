@@ -1,6 +1,7 @@
 module Api
   module V1
     class AiController < ApplicationController
+      include ActionController::Live
       def chat
         message = params.require(:message)
         conversation = find_or_create_conversation
@@ -21,11 +22,10 @@ module Api
         begin
           service = Ai::ChatService.new(current_user)
           service.stream(conversation, message, context: context) do |event|
-            if event.type == "content_block_delta" && event.delta.type == "text_delta"
-              text = event.delta.text
-              full_response << text
-              sse.write({ type: "delta", text: text })
-            elsif event.type == "message_stop"
+            if event[:type] == :delta
+              full_response << event[:text]
+              sse.write({ type: "delta", text: event[:text] })
+            elsif event[:type] == :stop
               sse.write({ type: "end" })
             end
           end
@@ -54,7 +54,7 @@ module Api
 
         result = Ai::ParseLogService.new.parse(text)
         success(result)
-      rescue Anthropic::Errors::Error => e
+      rescue Faraday::Error, OpenAI::Error, RuntimeError => e
         Rails.logger.error("AI parse_log error: #{e.message}")
         failure("AI_UNAVAILABLE", "AI 서비스를 일시적으로 사용할 수 없습니다.", status: :service_unavailable)
       end
@@ -67,14 +67,32 @@ module Api
           return failure("VALIDATION_ERROR", "year(2020~2100) 또는 month(1~12) 범위를 확인하세요.", status: :bad_request)
         end
 
+        report = AiMonthlyReport.for(current_user, year, month)
+
+        if report.persisted? && !report.stale?
+          return success(report.slice(:year, :month, :summary, :stats, :generated_at))
+        end
+
         service = Ai::ChatService.new(current_user)
         result = service.monthly_report(current_user, year, month)
 
-        if result
-          success(result)
-        else
-          failure("NOT_FOUND", "해당 월의 주기 데이터가 없습니다.", status: :not_found)
+        return failure("NOT_FOUND", "해당 월의 주기 데이터가 없습니다.", status: :not_found) unless result
+
+        report.assign_attributes(
+          summary: result[:summary],
+          stats: result[:stats],
+          stale: false,
+          generated_at: result[:generated_at]
+        )
+        begin
+          report.save!
+        rescue ActiveRecord::RecordNotUnique
+          # 동시 요청이 먼저 저장한 경우 — 이미 저장된 레코드 반환
+          report = current_user.ai_monthly_reports.find_by!(year: year, month: month)
+          return success(report.slice(:year, :month, :summary, :stats, :generated_at))
         end
+
+        success(result)
       end
 
       private

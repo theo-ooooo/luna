@@ -9,6 +9,7 @@ class User < ApplicationRecord
   has_many :predictions, dependent: :destroy
   has_many :push_tokens, dependent: :destroy
   has_many :ai_conversations, dependent: :destroy
+  has_many :ai_monthly_reports, dependent: :destroy
 
   validates :email, presence: true, uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP }
@@ -17,8 +18,8 @@ class User < ApplicationRecord
   validates :luteal_phase_length, numericality: { in: 5..20 }
 
   def avg_cycle_length_days
-    recent = cycles.recent(6)
-    return cycle_length_default if recent.empty?
-    recent.average(:length_days)&.to_i || cycle_length_default
+    lengths = cycles.recent(6).map(&:length_days).compact
+    return cycle_length_default if lengths.empty?
+    (lengths.sum.to_f / lengths.size).round
   end
 end

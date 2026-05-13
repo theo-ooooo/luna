@@ -41,7 +41,7 @@ export function ChatMessageList({ messages, isStreaming = false }: ChatMessageLi
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, flexGrow: 1, justifyContent: 'flex-end' },
+  list: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 52, flexGrow: 1, justifyContent: 'flex-end' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   emptyTitle: { fontSize: 22, fontWeight: '900', letterSpacing: -0.5, color: Colors.inkInv, marginBottom: 10 },
   emptyBody: { fontSize: 14, color: 'rgba(242,238,232,0.5)', textAlign: 'center', lineHeight: 22 },

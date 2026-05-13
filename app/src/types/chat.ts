@@ -4,4 +4,5 @@ export interface ChatMessage {
   content: string;
   ts: Date;
   isStreaming?: boolean;
+  isError?: boolean;
 }
