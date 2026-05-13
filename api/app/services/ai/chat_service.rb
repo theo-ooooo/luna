@@ -25,7 +25,6 @@ module Ai
     end
 
     def stream(conversation, message, context: nil, &handler)
-      client = OpenAI::Client.new(access_token: ENV.fetch("OPENAI_API_KEY"))
       context ||= Ai::ContextBuilder.new(@user).build
 
       system_content = "#{SYSTEM_PROMPT}\n\n현재 주기 정보: #{context.to_json}"
@@ -49,7 +48,7 @@ module Ai
             finish_reason = choice["finish_reason"]
 
             handler.call({ type: :delta, text: delta_text }) if delta_text.present?
-            handler.call({ type: :stop }) if finish_reason == "stop"
+            handler.call({ type: :stop }) if finish_reason.present?
           }
         }
       )
@@ -68,7 +67,6 @@ module Ai
         }
       ]
 
-      client = OpenAI::Client.new(access_token: ENV.fetch("OPENAI_API_KEY"))
       response = client.chat(
         parameters: { model: MODEL, max_tokens: 512, messages: messages }
       )
@@ -80,6 +78,10 @@ module Ai
     end
 
     private
+
+    def client
+      @client ||= OpenAI::Client.new(access_token: ENV.fetch("OPENAI_API_KEY"))
+    end
 
     def build_monthly_stats(user, year, month)
       start_date = Date.new(year, month, 1)

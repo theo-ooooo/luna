@@ -54,7 +54,7 @@ module Api
 
         result = Ai::ParseLogService.new.parse(text)
         success(result)
-      rescue Faraday::Error, OpenAI::Error => e
+      rescue Faraday::Error, OpenAI::Error, RuntimeError => e
         Rails.logger.error("AI parse_log error: #{e.message}")
         failure("AI_UNAVAILABLE", "AI 서비스를 일시적으로 사용할 수 없습니다.", status: :service_unavailable)
       end
