@@ -20,7 +20,7 @@ class DailyLog < ApplicationRecord
   private
 
   def mark_monthly_report_stale
-    report = AiMonthlyReport.for(user, logged_on.year, logged_on.month)
-    report.update_columns(stale: true) if report.persisted?
+    AiMonthlyReport.where(user: user, year: logged_on.year, month: logged_on.month)
+                   .update_all(stale: true)
   end
 end

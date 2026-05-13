@@ -56,6 +56,36 @@ RSpec.describe "Api::V1::Ai", type: :request do
       get "/api/v1/ai/monthly_report", params: { year: 1999, month: 1 }, headers: headers
       expect(response).to have_http_status(:bad_request)
     end
+
+    context "캐시 로직" do
+      let(:cached_report) do
+        user.ai_monthly_reports.create!(
+          year: 2026, month: 5,
+          summary: "캐시된 요약입니다.",
+          stats: { cycle_length: 28 },
+          stale: false,
+          generated_at: 1.hour.ago
+        )
+      end
+
+      it "stale: false 리포트는 OpenAI 호출 없이 DB 반환" do
+        cached_report
+        expect_any_instance_of(Ai::ChatService).not_to receive(:monthly_report)
+        get "/api/v1/ai/monthly_report", params: { year: 2026, month: 5 }, headers: headers
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body.dig("data", "summary")).to eq("캐시된 요약입니다.")
+      end
+
+      it "stale: true 리포트는 OpenAI 재생성 후 DB 갱신" do
+        cached_report.update!(stale: true)
+        new_result = { year: 2026, month: 5, summary: "새 요약", stats: {}, generated_at: Time.current }
+        allow_any_instance_of(Ai::ChatService).to receive(:monthly_report).and_return(new_result)
+        get "/api/v1/ai/monthly_report", params: { year: 2026, month: 5 }, headers: headers
+        expect(response).to have_http_status(:ok)
+        expect(cached_report.reload.stale).to eq(false)
+        expect(cached_report.reload.summary).to eq("새 요약")
+      end
+    end
   end
 
   describe "GET /api/v1/ai/conversations/:id" do

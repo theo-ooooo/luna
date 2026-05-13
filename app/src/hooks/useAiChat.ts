@@ -82,7 +82,7 @@ export function useAiChat() {
       }
     };
 
-    xhr.onloadend = () => finishWith(xhr.status !== 200 && xhr.status !== 0);
+    xhr.onloadend = () => finishWith((xhr.status < 200 || xhr.status >= 300) && xhr.status !== 0);
     xhr.onerror = () => finishWith(true);
     xhr.onabort = () => {
       ended = true;

@@ -48,6 +48,7 @@ module Ai
             finish_reason = choice["finish_reason"]
 
             handler.call({ type: :delta, text: delta_text }) if delta_text.present?
+            # finish_reason이 "stop" 외에도 "length", "content_filter" 일 때도 스트림 종료
             handler.call({ type: :stop }) if finish_reason.present?
           }
         }
