@@ -43,12 +43,10 @@ export function useSignup() {
         user: { email, password, password_confirmation: password, nickname, cycle_length_default: cycleLength },
       });
       setAuth(auth.token, auth.user);
+      // setAuth와 동시에 설정해 token=true/onboardingDone=false 상태가 노출되지 않도록 함
+      setOnboardingDone(true);
       await api.post('/api/v1/cycles', { started_on: lastPeriodDate, flow_level: 1 });
       return auth;
-    },
-    onSuccess: () => {
-      // 회원가입 플로우에서 이미 주기 데이터를 입력했으므로 온보딩 불필요
-      setOnboardingDone(true);
     },
   });
 }

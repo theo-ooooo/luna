@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import Toast from 'react-native-toast-message';
 import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
 
@@ -26,6 +27,9 @@ export function useOnboarding() {
       setOnboardingDone(true);
       qc.invalidateQueries({ queryKey: ['cycles'] });
       qc.invalidateQueries({ queryKey: ['prediction'] });
+    },
+    onError: () => {
+      Toast.show({ type: 'error', text1: '오류가 발생했어요', text2: '다시 시도해 주세요.' });
     },
   });
 

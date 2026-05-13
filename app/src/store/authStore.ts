@@ -37,6 +37,17 @@ export const useAuthStore = create<AuthState>()(
       clearAuth: () => set({ token: null, user: null, onboardingDone: false }),
       setOnboardingDone: (v: boolean) => set({ onboardingDone: v }),
     }),
-    { name: 'luna-auth', storage: secureStorage },
+    {
+      name: 'luna-auth',
+      storage: secureStorage,
+      version: 1,
+      migrate: (persistedState: any, version: number) => {
+        // 온보딩 기능 추가 전에 이미 로그인한 유저는 온보딩 완료로 처리
+        if (version < 1 && persistedState.token) {
+          return { ...persistedState, onboardingDone: true };
+        }
+        return persistedState;
+      },
+    },
   ),
 );
