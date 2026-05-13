@@ -75,6 +75,19 @@ module Api
         failure("AI_UNAVAILABLE", "AI 서비스를 일시적으로 사용할 수 없습니다.", status: :service_unavailable)
       end
 
+      def daily_insight
+        date = params.fetch(:date, Date.current.iso8601)
+        record = AiDailyInsight.for(current_user, date)
+        if record.persisted? && !record.stale?
+          return success(record.slice(:date, :content, :generated_at))
+        end
+        result = Ai::ChatService.new(current_user).daily_insight(date)
+        return success({ content: nil }) unless result
+        record.assign_attributes(content: result[:content], stale: false, generated_at: result[:generated_at])
+        record.save! rescue nil
+        success(result)
+      end
+
       def monthly_report
         year  = (params[:year]  || Date.current.year).to_i
         month = (params[:month] || Date.current.month).to_i
