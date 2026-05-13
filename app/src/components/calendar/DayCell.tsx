@@ -9,10 +9,11 @@ interface DayCellProps {
   size: number;
   isToday: boolean;
   isSelected: boolean;
+  dimmed?: boolean;
   onPress: (day: number) => void;
 }
 
-export function DayCell({ day, month, size, isToday, isSelected, onPress }: DayCellProps) {
+export function DayCell({ day, month, size, isToday, isSelected, dimmed = false, onPress }: DayCellProps) {
   const phaseKey: PhaseKey = phaseForDay(day);
   const phase = Phase[phaseKey];
 
@@ -22,6 +23,7 @@ export function DayCell({ day, month, size, isToday, isSelected, onPress }: DayC
         styles.cell,
         { width: size, height: size },
         { backgroundColor: isSelected ? Colors.bgInk : phase.bg },
+        dimmed && styles.dimmed,
       ]}
       onPress={() => onPress(day)}
       activeOpacity={0.75}
@@ -44,6 +46,7 @@ export function DayCell({ day, month, size, isToday, isSelected, onPress }: DayC
 
 const styles = StyleSheet.create({
   cell: { borderRadius: 12, alignItems: 'center', justifyContent: 'center', position: 'relative' },
+  dimmed: { opacity: 0.3 },
   text: { fontSize: 14, fontWeight: '600', letterSpacing: -0.3 },
   textBold: { fontWeight: '900' },
   todayDot: { position: 'absolute', bottom: 4, width: 4, height: 4, borderRadius: 2 },
