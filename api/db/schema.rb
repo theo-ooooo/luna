@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_13_020000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_13_070000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -69,6 +69,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_020000) do
     t.index ["user_id"], name: "index_daily_logs_on_user_id"
   end
 
+  create_table "notification_logs", force: :cascade do |t|
+    t.string "body", null: false, comment: "알림 본문"
+    t.datetime "created_at", null: false
+    t.string "identifier", null: false, comment: "알림 식별자 (luna-period-d3 등)"
+    t.datetime "scheduled_for", null: false, comment: "알림 예약 시각"
+    t.string "title", null: false, comment: "알림 제목"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false, comment: "알림을 받은 사용자"
+    t.index ["user_id", "identifier"], name: "index_notification_logs_on_user_id_and_identifier", unique: true
+    t.index ["user_id", "scheduled_for"], name: "index_notification_logs_on_user_id_and_scheduled_for"
+    t.index ["user_id"], name: "index_notification_logs_on_user_id"
+  end
+
   create_table "predictions", force: :cascade do |t|
     t.decimal "avg_cycle_length", precision: 5, scale: 2, null: false, comment: "예측에 사용된 평균 주기 길이(일)"
     t.integer "based_on_cycles_count", null: false, comment: "평균 계산에 사용된 주기 수"
@@ -112,6 +125,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_020000) do
   add_foreign_key "ai_monthly_reports", "users", on_delete: :cascade
   add_foreign_key "cycles", "users", on_delete: :cascade
   add_foreign_key "daily_logs", "users", on_delete: :cascade
+  add_foreign_key "notification_logs", "users"
   add_foreign_key "predictions", "cycles", on_delete: :nullify
   add_foreign_key "predictions", "users", on_delete: :cascade
   add_foreign_key "push_tokens", "users", on_delete: :cascade

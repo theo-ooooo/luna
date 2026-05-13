@@ -39,6 +39,9 @@ export function CalendarScreen() {
 
   const monthEn = new Date(year, month - 1).toLocaleString('en', { month: 'short' }).toUpperCase();
 
+  const selectedDate = new Date(year, month - 1, selectedDay);
+  const isFutureDate = selectedDate > new Date(today.year, today.month - 1, today.day);
+
   const handleRecord = useCallback(() => {
     const date = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
     navigation.navigate('Record', { date });
@@ -117,7 +120,7 @@ export function CalendarScreen() {
             phaseKey={selectedPhaseKey}
             isToday={selectedDay === today.day && month === today.month && year === today.year}
             logChips={[]}
-            onRecord={handleRecord}
+            onRecord={isFutureDate ? undefined : handleRecord}
           />
         </ScrollView>
       ) : (

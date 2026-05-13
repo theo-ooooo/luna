@@ -1,6 +1,7 @@
 module Api
   module V1
     class DailyLogsController < ApplicationController
+      wrap_parameters false
       before_action :set_log, only: [:update, :destroy]
 
       def index
