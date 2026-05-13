@@ -5,6 +5,7 @@ export type { FlowId, LHResult };
 
 interface DailyLogSnapshot {
   discharge_type: string | null;
+  flow_level?: number | null;
   headache: number;
   cramps: number;
   fatigue: number;
@@ -19,8 +20,12 @@ const SCORE_TO_MOOD: Record<number, string> = { 5: '좋음', 4: '평온', 3: '�
 
 function logToFlow(log: DailyLogSnapshot | null | undefined): FlowId | null {
   if (!log) return null;
-  if (log.discharge_type === 'none') return 'none';
-  if (log.discharge_type === 'spotting') return 'spot';
+  const lvl = log.flow_level;
+  if (lvl === 0) return 'none';
+  if (lvl === 1) return 'spot';
+  if (lvl === 2) return 'light';
+  if (lvl === 3) return 'med';
+  if (lvl === 4) return 'heavy';
   return null;
 }
 
@@ -58,7 +63,7 @@ export interface RecordFormState {
   setNotes: (v: string) => void;
 }
 
-export function useRecordForm(todayLog?: DailyLogSnapshot | null): RecordFormState {
+export function useRecordForm(todayLog?: DailyLogSnapshot | null, dateKey?: string): RecordFormState {
   const [flow, setFlow] = useState<FlowId | null>(null);
   const [moods, setMoods] = useState<string[]>([]);
   const [symptoms, setSymptoms] = useState<string[]>([]);
@@ -66,6 +71,20 @@ export function useRecordForm(todayLog?: DailyLogSnapshot | null): RecordFormSta
   const [lhResult, setLhResult] = useState<LHResult | null>(null);
   const [notes, setNotes] = useState('');
   const seeded = useRef(false);
+  const prevDateKey = useRef(dateKey);
+
+  useEffect(() => {
+    if (dateKey !== undefined && dateKey !== prevDateKey.current) {
+      prevDateKey.current = dateKey;
+      seeded.current = false;
+      setFlow(null);
+      setMoods([]);
+      setSymptoms([]);
+      setBbt('');
+      setLhResult(null);
+      setNotes('');
+    }
+  }, [dateKey]);
 
   useEffect(() => {
     if (todayLog && !seeded.current) {

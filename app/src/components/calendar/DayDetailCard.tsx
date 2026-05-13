@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors, Phase, PhaseKey, Radius, Shadow } from '../../theme/tokens';
+import { Icon } from '../ui/Icon';
 
 interface DayDetailCardProps {
   day: number;
@@ -8,9 +9,10 @@ interface DayDetailCardProps {
   phaseKey: PhaseKey;
   isToday: boolean;
   logChips?: string[];
+  onRecord?: () => void;
 }
 
-export function DayDetailCard({ day, month, phaseKey, isToday, logChips = [] }: DayDetailCardProps) {
+export function DayDetailCard({ day, month, phaseKey, isToday, logChips = [], onRecord }: DayDetailCardProps) {
   const phase = Phase[phaseKey];
 
   return (
@@ -37,6 +39,12 @@ export function DayDetailCard({ day, month, phaseKey, isToday, logChips = [] }: 
             ))}
           </View>
         )}
+        {onRecord && (
+          <TouchableOpacity style={styles.recordBtn} onPress={onRecord} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="기록하기">
+            <Icon name="edit" size={14} strokeWidth={2.2} color={Colors.ink1} />
+            <Text style={styles.recordBtnText}>기록하기</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -56,4 +64,12 @@ const styles = StyleSheet.create({
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 14 },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: Radius.pill, backgroundColor: 'rgba(255,255,255,0.6)' },
   chipText: { fontSize: 11, fontWeight: '600', color: Colors.ink1 },
+  recordBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    alignSelf: 'flex-start', marginTop: 16,
+    paddingHorizontal: 14, paddingVertical: 8,
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    borderRadius: Radius.pill,
+  },
+  recordBtnText: { fontSize: 13, fontWeight: '700', color: Colors.ink1 },
 });

@@ -23,18 +23,20 @@ export function SettingsScreen() {
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [cycleLen, setCycleLen] = useState(user?.cycle_length_default ?? 28);
   const [lutealLen, setLutealLen] = useState(user?.luteal_phase_length ?? 14);
+  const [periodLen, setPeriodLen] = useState(user?.period_length_default ?? 5);
 
   useEffect(() => {
     if (user) {
       setNickname(user.nickname ?? '');
       setCycleLen(user.cycle_length_default);
       setLutealLen(user.luteal_phase_length);
+      setPeriodLen(user.period_length_default ?? 5);
     }
   }, [user]);
 
   function handleSave() {
     update.mutate(
-      { nickname: nickname.trim() || undefined, cycle_length_default: cycleLen, luteal_phase_length: lutealLen },
+      { nickname: nickname.trim() || undefined, cycle_length_default: cycleLen, luteal_phase_length: lutealLen, period_length_default: periodLen },
       {
         onSuccess: () => Toast.show({ type: 'success', text1: '설정 저장 완료!' }),
         onError: (err) => Toast.show({ type: 'error', text1: '저장 실패', text2: (err as Error).message ?? '다시 시도해주세요.' }),
@@ -52,17 +54,9 @@ export function SettingsScreen() {
   const initial = (user?.nickname || user?.email || 'L')[0].toUpperCase();
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.topBar}>
-        <View style={styles.topBarLeft} />
-        <Text style={styles.topBarLabel}>04 · 설정</Text>
-        <TouchableOpacity
-          style={[styles.saveBtn, update.isPending && styles.saveBtnDisabled]}
-          onPress={handleSave}
-          disabled={update.isPending}
-        >
-          <Text style={styles.saveBtnText}>{update.isPending ? '저장 중…' : '저장'}</Text>
-        </TouchableOpacity>
+        <Text style={styles.topBarLabel}>설정</Text>
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -112,6 +106,18 @@ export function SettingsScreen() {
               </TouchableOpacity>
               <Text style={styles.stepValue}>{lutealLen}</Text>
               <TouchableOpacity style={styles.stepBtn} onPress={() => setLutealLen(v => Math.min(16, v + 1))}>
+                <Icon name="plus" size={16} strokeWidth={2.4} color={Colors.ink1} />
+              </TouchableOpacity>
+            </View>
+          </SettingRow>
+          <View style={styles.divider} />
+          <SettingRow label="평균 생리 기간" detail={`${periodLen}일`}>
+            <View style={styles.stepperRow}>
+              <TouchableOpacity style={styles.stepBtn} onPress={() => setPeriodLen(v => Math.max(1, v - 1))}>
+                <Icon name="minus" size={16} strokeWidth={2.4} color={Colors.ink1} />
+              </TouchableOpacity>
+              <Text style={styles.stepValue}>{periodLen}</Text>
+              <TouchableOpacity style={styles.stepBtn} onPress={() => setPeriodLen(v => Math.min(10, v + 1))}>
                 <Icon name="plus" size={16} strokeWidth={2.4} color={Colors.ink1} />
               </TouchableOpacity>
             </View>
@@ -176,6 +182,17 @@ export function SettingsScreen() {
           </TouchableOpacity>
         </Section>
       </ScrollView>
+
+      <View style={styles.bottomBar}>
+        <TouchableOpacity
+          style={[styles.saveBtn, update.isPending && styles.saveBtnDisabled]}
+          onPress={handleSave}
+          disabled={update.isPending}
+        >
+          <Icon name="check" size={16} strokeWidth={2.4} color={Colors.inkInv} />
+          <Text style={styles.saveBtnText}>{update.isPending ? '저장 중…' : '저장'}</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -220,14 +237,14 @@ function SettingRow({ label, detail, children }: { label: string; detail?: strin
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.bg },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  topBarLeft: { width: 52 },
+  topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
   topBarLabel: { fontSize: 13, fontWeight: '700', color: Colors.ink3, letterSpacing: -0.1 },
-  saveBtn: { backgroundColor: Colors.bgInk, borderRadius: Radius.pill, paddingHorizontal: 16, paddingVertical: 8 },
-  saveBtnDisabled: { opacity: 0.5 },
-  saveBtnText: { fontSize: 13, fontWeight: '700', color: Colors.inkInv },
   scroll: { flex: 1 },
-  content: { paddingHorizontal: 16, paddingBottom: 120, gap: 12 },
+  content: { paddingHorizontal: 16, paddingBottom: 24, gap: 12 },
+  bottomBar: { paddingHorizontal: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.borderSoft, backgroundColor: Colors.bg },
+  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.coral, borderRadius: Radius.pill, paddingVertical: 16 },
+  saveBtnDisabled: { opacity: 0.6 },
+  saveBtnText: { fontSize: 15, fontWeight: '800', color: Colors.inkInv, letterSpacing: -0.2 },
   profileCard: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: Colors.bgCard, borderRadius: Radius.tile, padding: 18 },
   avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.bgInk, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 20, fontWeight: '900', color: Colors.coral },

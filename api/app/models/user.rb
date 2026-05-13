@@ -10,16 +10,25 @@ class User < ApplicationRecord
   has_many :push_tokens, dependent: :destroy
   has_many :ai_conversations, dependent: :destroy
   has_many :ai_monthly_reports, dependent: :destroy
+  has_many :notification_logs, dependent: :destroy
 
   validates :email, presence: true, uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :nickname, length: { maximum: 50 }, allow_blank: true
   validates :cycle_length_default, numericality: { in: 2..90 }
   validates :luteal_phase_length, numericality: { in: 5..20 }
+  validates :period_length_default, numericality: { in: 1..10 }
 
   def avg_cycle_length_days
     lengths = cycles.recent(6).map(&:length_days).compact
     return cycle_length_default if lengths.empty?
+    (lengths.sum.to_f / lengths.size).round
+  end
+
+  def avg_period_length_days
+    completed = cycles.completed.order(started_on: :desc).limit(6)
+    lengths = completed.map { |c| (c.ended_on - c.started_on).to_i + 1 }
+    return period_length_default if lengths.empty?
     (lengths.sum.to_f / lengths.size).round
   end
 end

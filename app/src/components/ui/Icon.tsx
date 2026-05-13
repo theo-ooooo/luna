@@ -11,6 +11,7 @@ export const Icons = {
   user:     'M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0',
   arrow:    'M5 12h14M13 5l7 7-7 7',
   chev:     'M9 6l6 6-6 6',
+  chevLeft: 'M15 6l-6 6 6 6',
   chevDn:   'M6 9l6 6 6-6',
   chevUp:   'M6 15l6-6 6 6',
   heart:    'M12 20s-7-4.5-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.5-7 10-7 10z',

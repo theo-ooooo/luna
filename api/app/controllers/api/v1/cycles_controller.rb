@@ -1,13 +1,14 @@
 module Api
   module V1
     class CyclesController < ApplicationController
+      wrap_parameters false
       before_action :set_cycle, only: [:update, :destroy]
 
       def index
         page = (params[:page] || 1).to_i
         per = [[( params[:per] || 12).to_i, 24].min, 1].max
 
-        cycles = current_user.cycles.order(started_on: :desc).page(page).per(per)
+        cycles = current_user.cycles.includes(:user).order(started_on: :desc).page(page).per(per)
 
         success({
           cycles: cycles.map { |c| cycle_json(c) },
@@ -16,9 +17,12 @@ module Api
       end
 
       def create
-        cycle = current_user.cycles.create!(create_params)
+        cycle = current_user.cycles.find_or_initialize_by(started_on: create_params[:started_on] || Date.current)
+        was_new = cycle.new_record?
+        cycle.assign_attributes(create_params.except(:started_on))
+        cycle.save!
         PredictionService.new(current_user).compute!
-        success(cycle_json(cycle), status: :created)
+        success(cycle_json(cycle), status: was_new ? :created : :ok)
       end
 
       def update
@@ -51,6 +55,7 @@ module Api
           id: cycle.id,
           started_on: cycle.started_on,
           ended_on: cycle.ended_on,
+          estimated_period_end: cycle.estimated_period_end,
           flow_level: cycle.flow_level,
           length_days: cycle.length_days,
           created_at: cycle.created_at

@@ -1,4 +1,5 @@
 class ApplicationController < ActionController::API
+  wrap_parameters false
   before_action :authenticate_user!
 
   def success(data, status: :ok)

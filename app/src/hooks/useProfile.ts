@@ -6,6 +6,7 @@ interface ProfileUpdate {
   nickname?: string;
   cycle_length_default?: number;
   luteal_phase_length?: number;
+  period_length_default?: number;
   notifications_enabled?: boolean;
 }
 
@@ -15,6 +16,7 @@ interface UserResponse {
   nickname: string;
   cycle_length_default: number;
   luteal_phase_length: number;
+  period_length_default: number;
   notifications_enabled: boolean;
 }
 
