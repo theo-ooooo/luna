@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { PhaseKey } from '../theme/tokens';
-import { phaseForDay } from '../utils/phase';
 
 const _now = new Date();
 const TODAY = { year: _now.getFullYear(), month: _now.getMonth() + 1, day: _now.getDate() };
@@ -14,7 +13,6 @@ export interface CalendarState {
   today: typeof TODAY;
   daysInMonth: number;
   firstWeekday: number;
-  selectedPhaseKey: PhaseKey;
   activePhaseFilter: PhaseFilter;
   setSelectedDay: (d: number) => void;
   prevMonth: () => void;
@@ -65,7 +63,6 @@ export function useCalendar(): CalendarState {
   return {
     year, month, selectedDay, today: TODAY,
     daysInMonth, firstWeekday,
-    selectedPhaseKey: phaseForDay(selectedDay),
     activePhaseFilter,
     setSelectedDay, prevMonth, nextMonth,
     jumpToDate, setActivePhaseFilter,
