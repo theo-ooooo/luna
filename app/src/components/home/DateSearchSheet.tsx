@@ -29,7 +29,7 @@ export function DateSearchSheet({ visible, onClose, onSelect }: Props) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     return dateStr(d);
-  }), []);
+  }), [visible]);
 
   useEffect(() => {
     if (visible) {

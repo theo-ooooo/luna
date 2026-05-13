@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import Toast from 'react-native-toast-message';
 import { Colors, Radius, Shadow } from '../theme/tokens';
@@ -35,12 +35,21 @@ export function RecordScreen() {
   const todayDate = dateStr(new Date());
   const isToday = selectedDate === todayDate;
 
+  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
+
+  // Consume route param on focus: navigate('Record', { date }) → jump to that date, then clear param
+  useFocusEffect(useCallback(() => {
+    if (route.params?.date) {
+      setSelectedDate(route.params.date);
+      navigation.setParams({ date: undefined });
+    }
+  }, [route.params?.date, navigation]));
+
   const { data: logForDate } = useLogForDate(selectedDate);
   const form = useRecordForm(logForDate, selectedDate);
   const save = useSaveDailyLog(selectedDate);
   const parseLog = useParseLog();
   const [aiText, setAiText] = useState('');
-  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
 
   const d = new Date(selectedDate + 'T00:00:00');
   const dateLabel = `${d.getMonth() + 1}월 ${d.getDate()}일 · ${'일월화수목금토'[d.getDay()]}`;
