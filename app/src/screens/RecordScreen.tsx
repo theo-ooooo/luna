@@ -89,14 +89,11 @@ export function RecordScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.topBar}>
         <View style={styles.topBarLeft} />
         <Text style={styles.topBarLabel}>03 · 기록</Text>
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={save.isPending} accessibilityRole="button" accessibilityLabel="저장">
-          <Text style={styles.saveBtnText}>{save.isPending ? '저장 중…' : '저장'}</Text>
-          <Icon name="check" size={14} strokeWidth={2.4} color={Colors.inkInv} />
-        </TouchableOpacity>
+        <View style={styles.topBarLeft} />
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -205,6 +202,13 @@ export function RecordScreen() {
           />
         </Section>
       </ScrollView>
+
+      <View style={styles.bottomBar}>
+        <TouchableOpacity style={[styles.saveBtn, save.isPending && styles.saveBtnPending]} onPress={handleSave} disabled={save.isPending} accessibilityRole="button" accessibilityLabel="저장">
+          <Icon name="check" size={16} strokeWidth={2.4} color={Colors.inkInv} />
+          <Text style={styles.saveBtnText}>{save.isPending ? '저장 중…' : '저장'}</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -223,10 +227,12 @@ const styles = StyleSheet.create({
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
   topBarLeft: { width: 40 },
   topBarLabel: { fontSize: 13, fontWeight: '700', color: Colors.ink3, letterSpacing: -0.1 },
-  saveBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.bgInk, borderRadius: Radius.pill, paddingHorizontal: 16, paddingVertical: 10 },
-  saveBtnText: { fontSize: 13, fontWeight: '700', color: Colors.inkInv },
   scroll: { flex: 1 },
-  content: { paddingHorizontal: 16, paddingBottom: 120, gap: 12 },
+  content: { paddingHorizontal: 16, paddingBottom: 24, gap: 12 },
+  bottomBar: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8, borderTopWidth: 1, borderTopColor: Colors.borderSoft, backgroundColor: Colors.bg },
+  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.coral, borderRadius: Radius.pill, paddingVertical: 16 },
+  saveBtnPending: { opacity: 0.6 },
+  saveBtnText: { fontSize: 15, fontWeight: '800', color: Colors.inkInv, letterSpacing: -0.2 },
   aiCard: { backgroundColor: Colors.bgCard, borderRadius: Radius.tile, padding: 16, gap: 10 },
   aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   aiLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', color: Colors.ink3 },
