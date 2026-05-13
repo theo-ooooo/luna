@@ -1,4 +1,4 @@
-app = "luna-api"
+app = "luna-api-kkwondev"
 primary_region = "nrt"
 console_command = "/rails/bin/rails console"
 
