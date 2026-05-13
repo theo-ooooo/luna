@@ -34,7 +34,7 @@ RSpec.describe "Api::V1::Ai", type: :request do
     end
 
     it "AI 서비스 오류 시 503" do
-      allow_any_instance_of(Ai::ParseLogService).to receive(:parse).and_raise(Anthropic::Errors::Error.new("API error"))
+      allow_any_instance_of(Ai::ParseLogService).to receive(:parse).and_raise(Faraday::Error.new("API error"))
       post "/api/v1/ai/parse_log", params: { text: "오늘 피곤해요." }, headers: headers
       expect(response).to have_http_status(:service_unavailable)
       expect(response.parsed_body.dig("error", "code")).to eq("AI_UNAVAILABLE")

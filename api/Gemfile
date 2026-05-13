@@ -16,8 +16,8 @@ gem "thruster", require: false
 gem "devise"
 gem "devise-jwt"
 
-# Claude API
-gem "anthropic"
+# OpenAI API
+gem "ruby-openai"
 
 gem "dotenv-rails"
 gem "kaminari"

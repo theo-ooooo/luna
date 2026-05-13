@@ -21,11 +21,10 @@ module Api
         begin
           service = Ai::ChatService.new(current_user)
           service.stream(conversation, message, context: context) do |event|
-            if event.type == "content_block_delta" && event.delta.type == "text_delta"
-              text = event.delta.text
-              full_response << text
-              sse.write({ type: "delta", text: text })
-            elsif event.type == "message_stop"
+            if event[:type] == :delta
+              full_response << event[:text]
+              sse.write({ type: "delta", text: event[:text] })
+            elsif event[:type] == :stop
               sse.write({ type: "end" })
             end
           end
@@ -54,7 +53,7 @@ module Api
 
         result = Ai::ParseLogService.new.parse(text)
         success(result)
-      rescue Anthropic::Errors::Error => e
+      rescue Faraday::Error, OpenAI::Error => e
         Rails.logger.error("AI parse_log error: #{e.message}")
         failure("AI_UNAVAILABLE", "AI 서비스를 일시적으로 사용할 수 없습니다.", status: :service_unavailable)
       end

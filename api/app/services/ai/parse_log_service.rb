@@ -1,8 +1,8 @@
 module Ai
   class ParseLogService
-    VALID_MOODS     = %w[좋음 평온 피곤 짜증 우울 불안].freeze
-    VALID_SYMPTOMS  = %w[두통 복통 요통 유방통 메스꺼움 부종 여드름 식욕증가 어지러움 경련].freeze
-    VALID_FLOWS     = %w[none spot light med heavy].freeze
+    VALID_MOODS    = %w[좋음 평온 피곤 짜증 우울 불안].freeze
+    VALID_SYMPTOMS = %w[두통 복통 요통 유방통 메스꺼움 부종 여드름 식욕증가 어지러움 경련].freeze
+    VALID_FLOWS    = %w[none spot light med heavy].freeze
 
     SYSTEM = <<~PROMPT.freeze
       You are a JSON-only health data extractor for a menstrual cycle app.
@@ -23,26 +23,25 @@ module Ai
       {"moods":[],"symptoms":[],"flow":null,"bbt":null,"lh_result":null,"notes":null}
     PROMPT
 
-    USER_TEMPLATE = ->(text) {
-      "<user_input>\n#{text}\n</user_input>"
-    }
-
-    def initialize
-      @client = Anthropic::Client.new(api_key: ENV.fetch("ANTHROPIC_API_KEY"))
-    end
+    USER_TEMPLATE = ->(text) { "<user_input>\n#{text}\n</user_input>" }
 
     def parse(text)
-      response = @client.messages.create(
-        model: "claude-haiku-4-5-20251001",
-        max_tokens: 256,
-        system: SYSTEM,
-        messages: [{ role: "user", content: USER_TEMPLATE.call(text.strip) }]
+      client = OpenAI::Client.new(access_token: ENV.fetch("OPENAI_API_KEY"))
+      response = client.chat(
+        parameters: {
+          model: "gpt-4o-mini",
+          max_tokens: 256,
+          messages: [
+            { role: "system", content: SYSTEM },
+            { role: "user",   content: USER_TEMPLATE.call(text.strip) }
+          ]
+        }
       )
 
-      content = response&.content&.first
-      raise Anthropic::Error, "empty response" unless content&.text.present?
+      content = response.dig("choices", 0, "message", "content")
+      raise "empty response from OpenAI" unless content.present?
 
-      parsed = JSON.parse(content.text.strip)
+      parsed = JSON.parse(content.strip)
       sanitize(parsed)
     rescue JSON::ParserError
       default_result(text)
@@ -52,12 +51,17 @@ module Ai
 
     def sanitize(data)
       {
-        "moods"      => Array(data["moods"]).select { |m| VALID_MOODS.include?(m) },
-        "symptoms"   => Array(data["symptoms"]).select { |s| VALID_SYMPTOMS.include?(s) },
-        "flow"       => VALID_FLOWS.include?(data["flow"]) ? data["flow"] : nil,
-        "bbt"        => valid_bbt(data["bbt"]),
-        "lh_result"  => begin; v = Integer(data["lh_result"].to_s, 10); [0, 1, 2].include?(v) ? v : nil; rescue ArgumentError; nil; end,
-        "notes"      => data["notes"].presence
+        "moods"     => Array(data["moods"]).select { |m| VALID_MOODS.include?(m) },
+        "symptoms"  => Array(data["symptoms"]).select { |s| VALID_SYMPTOMS.include?(s) },
+        "flow"      => VALID_FLOWS.include?(data["flow"]) ? data["flow"] : nil,
+        "bbt"       => valid_bbt(data["bbt"]),
+        "lh_result" => begin
+                         v = Integer(data["lh_result"].to_s, 10)
+                         [0, 1, 2].include?(v) ? v : nil
+                       rescue ArgumentError
+                         nil
+                       end,
+        "notes"     => data["notes"].presence
       }
     end
 
