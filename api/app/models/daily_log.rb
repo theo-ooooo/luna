@@ -16,11 +16,16 @@ class DailyLog < ApplicationRecord
   scope :for_range, ->(from, to) { where(logged_on: from..to).order(logged_on: :desc) }
 
   after_save :mark_monthly_report_stale
+  after_save_commit :invalidate_daily_insight, if: -> { saved_changes.except("updated_at", "created_at").any? }
 
   private
 
   def mark_monthly_report_stale
     AiMonthlyReport.where(user: user, year: logged_on.year, month: logged_on.month)
                    .update_all(stale: true)
+  end
+
+  def invalidate_daily_insight
+    user.ai_daily_insights.where(date: logged_on..(logged_on + 7)).update_all(stale: true)
   end
 end

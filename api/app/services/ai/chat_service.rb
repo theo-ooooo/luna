@@ -55,6 +55,51 @@ module Ai
       )
     end
 
+    def daily_insight(date)
+      date = date.is_a?(Date) ? date : Date.parse(date.to_s)
+      prediction = @user.predictions.order(computed_at: :desc).first
+      return nil unless prediction
+
+      cycle_day         = prediction.cycle_day
+      phase             = prediction.current_phase
+      next_period_start = prediction.predicted_period_start
+      days_until_period = (next_period_start - date).to_i
+
+      recent_logs = @user.daily_logs.for_range(date - 7, date).map do |l|
+        {
+          date: l.logged_on,
+          cramps: l.cramps, headache: l.headache, fatigue: l.fatigue, bloating: l.bloating,
+          mood: l.mood, lh_result: l.lh_result
+        }.reject { |_, v| v.nil? || v == 0 }
+      end
+
+      context = {
+        today: date.iso8601,
+        cycle_day: cycle_day,
+        phase: phase,
+        days_until_period: days_until_period,
+        recent_logs: recent_logs
+      }
+
+      messages = [
+        { role: "system", content: SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: "아래 데이터를 바탕으로 오늘 사용자에게 건강 인사이트를 1~2문장의 한국어로 작성해주세요. " \
+                   "친근하고 따뜻한 톤으로, 현재 주기 단계와 최근 증상을 연결해서 짧게 설명해주세요.\n\n#{context.to_json}"
+        }
+      ]
+
+      response = client.chat(
+        parameters: { model: MODEL, max_tokens: 120, messages: messages }
+      )
+
+      content = response.dig("choices", 0, "message", "content")
+      return nil unless content.present?
+
+      { content: content, generated_at: Time.current }
+    end
+
     def monthly_report(user, year, month)
       stats = build_monthly_stats(user, year, month)
       return nil if stats.nil?

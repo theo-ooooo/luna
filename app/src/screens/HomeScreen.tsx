@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -16,12 +16,24 @@ import { DateSearchSheet } from '../components/home/DateSearchSheet';
 import { NotificationHistorySheet } from '../components/home/NotificationHistorySheet';
 import { phaseForDay, daysUntilPeriod, CYCLE_DEFAULTS } from '../utils/phase';
 import { usePrediction } from '../hooks/usePrediction';
+import { useAiDailyInsight } from '../hooks/useAiDailyInsight';
 import { useLatestCycle, useStartPeriod, useEndPeriod } from '../hooks/useCycles';
 import { useTodayLog } from '../hooks/useDailyLog';
 import { useBbtHistory } from '../hooks/useBbtHistory';
 import type { TabParamList } from '../navigation/TabNavigator';
 
 const MOOD_LABELS: Record<number, string> = { 5: '좋음', 4: '평온', 3: '짜증', 2: '피곤', 1: '불안' };
+
+function formatGeneratedAt(generatedAt: string | null | undefined): string | null {
+  if (!generatedAt) return null;
+  const d = new Date(generatedAt);
+  if (isNaN(d.getTime())) return null;
+  const hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const period = hours < 12 ? '오전' : '오후';
+  const h = hours % 12 === 0 ? 12 : hours % 12;
+  return `${period} ${h}:${minutes} 생성`;
+}
 
 function formatDateChip(dateStr: string): string {
   const today = new Date();
@@ -53,6 +65,8 @@ export function HomeScreen() {
     d.setDate(d.getDate() - i);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }), []);
+  const todayIso = recentDates[0];
+  const { data: insight, isLoading: insightLoading } = useAiDailyInsight(todayIso);
   const [selectedDate, setSelectedDate] = useState(() => recentDates[0]);
   const [selectedEndDate, setSelectedEndDate] = useState(() => recentDates[0]);
 
@@ -222,11 +236,17 @@ export function HomeScreen() {
             <View style={styles.aiHeader}>
               <Icon name="spark" size={14} strokeWidth={2.2} color={Colors.coral} />
               <Text style={styles.aiEyebrow}>LUNA AI</Text>
-              <Text style={[styles.aiEyebrow, { marginLeft: 'auto' }]}>방금</Text>
             </View>
-            <Text style={styles.aiText}>
-              지난 3주기 대비 컨디션이 안정적이에요. 어제 30분 산책이 도움이 됐을지도요.
-            </Text>
+            {insightLoading ? (
+              <ActivityIndicator size="small" color={Colors.coral} style={styles.aiLoader} />
+            ) : (
+              <>
+                <Text style={styles.aiText}>
+                  {insight?.content ?? '오늘의 인사이트를 준비 중이에요.'}
+                </Text>
+                {(() => { const ts = formatGeneratedAt(insight?.generated_at); return ts != null && <Text style={styles.aiTimestamp}>{ts}</Text>; })()}
+              </>
+            )}
           </View>
 
           <StatTile eyebrow="기분" value={moodLabel} detail={moodDetail} width={bentoHalfWidth} />
@@ -266,6 +286,8 @@ const styles = StyleSheet.create({
   aiHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
   aiEyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: Colors.ink3 },
   aiText: { fontSize: 14, fontWeight: '500', color: Colors.ink1, lineHeight: 21, letterSpacing: -0.1 },
+  aiLoader: { alignSelf: 'flex-start', marginTop: 4 },
+  aiTimestamp: { fontSize: 11, color: Colors.ink3, marginTop: 8 },
   periodCard: { width: '100%', backgroundColor: Colors.bgCard, borderRadius: 20, padding: 18, gap: 14 },
   periodCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   activeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.coral },

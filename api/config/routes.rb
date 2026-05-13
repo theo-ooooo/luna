@@ -44,6 +44,7 @@ Rails.application.routes.draw do
         get  "conversations",             to: "ai#list_conversations",   as: :ai_conversations
         get  "conversations/:id",         to: "ai#show_conversation",    as: :ai_conversation
         get  "monthly_report",            to: "ai#monthly_report",       as: :ai_monthly_report
+        get  "daily_insight",             to: "ai#daily_insight",        as: :ai_daily_insight
       end
     end
   end
