@@ -25,12 +25,15 @@ function todayStr() {
 
 function buildDateOptions(minDate?: string): string[] {
   const today = new Date();
+  const todayS = todayStr();
   const dates: string[] = [];
   for (let i = 0; i < 7; i++) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
     const s = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    if (!minDate || s >= minDate) dates.push(s);
+    if (s > todayS) continue;
+    if (minDate && s < minDate) continue;
+    dates.push(s);
   }
   return dates;
 }

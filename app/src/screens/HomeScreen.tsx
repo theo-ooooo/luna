@@ -104,13 +104,21 @@ export function HomeScreen() {
   const ovDetail = ovDays !== null ? '배란 예정' : '데이터 없음';
   // ─────────────────────────────────────────────────────────────────────────
 
+  function recordPeriodStart(date: string, flowLevel: 1 | 2 | 3 = 2) {
+    startPeriod.mutate({ flowLevel, startedOn: date }, {
+      onSuccess: () => { setPeriodSheet(null); Toast.show({ type: 'success', text1: '생리 시작을 기록했어요.' }); },
+      onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
+    });
+  }
+
   function handlePeriodSheetConfirm({ date, flowLevel }: { date: string; flowLevel?: 1 | 2 | 3 }) {
     if (periodSheet === 'start') {
-      startPeriod.mutate({ flowLevel: flowLevel ?? 2, startedOn: date }, {
-        onSuccess: () => { setPeriodSheet(null); Toast.show({ type: 'success', text1: '생리 시작을 기록했어요.' }); },
-        onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
-      });
-    } else if (periodSheet === 'end' && latestCycle) {
+      recordPeriodStart(date, flowLevel);
+    } else if (periodSheet === 'end') {
+      if (!latestCycle) {
+        Toast.show({ type: 'error', text1: '기록 실패', text2: '활성 주기를 찾을 수 없어요.' });
+        return;
+      }
       endPeriod.mutate({ cycleId: latestCycle.id, endedOn: date }, {
         onSuccess: () => { setPeriodSheet(null); Toast.show({ type: 'success', text1: '생리 종료를 기록했어요.' }); },
         onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
@@ -179,10 +187,12 @@ export function HomeScreen() {
             )}
             <TouchableOpacity
               style={[styles.periodBtn, styles.periodBtnStart]}
-              onPress={() => setPeriodSheet('start')}
+              onPress={() => recordPeriodStart(todayIso)}
               disabled={startPeriod.isPending}
             >
-              <Text style={styles.periodBtnText}>오늘 생리가 시작됐어요</Text>
+              <Text style={styles.periodBtnText}>
+                {startPeriod.isPending ? '기록 중…' : '오늘 생리가 시작됐어요'}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setPeriodSheet('start')} style={styles.altLink}>
               <Text style={styles.altLinkText}>다른 날짜로 기록 →</Text>
