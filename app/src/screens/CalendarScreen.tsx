@@ -15,6 +15,7 @@ import { useLatestCycle } from '../hooks/useCycles';
 import { usePrediction } from '../hooks/usePrediction';
 import { phaseForDay, CYCLE_DEFAULTS } from '../utils/phase';
 import type { PhaseFilter } from '../hooks/useCalendar';
+import type { PhaseKey } from '../theme/tokens';
 import type { TabParamList } from '../navigation/TabNavigator';
 
 const WEEK_HEADERS = ['일', '월', '화', '수', '목', '금', '토'] as const;
@@ -81,15 +82,15 @@ export function CalendarScreen() {
 
   // Pre-compute phase per day-of-month for the current view
   const dayPhases = useMemo(() => {
-    if (activePhaseFilter === 'all' || cycleStartMs === null) return null;
-    const phases: Record<number, string> = {};
+    if (cycleStartMs === null) return null;
+    const phases: Record<number, PhaseKey> = {};
     for (let d = 1; d <= daysInMonth; d++) {
       const dayMs = new Date(year, month - 1, d).getTime();
       const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
       phases[d] = cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength) : 'follicular';
     }
     return phases;
-  }, [activePhaseFilter, cycleStartMs, year, month, daysInMonth, cycleLength]);
+  }, [cycleStartMs, year, month, daysInMonth, cycleLength]);
 
   const grid: (number | null)[] = [
     ...Array(firstWeekday).fill(null),
@@ -211,6 +212,7 @@ export function CalendarScreen() {
                       size={cellSize}
                       isToday={d === today.day && month === today.month && year === today.year}
                       isSelected={d === selectedDay}
+                      phaseKey={dayPhases?.[d] ?? 'follicular'}
                       dimmed={isDimmed(d)}
                       onPress={setSelectedDay}
                     />
