@@ -15,7 +15,6 @@ import { useLatestCycle } from '../hooks/useCycles';
 import { usePrediction } from '../hooks/usePrediction';
 import { phaseForDay, CYCLE_DEFAULTS } from '../utils/phase';
 import type { PhaseFilter } from '../hooks/useCalendar';
-import type { PhaseKey } from '../theme/tokens';
 import type { TabParamList } from '../navigation/TabNavigator';
 
 const WEEK_HEADERS = ['일', '월', '화', '수', '목', '금', '토'] as const;
@@ -74,10 +73,10 @@ export function CalendarScreen() {
 
   // Compute phase key for the selected day using actual cycle day
   const selectedPhaseKey = useMemo(() => {
-    if (cycleStartMs === null) return 'follicular' as PhaseKey;
+    if (cycleStartMs === null) return 'follicular';
     const dayMs = new Date(year, month - 1, selectedDay).getTime();
     const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
-    return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength) : 'follicular' as PhaseKey;
+    return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength) : 'follicular';
   }, [cycleStartMs, year, month, selectedDay, cycleLength]);
 
   // Pre-compute phase per day-of-month for the current view
