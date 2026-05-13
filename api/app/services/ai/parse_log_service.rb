@@ -26,7 +26,6 @@ module Ai
     USER_TEMPLATE = ->(text) { "<user_input>\n#{text}\n</user_input>" }
 
     def parse(text)
-      client = OpenAI::Client.new(access_token: ENV.fetch("OPENAI_API_KEY"))
       response = client.chat(
         parameters: {
           model: "gpt-4o-mini",
@@ -48,6 +47,10 @@ module Ai
     end
 
     private
+
+    def client
+      @client ||= OpenAI::Client.new(access_token: ENV.fetch("OPENAI_API_KEY"))
+    end
 
     def sanitize(data)
       {

@@ -84,7 +84,13 @@ module Api
           stale: false,
           generated_at: result[:generated_at]
         )
-        report.save!
+        begin
+          report.save!
+        rescue ActiveRecord::RecordNotUnique
+          # 동시 요청이 먼저 저장한 경우 — 이미 저장된 레코드 반환
+          report = current_user.ai_monthly_reports.find_by!(year: year, month: month)
+          return success(report.slice(:year, :month, :summary, :stats, :generated_at))
+        end
 
         success(result)
       end
