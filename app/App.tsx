@@ -40,7 +40,7 @@ export default function App() {
   const [queryClient] = useState(
     () => new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 60_000 } } }),
   );
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     NotoSansKR_100Thin,
     NotoSansKR_200ExtraLight,
     NotoSansKR_300Light,
@@ -56,7 +56,7 @@ export default function App() {
     setupAndroidChannel().catch((e) => console.error('[Luna] Android channel setup failed:', e));
   }, []);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded && !fontError) {
     return <View style={{ flex: 1 }}><ActivityIndicator /></View>;
   }
 
