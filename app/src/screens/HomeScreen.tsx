@@ -136,6 +136,9 @@ export function HomeScreen() {
               <Text style={styles.periodCardTitle}>생리 중</Text>
               <Text style={styles.periodCardSince}>
                 {latestCycle.started_on.slice(5).replace('-', '/')} 시작
+                {latestCycle.estimated_period_end
+                  ? `  ·  예상 종료 ${latestCycle.estimated_period_end.slice(5).replace('-', '/')}`
+                  : ''}
               </Text>
             </View>
             <View style={styles.dateSectionRow}>

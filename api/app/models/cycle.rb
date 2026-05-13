@@ -13,6 +13,11 @@ class Cycle < ApplicationRecord
     (ended_on - started_on).to_i + 1
   end
 
+  def estimated_period_end
+    return ended_on if ended_on
+    started_on + user.avg_period_length_days - 1
+  end
+
   scope :completed, -> { where.not(ended_on: nil) }
   scope :recent, ->(n) { completed.order(started_on: :desc).limit(n) }
 

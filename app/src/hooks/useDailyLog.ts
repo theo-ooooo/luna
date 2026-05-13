@@ -11,6 +11,7 @@ interface DailyLog {
   bloating: number;
   mood: number | null;
   discharge_type: string | null;
+  flow_level: number | null;
   bbt: number | null;
   lh_result: LHResult | null;
   notes: string | null;
@@ -22,11 +23,8 @@ const MOOD_SCORE: Record<string, number> = {
   '좋음': 5, '평온': 4, '짜증': 3, '피곤': 2, '우울': 2, '불안': 1,
 };
 
-// FlowId → discharge_type: partial mapping (light/med/heavy have no DB equivalent in daily_logs)
-// Full period flow tracking requires a flow_level field on daily_logs (future schema work)
-const FLOW_TO_DISCHARGE: Partial<Record<FlowId, string>> = {
-  none: 'none',
-  spot: 'spotting',
+const FLOW_TO_LEVEL: Record<FlowId, number> = {
+  none: 0, spot: 1, light: 2, med: 3, heavy: 4,
 };
 
 export function buildLogFields({
@@ -46,7 +44,8 @@ export function buildLogFields({
     fatigue: moods.includes('피곤') ? 1 : 0,
     bloating: symptoms.includes('부종') ? 1 : 0,
     mood: moods.length > 0 ? (MOOD_SCORE[moods[0]] ?? null) : null,
-    discharge_type: flow ? (FLOW_TO_DISCHARGE[flow] ?? null) : null,
+    discharge_type: null,
+    flow_level: flow !== null ? FLOW_TO_LEVEL[flow] : null,
     bbt: bbtNum && !isNaN(bbtNum) ? bbtNum : null,
     lh_result: lhResult,
     notes: notes || null,
@@ -90,6 +89,7 @@ export function useSaveDailyLog(date: string = todayStr()) {
       qc.invalidateQueries({ queryKey: ['stats'] });
       qc.invalidateQueries({ queryKey: ['monthly-report'] });
       qc.invalidateQueries({ queryKey: ['prediction'] });
+      qc.invalidateQueries({ queryKey: ['cycles'] });
       if (isToday) {
         import('../services/notifications').then(({ cancelLogNudge }) => cancelLogNudge()).catch(() => {});
       }

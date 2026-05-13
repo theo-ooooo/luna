@@ -23,18 +23,20 @@ export function SettingsScreen() {
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [cycleLen, setCycleLen] = useState(user?.cycle_length_default ?? 28);
   const [lutealLen, setLutealLen] = useState(user?.luteal_phase_length ?? 14);
+  const [periodLen, setPeriodLen] = useState(user?.period_length_default ?? 5);
 
   useEffect(() => {
     if (user) {
       setNickname(user.nickname ?? '');
       setCycleLen(user.cycle_length_default);
       setLutealLen(user.luteal_phase_length);
+      setPeriodLen(user.period_length_default ?? 5);
     }
   }, [user]);
 
   function handleSave() {
     update.mutate(
-      { nickname: nickname.trim() || undefined, cycle_length_default: cycleLen, luteal_phase_length: lutealLen },
+      { nickname: nickname.trim() || undefined, cycle_length_default: cycleLen, luteal_phase_length: lutealLen, period_length_default: periodLen },
       {
         onSuccess: () => Toast.show({ type: 'success', text1: '설정 저장 완료!' }),
         onError: (err) => Toast.show({ type: 'error', text1: '저장 실패', text2: (err as Error).message ?? '다시 시도해주세요.' }),
@@ -104,6 +106,18 @@ export function SettingsScreen() {
               </TouchableOpacity>
               <Text style={styles.stepValue}>{lutealLen}</Text>
               <TouchableOpacity style={styles.stepBtn} onPress={() => setLutealLen(v => Math.min(16, v + 1))}>
+                <Icon name="plus" size={16} strokeWidth={2.4} color={Colors.ink1} />
+              </TouchableOpacity>
+            </View>
+          </SettingRow>
+          <View style={styles.divider} />
+          <SettingRow label="평균 생리 기간" detail={`${periodLen}일`}>
+            <View style={styles.stepperRow}>
+              <TouchableOpacity style={styles.stepBtn} onPress={() => setPeriodLen(v => Math.max(1, v - 1))}>
+                <Icon name="minus" size={16} strokeWidth={2.4} color={Colors.ink1} />
+              </TouchableOpacity>
+              <Text style={styles.stepValue}>{periodLen}</Text>
+              <TouchableOpacity style={styles.stepBtn} onPress={() => setPeriodLen(v => Math.min(10, v + 1))}>
                 <Icon name="plus" size={16} strokeWidth={2.4} color={Colors.ink1} />
               </TouchableOpacity>
             </View>

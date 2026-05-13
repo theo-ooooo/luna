@@ -28,11 +28,13 @@ module Api
         log  = current_user.daily_logs.find_or_initialize_by(logged_on: date)
         log.assign_attributes(log_params.except(:logged_on))
         log.save!
+        auto_start_cycle(log)
         success(log_json(log), status: log.previously_new_record? ? :created : :ok)
       end
 
       def update
         @log.update!(log_params.except(:logged_on))
+        auto_start_cycle(@log)
         success(log_json(@log))
       end
 
@@ -97,12 +99,28 @@ module Api
 
       def log_params
         params.permit(:logged_on, :cramps, :headache, :fatigue, :bloating,
-                      :mood, :discharge_type, :bbt, :lh_result, :notes)
+                      :mood, :discharge_type, :bbt, :lh_result, :notes, :flow_level)
       end
 
       def log_json(log)
         log.slice(:id, :logged_on, :cramps, :headache, :fatigue, :bloating,
-                  :mood, :discharge_type, :bbt, :lh_result, :notes, :created_at)
+                  :mood, :discharge_type, :bbt, :lh_result, :notes, :flow_level, :created_at)
+      end
+
+      def auto_start_cycle(log)
+        return unless log.flow_level.present? && log.flow_level > 0
+        active = current_user.cycles.where(ended_on: nil).where("started_on <= ?", log.logged_on).first
+        return if active
+        prev_cycle = current_user.cycles.where("started_on < ?", log.logged_on).order(started_on: :desc).first
+        if prev_cycle && prev_cycle.ended_on.nil?
+          prev_cycle.update!(ended_on: log.logged_on - 1)
+        end
+        cycle = current_user.cycles.find_or_create_by!(started_on: log.logged_on) do |c|
+          c.flow_level = [[(log.flow_level - 1) / 2 + 1, 1].max, 3].min
+        end
+        PredictionService.new(current_user).compute!
+      rescue ActiveRecord::RecordInvalid
+        nil
       end
     end
   end

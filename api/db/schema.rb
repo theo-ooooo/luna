@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_13_070000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_13_080000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -57,6 +57,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_070000) do
     t.datetime "created_at", null: false
     t.string "discharge_type", limit: 20, comment: "분비물 유형 (none/spotting/creamy/watery/egg_white, null=미기록)"
     t.integer "fatigue", default: 0, null: false, comment: "피로 여부 (0=없음, 1=있음)"
+    t.integer "flow_level", comment: "출혈량 (0=없음, 1=점출혈, 2=적음, 3=보통, 4=많음, null=미기록)"
     t.integer "headache", default: 0, null: false, comment: "두통 여부 (0=없음, 1=있음)"
     t.integer "lh_result", comment: "LH 배란 테스트 결과 (0=음성, 1=양성, null=미기록)"
     t.date "logged_on", null: false, comment: "기록 날짜"
@@ -116,6 +117,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_070000) do
     t.integer "luteal_phase_length", default: 14, null: false, comment: "황체기 길이(일), 배란일 역산에 사용 (기본 14일)"
     t.string "nickname", limit: 50, comment: "앱 내 표시 이름 (최대 50자)"
     t.boolean "notifications_enabled", default: true, null: false, comment: "푸시 알림 수신 여부"
+    t.integer "period_length_default", default: 5, null: false, comment: "평균 생리 기간(일), 종료일 추정에 사용 (기본 5일)"
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["jti"], name: "index_users_on_jti", unique: true

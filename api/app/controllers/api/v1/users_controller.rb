@@ -13,12 +13,13 @@ module Api
       private
 
       def update_params
-        params.permit(:nickname, :cycle_length_default, :luteal_phase_length, :notifications_enabled)
+        params.permit(:nickname, :cycle_length_default, :luteal_phase_length,
+                      :period_length_default, :notifications_enabled)
       end
 
       def user_json(user)
         user.slice(:id, :email, :nickname, :cycle_length_default, :luteal_phase_length,
-                   :notifications_enabled, :created_at)
+                   :period_length_default, :notifications_enabled, :created_at)
       end
     end
   end

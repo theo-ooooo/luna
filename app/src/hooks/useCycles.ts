@@ -5,6 +5,7 @@ interface Cycle {
   id: number;
   started_on: string;
   ended_on: string | null;
+  estimated_period_end: string | null;
   flow_level: number | null;
   length_days: number | null;
 }
