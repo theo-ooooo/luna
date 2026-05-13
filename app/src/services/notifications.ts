@@ -129,6 +129,19 @@ export async function scheduleNotifications(input: ScheduleInput): Promise<Notif
     .map(e => ({ id: e.id, title: e.title, body: e.body, scheduledFor: e.date.getTime() }));
 }
 
+export async function sendTestNotification() {
+  await ensureAndroidChannel();
+  await Notifications.scheduleNotificationAsync({
+    identifier: 'luna-test',
+    content: { title: '🌙 Luna 알림 테스트', body: '푸시 알림이 정상적으로 작동하고 있어요!' },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds: 3,
+      channelId: Platform.OS === 'android' ? ANDROID_CHANNEL_ID : undefined,
+    },
+  });
+}
+
 export async function cancelLogNudge() {
   await Notifications.cancelScheduledNotificationAsync(IDS.logNudge).catch(() => {});
 }

@@ -11,6 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { useUpdateProfile } from '../hooks/useProfile';
 import { useNotificationStore } from '../store/notificationStore';
+import { sendTestNotification, requestNotificationPermission } from '../services/notifications';
 
 export function SettingsScreen() {
   const user = useAuthStore(s => s.user);
@@ -172,6 +173,22 @@ export function SettingsScreen() {
             value={prefs.monthlyReport}
             onChange={(v) => setPrefs({ monthlyReport: v })}
           />
+        </Section>
+
+        {/* 개발자 */}
+        <Section title="개발자">
+          <TouchableOpacity
+            style={styles.logoutRow}
+            onPress={async () => {
+              const granted = await requestNotificationPermission();
+              if (!granted) { Alert.alert('알림 권한이 없어요'); return; }
+              await sendTestNotification();
+              Toast.show({ type: 'success', text1: '3초 후 테스트 알림이 와요!' });
+            }}
+          >
+            <Text style={[styles.logoutText, { color: Colors.ink1 }]}>알림 테스트 발송</Text>
+            <Icon name="chev" size={16} strokeWidth={2} color={Colors.ink3} />
+          </TouchableOpacity>
         </Section>
 
         {/* 계정 */}
