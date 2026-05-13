@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingVertical: 4,
   },
   tabLabel: {
-    fontSize: 10, fontWeight: '600',
+    fontSize: 10, fontFamily: 'NotoSansKR_600SemiBold',
     color: 'rgba(242,238,232,0.5)', letterSpacing: 0.2,
   },
   tabLabelActive: { color: Colors.coral },

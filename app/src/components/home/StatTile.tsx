@@ -31,10 +31,10 @@ const styles = StyleSheet.create({
     minHeight: 120,
   },
   eyebrow: {
-    fontSize: 11, fontWeight: '700', letterSpacing: 1.5,
+    fontSize: 11, fontFamily: 'NotoSansKR_700Bold', letterSpacing: 1.5,
     textTransform: 'uppercase', color: Colors.ink3,
   },
   bottom: { flex: 1, justifyContent: 'flex-end', marginTop: 8 },
-  value: { fontSize: 28, fontWeight: '900', letterSpacing: -1.1, color: Colors.ink1 },
-  detail: { fontSize: 11, color: Colors.ink3, marginTop: 2, fontWeight: '500' },
+  value: { fontSize: 28, fontFamily: 'NotoSansKR_900Black', letterSpacing: -1.1, color: Colors.ink1 },
+  detail: { fontSize: 11, color: Colors.ink3, marginTop: 2, fontFamily: 'NotoSansKR_500Medium' },
 });

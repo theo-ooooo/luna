@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   wordmark: {
-    fontWeight: '900',
+    fontFamily: 'NotoSansKR_900Black',
     letterSpacing: -0.8,
   },
 });

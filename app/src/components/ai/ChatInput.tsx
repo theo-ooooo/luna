@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(201,184,255,0.3)',
     borderRadius: Radius.pill,
   },
-  chipText: { fontSize: 12, fontWeight: '600', color: Colors.lavender, letterSpacing: -0.1 },
+  chipText: { fontSize: 12, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.lavender, letterSpacing: -0.1 },
   inputPill: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -102,10 +102,10 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 4,
   },
-  aiTitle: { fontSize: 14, fontWeight: '900', color: Colors.inkInv, letterSpacing: -0.3, lineHeight: 17 },
+  aiTitle: { fontSize: 14, fontFamily: 'NotoSansKR_900Black', color: Colors.inkInv, letterSpacing: -0.3, lineHeight: 17 },
   onlineRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
   onlineDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: Colors.lime },
-  onlineText: { fontSize: 10, color: 'rgba(242,238,232,0.5)', fontWeight: '500', letterSpacing: 0.4 },
+  onlineText: { fontSize: 10, color: 'rgba(242,238,232,0.5)', fontFamily: 'NotoSansKR_500Medium', letterSpacing: 0.4 },
   dotsBtn: {
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.1)',
@@ -125,6 +125,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8, shadowRadius: 4, elevation: 2,
   },
-  chipText: { fontSize: 11, fontWeight: '600', color: Colors.inkInv },
+  chipText: { fontSize: 11, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.inkInv },
   body: { flex: 1, zIndex: 2 },
 });

@@ -43,6 +43,6 @@ const styles = StyleSheet.create({
   chipEmoji: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   chipActive: { backgroundColor: Colors.bgInk, borderColor: Colors.coral },
   emoji: { fontSize: 16 },
-  label: { fontSize: 13, fontWeight: '600', color: Colors.ink2 },
+  label: { fontSize: 13, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.ink2 },
   labelActive: { color: Colors.inkInv },
 });

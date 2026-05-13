@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 14,
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.08)',
   },
-  title: { fontSize: 17, fontWeight: '800', color: Colors.inkInv, letterSpacing: -0.4 },
+  title: { fontSize: 17, fontFamily: 'NotoSansKR_800ExtraBold', color: Colors.inkInv, letterSpacing: -0.4 },
   closeBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: 14, color: 'rgba(242,238,232,0.4)' },
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   listContent: { paddingVertical: 4 },
   item: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16, gap: 12 },
   itemLeft: { flex: 1, gap: 4 },
-  itemPreview: { fontSize: 14, color: Colors.inkInv, fontWeight: '500', lineHeight: 20 },
+  itemPreview: { fontSize: 14, color: Colors.inkInv, fontFamily: 'NotoSansKR_500Medium', lineHeight: 20 },
   itemMeta: { fontSize: 12, color: 'rgba(242,238,232,0.4)' },
   separator: { height: 1, backgroundColor: 'rgba(255,255,255,0.06)', marginHorizontal: 20 },
 });
