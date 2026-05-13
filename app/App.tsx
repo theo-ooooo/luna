@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import Toast from 'react-native-toast-message';
 import { TabNavigator } from './src/navigation/TabNavigator';
 import { AuthNavigator } from './src/navigation/AuthNavigator';
+import { OnboardingNavigator } from './src/navigation/OnboardingNavigator';
 import { useAuthStore } from './src/store/authStore';
 import { toastConfig } from './src/components/ui/LunaToast';
 import { useNotificationSetup } from './src/hooks/useNotificationSetup';
@@ -13,7 +14,8 @@ import { setupAndroidChannel } from './src/services/notifications';
 
 function AuthenticatedRoot() {
   useNotificationSetup();
-  return <TabNavigator />;
+  const onboardingDone = useAuthStore(s => s.onboardingDone);
+  return onboardingDone ? <TabNavigator /> : <OnboardingNavigator />;
 }
 
 function RootNavigator() {

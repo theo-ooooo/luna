@@ -15,8 +15,10 @@ interface User {
 interface AuthState {
   token: string | null;
   user: User | null;
+  onboardingDone: boolean;
   setAuth: (token: string, user: User) => void;
   clearAuth: () => void;
+  setOnboardingDone: (v: boolean) => void;
 }
 
 const secureStorage = createJSONStorage<AuthState>(() => ({
@@ -30,8 +32,10 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       token: null,
       user: null,
+      onboardingDone: false,
       setAuth: (token, user) => set({ token, user }),
-      clearAuth: () => set({ token: null, user: null }),
+      clearAuth: () => set({ token: null, user: null, onboardingDone: false }),
+      setOnboardingDone: (v: boolean) => set({ onboardingDone: v }),
     }),
     { name: 'luna-auth', storage: secureStorage },
   ),

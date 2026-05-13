@@ -31,6 +31,7 @@ export function useLogin() {
 
 export function useSignup() {
   const setAuth = useAuthStore(s => s.setAuth);
+  const setOnboardingDone = useAuthStore(s => s.setOnboardingDone);
   return useMutation({
     mutationFn: async ({
       email, password, nickname, cycleLength, lastPeriodDate,
@@ -45,6 +46,9 @@ export function useSignup() {
       await api.post('/api/v1/cycles', { started_on: lastPeriodDate, flow_level: 1 });
       return auth;
     },
-    onSuccess: () => {},
+    onSuccess: () => {
+      // 회원가입 플로우에서 이미 주기 데이터를 입력했으므로 온보딩 불필요
+      setOnboardingDone(true);
+    },
   });
 }
