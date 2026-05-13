@@ -13,7 +13,7 @@ class CycleAutoService
 
     # Auto-close the previous cycle if it was left open
     prev_cycle = @user.cycles.where("started_on < ?", log.logged_on).order(started_on: :desc).first
-    prev_cycle.update!(ended_on: log.logged_on - 1) if prev_cycle&.ended_on.nil?
+    prev_cycle.update!(ended_on: log.logged_on - 1) if prev_cycle && prev_cycle.ended_on.nil?
 
     @user.cycles.find_or_create_by!(started_on: log.logged_on) do |c|
       c.flow_level = FLOW_MAP.fetch(log.flow_level, 1)
