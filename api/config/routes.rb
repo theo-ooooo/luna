@@ -9,6 +9,8 @@ Rails.application.routes.draw do
                sessions: "api/v1/sessions"
              }
 
+  get "api/version", to: "api/version#show"
+
   namespace :api do
     namespace :v1 do
       post  "auth/check_email", to: "auth#check_email"
