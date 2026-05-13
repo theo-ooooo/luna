@@ -10,6 +10,7 @@ class User < ApplicationRecord
   has_many :push_tokens, dependent: :destroy
   has_many :ai_conversations, dependent: :destroy
   has_many :ai_monthly_reports, dependent: :destroy
+  has_many :notification_logs, dependent: :destroy
 
   validates :email, presence: true, uniqueness: { case_sensitive: false },
                     format: { with: URI::MailTo::EMAIL_REGEXP }

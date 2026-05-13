@@ -33,6 +33,11 @@ Rails.application.routes.draw do
         get "history",  to: "predictions#history",  as: :predictions_history
       end
 
+      scope :notifications do
+        get  "/", to: "notifications#index",   as: :notifications
+        put  "/", to: "notifications#replace", as: :notifications_replace
+      end
+
       scope :ai do
         post "chat",                      to: "ai#chat",                 as: :ai_chat
         post "parse_log",                 to: "ai#parse_log",            as: :ai_parse_log
