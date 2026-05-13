@@ -33,22 +33,26 @@ export function ConversationHistoryModal({ visible, onClose, onSelect }: Props) 
   const [loading, setLoading] = useState(false);
   const [loadingId, setLoadingId] = useState<number | null>(null);
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!visible) return;
     setLoading(true);
-    api.get<{ data: ConversationItem[] }>('/api/v1/ai/conversations')
-      .then(res => setList((res as any).data ?? res as any))
-      .catch(() => setList([]))
+    setError(null);
+    api.get<ConversationItem[]>('/api/v1/ai/conversations')
+      .then(res => setList(res))
+      .catch(() => setError('대화 목록을 불러오지 못했어요.'))
       .finally(() => setLoading(false));
   }, [visible]);
 
   async function handleSelect(id: number) {
     setLoadingId(id);
     try {
-      const res = await api.get<any>(`/api/v1/ai/conversations/${id}`);
-      const data = res.data ?? res;
-      onSelect(data.id, data.messages ?? []);
+      const res = await api.get<{ id: number; messages: ServerMessage[] }>(`/api/v1/ai/conversations/${id}`);
+      onSelect(res.id, res.messages ?? []);
       onClose();
+    } catch {
+      setError('대화를 불러오지 못했어요. 다시 시도해 주세요.');
     } finally {
       setLoadingId(null);
     }
@@ -69,11 +73,17 @@ export function ConversationHistoryModal({ visible, onClose, onSelect }: Props) 
           </TouchableOpacity>
         </View>
 
+        {error && (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+
         {loading ? (
           <View style={styles.center}>
             <ActivityIndicator color={Colors.lavender} />
           </View>
-        ) : list.length === 0 ? (
+        ) : list.length === 0 && !error ? (
           <View style={styles.center}>
             <Text style={styles.emptyText}>이전 대화가 없어요</Text>
           </View>
@@ -122,6 +132,8 @@ const styles = StyleSheet.create({
   },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { fontSize: 14, color: 'rgba(242,238,232,0.4)' },
+  errorBanner: { margin: 16, padding: 14, backgroundColor: 'rgba(255,90,71,0.12)', borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,90,71,0.25)' },
+  errorText: { fontSize: 13, color: Colors.coralSoft, textAlign: 'center' },
   listContent: { paddingVertical: 8 },
   item: {
     flexDirection: 'row', alignItems: 'center',
