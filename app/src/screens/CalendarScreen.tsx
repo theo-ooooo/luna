@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -11,7 +11,9 @@ import { DayDetailCard } from '../components/calendar/DayDetailCard';
 import { InsightsBody } from '../components/insights/InsightsBody';
 import { DateSearchSheet } from '../components/home/DateSearchSheet';
 import { useCalendar } from '../hooks/useCalendar';
-import { phaseForDay } from '../utils/phase';
+import { useLatestCycle } from '../hooks/useCycles';
+import { usePrediction } from '../hooks/usePrediction';
+import { phaseForDay, CYCLE_DEFAULTS } from '../utils/phase';
 import type { PhaseFilter } from '../hooks/useCalendar';
 import type { TabParamList } from '../navigation/TabNavigator';
 
@@ -51,6 +53,37 @@ export function CalendarScreen() {
     jumpToDate, setActivePhaseFilter,
   } = useCalendar();
 
+  const { data: latestCycle } = useLatestCycle();
+  const { data: prediction } = usePrediction();
+
+  const cycleLength = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
+
+  // Compute cycle start date: from latestCycle.started_on, or estimate from prediction.cycle_day
+  const cycleStartMs = useMemo(() => {
+    if (latestCycle?.started_on) {
+      return new Date(latestCycle.started_on + 'T00:00:00').getTime();
+    }
+    if (prediction?.cycle_day) {
+      const t = new Date();
+      t.setHours(0, 0, 0, 0);
+      t.setDate(t.getDate() - (prediction.cycle_day - 1));
+      return t.getTime();
+    }
+    return null;
+  }, [latestCycle?.started_on, prediction?.cycle_day]);
+
+  // Pre-compute phase per day-of-month for the current view
+  const dayPhases = useMemo(() => {
+    if (activePhaseFilter === 'all' || cycleStartMs === null) return null;
+    const phases: Record<number, string> = {};
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dayMs = new Date(year, month - 1, d).getTime();
+      const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
+      phases[d] = cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength) : 'follicular';
+    }
+    return phases;
+  }, [activePhaseFilter, cycleStartMs, year, month, daysInMonth, cycleLength]);
+
   const grid: (number | null)[] = [
     ...Array(firstWeekday).fill(null),
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
@@ -66,13 +99,9 @@ export function CalendarScreen() {
     navigation.navigate('Record', { date });
   }, [year, month, selectedDay, navigation]);
 
-  const handleDateSelect = useCallback((isoDate: string) => {
-    jumpToDate(isoDate);
-  }, [jumpToDate]);
-
   function isDimmed(day: number): boolean {
-    if (activePhaseFilter === 'all') return false;
-    return phaseForDay(day) !== activePhaseFilter;
+    if (activePhaseFilter === 'all' || dayPhases === null) return false;
+    return dayPhases[day] !== activePhaseFilter;
   }
 
   return (
@@ -194,7 +223,7 @@ export function CalendarScreen() {
           <DateSearchSheet
             visible={searchVisible}
             onClose={() => setSearchVisible(false)}
-            onSelect={handleDateSelect}
+            onSelect={jumpToDate}
           />
         </>
       ) : (

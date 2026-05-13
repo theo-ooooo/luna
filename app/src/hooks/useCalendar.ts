@@ -50,9 +50,13 @@ export function useCalendar(): CalendarState {
   }
 
   function jumpToDate(isoDate: string) {
-    // isoDate: 'YYYY-MM-DD'
     const d = new Date(isoDate + 'T00:00:00');
     if (isNaN(d.getTime())) return;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const minDate = new Date(today);
+    minDate.setDate(minDate.getDate() - 365);
+    if (d > today || d < minDate) return;
     setYear(d.getFullYear());
     setMonth(d.getMonth() + 1);
     setSelectedDay(d.getDate());
