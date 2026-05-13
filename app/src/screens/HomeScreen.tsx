@@ -14,6 +14,7 @@ import { CycleRingTile } from '../components/home/CycleRingTile';
 import { CycleHistoryModal } from '../components/home/CycleHistoryModal';
 import { DateSearchSheet } from '../components/home/DateSearchSheet';
 import { NotificationHistorySheet } from '../components/home/NotificationHistorySheet';
+import { PeriodDateSheet } from '../components/home/PeriodDateSheet';
 import { phaseForDay, daysUntilPeriod, CYCLE_DEFAULTS } from '../utils/phase';
 import { usePrediction } from '../hooks/usePrediction';
 import { useAiDailyInsight } from '../hooks/useAiDailyInsight';
@@ -35,15 +36,6 @@ function formatGeneratedAt(generatedAt: string | null | undefined): string | nul
   return `${period} ${h}:${minutes} 생성`;
 }
 
-function formatDateChip(dateStr: string): string {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const d = new Date(dateStr + 'T00:00:00');
-  const diffDays = Math.round((today.getTime() - d.getTime()) / 86_400_000);
-  if (diffDays === 0) return '오늘';
-  if (diffDays === 1) return '어제';
-  return `${d.getMonth() + 1}/${d.getDate()}`;
-}
 
 export function HomeScreen() {
   const { width: screenW } = useWindowDimensions();
@@ -55,20 +47,16 @@ export function HomeScreen() {
   const { data: bbtHistory } = useBbtHistory();
   const startPeriod = useStartPeriod();
   const endPeriod = useEndPeriod();
-  const [selectedFlow, setSelectedFlow] = useState<1 | 2 | 3>(2);
   const [showCycleHistory, setShowCycleHistory] = useState(false);
   const [showDateSearch, setShowDateSearch] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [periodSheet, setPeriodSheet] = useState<'start' | 'end' | null>(null);
 
-  const recentDates = useMemo(() => Array.from({ length: 7 }, (_, i) => {
+  const todayIso = useMemo(() => {
     const d = new Date();
-    d.setDate(d.getDate() - i);
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  }), []);
-  const todayIso = recentDates[0];
+  }, []);
   const { data: insight, isLoading: insightLoading } = useAiDailyInsight(todayIso);
-  const [selectedDate, setSelectedDate] = useState(() => recentDates[0]);
-  const [selectedEndDate, setSelectedEndDate] = useState(() => recentDates[0]);
 
   const cycleDay = prediction?.cycle_day ?? 1;
   const cycleLength: number = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
@@ -77,15 +65,21 @@ export function HomeScreen() {
 
   const isActivePeriod = !!latestCycle && !latestCycle.ended_on;
 
-  const endDateOptions = useMemo(
-    () => recentDates.filter(d => !latestCycle || d >= latestCycle.started_on),
-    [recentDates, latestCycle],
-  );
+  const periodDayCount = useMemo(() => {
+    if (!latestCycle || latestCycle.ended_on) return null;
+    const start = new Date(latestCycle.started_on + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.floor((today.getTime() - start.getTime()) / 86_400_000) + 1;
+  }, [latestCycle, todayIso]);
 
-  // Reset end date chip to today whenever a period becomes active
-  useEffect(() => {
-    if (isActivePeriod) setSelectedEndDate(recentDates[0]);
-  }, [isActivePeriod, recentDates]);
+  const daysUntilNext = useMemo(() => {
+    if (!prediction?.predicted_period_start) return null;
+    const next = new Date(prediction.predicted_period_start + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return Math.ceil((next.getTime() - today.getTime()) / 86_400_000);
+  }, [prediction]);
 
   // ── Stat tile data ────────────────────────────────────────────────────────
   const moodLabel = todayLog?.mood != null ? (MOOD_LABELS[todayLog.mood] ?? '—') : '—';
@@ -110,19 +104,26 @@ export function HomeScreen() {
   const ovDetail = ovDays !== null ? '배란 예정' : '데이터 없음';
   // ─────────────────────────────────────────────────────────────────────────
 
-  function handleStartPeriod() {
-    startPeriod.mutate({ flowLevel: selectedFlow, startedOn: selectedDate }, {
-      onSuccess: () => Toast.show({ type: 'success', text1: '생리 시작을 기록했어요.' }),
+  function recordPeriodStart(date: string, flowLevel: 1 | 2 | 3 = 2) {
+    startPeriod.mutate({ flowLevel, startedOn: date }, {
+      onSuccess: () => { setPeriodSheet(null); Toast.show({ type: 'success', text1: '생리 시작을 기록했어요.' }); },
       onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
     });
   }
 
-  function handleEndPeriod() {
-    if (!latestCycle) return;
-    endPeriod.mutate({ cycleId: latestCycle.id, endedOn: selectedEndDate }, {
-      onSuccess: () => Toast.show({ type: 'success', text1: '생리 종료를 기록했어요.' }),
-      onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
-    });
+  function handlePeriodSheetConfirm({ date, flowLevel }: { date: string; flowLevel?: 1 | 2 | 3 }) {
+    if (periodSheet === 'start') {
+      recordPeriodStart(date, flowLevel);
+    } else if (periodSheet === 'end') {
+      if (!latestCycle) {
+        Toast.show({ type: 'error', text1: '기록 실패', text2: '활성 주기를 찾을 수 없어요.' });
+        return;
+      }
+      endPeriod.mutate({ cycleId: latestCycle.id, endedOn: date }, {
+        onSuccess: () => { setPeriodSheet(null); Toast.show({ type: 'success', text1: '생리 종료를 기록했어요.' }); },
+        onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
+      });
+    }
   }
 
   return (
@@ -142,86 +143,59 @@ export function HomeScreen() {
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <HeroCard phaseKey={phaseKey} cycleDay={cycleDay} daysUntilPeriod={dPeriod} />
 
-        {/* 생리 시작/종료 카드 */}
+        {/* 생리 상태 카드 */}
         {!cycleLoading && isActivePeriod ? (
           <View style={[styles.periodCard, Shadow.card]}>
             <View style={styles.periodCardHeader}>
               <View style={styles.activeDot} />
               <Text style={styles.periodCardTitle}>생리 중</Text>
-              <Text style={styles.periodCardSince}>
-                {latestCycle.started_on.slice(5).replace('-', '/')} 시작
-                {latestCycle.estimated_period_end
-                  ? `  ·  예상 종료 ${latestCycle.estimated_period_end.slice(5).replace('-', '/')}`
-                  : ''}
-              </Text>
+              {periodDayCount !== null && (
+                <Text style={styles.periodDayBadge}>{periodDayCount}일째</Text>
+              )}
             </View>
-            <View style={styles.dateSectionRow}>
-              <Text style={styles.dateSectionLabel}>종료일</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateScrollContent}>
-                {endDateOptions.map((dateStr) => (
-                  <TouchableOpacity
-                    key={dateStr}
-                    style={[styles.dateChip, selectedEndDate === dateStr && styles.dateChipActive]}
-                    onPress={() => setSelectedEndDate(dateStr)}
-                  >
-                    <Text style={[styles.dateChipText, selectedEndDate === dateStr && styles.dateChipTextActive]}>
-                      {formatDateChip(dateStr)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
+            <Text style={styles.periodCardMeta}>
+              {latestCycle.started_on.slice(5).replace('-', '/')} 시작
+              {latestCycle.estimated_period_end
+                ? `  ·  예상 종료 ${latestCycle.estimated_period_end.slice(5).replace('-', '/')}`
+                : ''}
+            </Text>
             <TouchableOpacity
               style={[styles.periodBtn, styles.periodBtnEnd]}
-              onPress={handleEndPeriod}
-              disabled={endPeriod.isPending}
+              onPress={() => setPeriodSheet('end')}
             >
-              <Text style={[styles.periodBtnText, styles.periodBtnTextDark]}>
-                {endPeriod.isPending ? '기록 중…' : '생리 종료'}
-              </Text>
+              <Text style={[styles.periodBtnText, styles.periodBtnTextDark]}>생리 종료 기록</Text>
             </TouchableOpacity>
           </View>
         ) : !cycleLoading ? (
           <View style={[styles.periodCard, Shadow.card]}>
-            <Text style={styles.periodCardTitle}>생리가 시작됐나요?</Text>
-            <View style={styles.dateSectionRow}>
-              <Text style={styles.dateSectionLabel}>시작일</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateScrollContent}>
-                {recentDates.map((dateStr) => (
-                  <TouchableOpacity
-                    key={dateStr}
-                    style={[styles.dateChip, selectedDate === dateStr && styles.dateChipActive]}
-                    onPress={() => setSelectedDate(dateStr)}
-                  >
-                    <Text style={[styles.dateChipText, selectedDate === dateStr && styles.dateChipTextActive]}>
-                      {formatDateChip(dateStr)}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-            <View style={styles.flowRow}>
-              {([1, 2, 3] as const).map((lv) => {
-                const labels = { 1: '가벼움', 2: '보통', 3: '많음' };
-                return (
-                  <TouchableOpacity
-                    key={lv}
-                    style={[styles.flowChip, selectedFlow === lv && styles.flowChipActive]}
-                    onPress={() => setSelectedFlow(lv)}
-                  >
-                    <Text style={[styles.flowChipText, selectedFlow === lv && styles.flowChipTextActive]}>
-                      {labels[lv]}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+            {daysUntilNext !== null ? (
+              <>
+                <Text style={styles.periodCardTitle}>
+                  생리 예정일까지 {daysUntilNext > 0 ? `D-${daysUntilNext}` : daysUntilNext === 0 ? 'D-day' : '지남'}
+                </Text>
+                {prediction?.predicted_period_start && (
+                  <Text style={styles.periodCardMeta}>
+                    {(() => { const d = new Date(prediction.predicted_period_start + 'T00:00:00'); return `${d.getMonth() + 1}월 ${d.getDate()}일 예정`; })()}
+                  </Text>
+                )}
+              </>
+            ) : (
+              <>
+                <Text style={styles.periodCardTitle}>생리 주기를 기록해보세요</Text>
+                <Text style={styles.periodCardMeta}>시작일을 기록하면 다음 예정일을 알려드려요</Text>
+              </>
+            )}
             <TouchableOpacity
               style={[styles.periodBtn, styles.periodBtnStart]}
-              onPress={handleStartPeriod}
+              onPress={() => recordPeriodStart(todayIso)}
               disabled={startPeriod.isPending}
             >
-              <Text style={styles.periodBtnText}>{startPeriod.isPending ? '기록 중…' : '생리 시작'}</Text>
+              <Text style={styles.periodBtnText}>
+                {startPeriod.isPending ? '기록 중…' : '오늘 생리가 시작됐어요'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setPeriodSheet('start')} style={styles.altLink}>
+              <Text style={styles.altLinkText}>다른 날짜로 기록 →</Text>
             </TouchableOpacity>
           </View>
         ) : null}
@@ -260,6 +234,14 @@ export function HomeScreen() {
         </View>
       </ScrollView>
 
+      <PeriodDateSheet
+        visible={periodSheet !== null}
+        onClose={() => setPeriodSheet(null)}
+        mode={periodSheet ?? 'start'}
+        minDate={periodSheet === 'end' ? latestCycle?.started_on : undefined}
+        onConfirm={handlePeriodSheetConfirm}
+        isLoading={startPeriod.isPending || endPeriod.isPending}
+      />
       <CycleHistoryModal visible={showCycleHistory} onClose={() => setShowCycleHistory(false)} />
       <DateSearchSheet
         visible={showDateSearch}
@@ -288,28 +270,19 @@ const styles = StyleSheet.create({
   aiText: { fontSize: 14, fontWeight: '500', color: Colors.ink1, lineHeight: 21, letterSpacing: -0.1 },
   aiLoader: { alignSelf: 'flex-start', marginTop: 4 },
   aiTimestamp: { fontSize: 11, color: Colors.ink3, marginTop: 8 },
-  periodCard: { width: '100%', backgroundColor: Colors.bgCard, borderRadius: 20, padding: 18, gap: 14 },
+  periodCard: { width: '100%', backgroundColor: Colors.bgCard, borderRadius: 20, padding: 18, gap: 10 },
   periodCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   activeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.coral },
-  periodCardTitle: { fontSize: 14, fontWeight: '700', color: Colors.ink1 },
-  periodCardSince: { fontSize: 12, color: Colors.ink3, marginLeft: 'auto' },
-  dateSectionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  dateSectionLabel: { fontSize: 12, fontWeight: '600', color: Colors.ink3 },
-  dateScrollContent: { gap: 6, flexDirection: 'row' },
-  dateChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: Radius.pill, backgroundColor: Colors.bgAlt, borderWidth: 1.5, borderColor: 'transparent' },
-  dateChipActive: { backgroundColor: Colors.bgInk, borderColor: Colors.coral },
-  dateChipText: { fontSize: 12, fontWeight: '600', color: Colors.ink2 },
-  dateChipTextActive: { color: Colors.inkInv },
-  flowRow: { flexDirection: 'row', gap: 8 },
-  flowChip: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: Radius.pill, backgroundColor: Colors.bgAlt, borderWidth: 1.5, borderColor: 'transparent' },
-  flowChipActive: { backgroundColor: Colors.bgInk, borderColor: Colors.coral },
-  flowChipText: { fontSize: 13, fontWeight: '600', color: Colors.ink2 },
-  flowChipTextActive: { color: Colors.inkInv },
-  periodBtn: { paddingVertical: 14, borderRadius: Radius.pill, alignItems: 'center' },
+  periodCardTitle: { fontSize: 15, fontWeight: '700', color: Colors.ink1 },
+  periodDayBadge: { marginLeft: 'auto', fontSize: 13, fontWeight: '600', color: Colors.coral },
+  periodCardMeta: { fontSize: 13, color: Colors.ink3, fontWeight: '500' },
+  periodBtn: { marginTop: 4, paddingVertical: 14, borderRadius: Radius.pill, alignItems: 'center' },
   periodBtnStart: { backgroundColor: Colors.coral },
   periodBtnEnd: { backgroundColor: Colors.bgAlt },
   periodBtnText: { fontSize: 14, fontWeight: '700', color: Colors.inkInv },
   periodBtnTextDark: { color: Colors.ink1 },
+  altLink: { alignSelf: 'center', paddingVertical: 2 },
+  altLinkText: { fontSize: 12, color: Colors.ink3, fontWeight: '600' },
   historyLink: { alignSelf: 'flex-start', paddingVertical: 2 },
   historyLinkText: { fontSize: 12, color: Colors.ink3, fontWeight: '600' },
 });
