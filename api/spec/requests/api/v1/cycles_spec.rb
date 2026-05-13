@@ -31,15 +31,29 @@ RSpec.describe "Api::V1::Cycles", type: :request do
       expect(response.parsed_body.dig("data", "started_on")).to eq(Date.current.to_s)
     end
 
-    it "미래 날짜 시작 시 422 반환" do
-      post "/api/v1/cycles", params: { started_on: Date.tomorrow.to_s }, headers: headers, as: :json
-      expect(response).to have_http_status(:unprocessable_content)
+    it "started_on 미전달 시 오늘 날짜로 생성" do
+      post "/api/v1/cycles", params: { flow_level: 2 }, headers: headers, as: :json
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body.dig("data", "started_on")).to eq(Date.current.to_s)
     end
 
-    it "중복 날짜 시작 시 422 반환" do
+    it "started_on 빈 문자열 전달 시 오늘 날짜로 생성" do
+      post "/api/v1/cycles", params: { started_on: "", flow_level: 2 }, headers: headers, as: :json
+      expect(response).to have_http_status(:created)
+      expect(response.parsed_body.dig("data", "started_on")).to eq(Date.current.to_s)
+    end
+
+    it "미래 날짜 시작 시 422 반환 및 FUTURE_DATE 코드" do
+      post "/api/v1/cycles", params: { started_on: Date.tomorrow.to_s }, headers: headers, as: :json
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.dig("error", "code")).to eq("FUTURE_DATE")
+    end
+
+    it "중복 날짜 시작 시 422 반환 및 DUPLICATE_DATE 코드" do
       create(:cycle, :ongoing, user: user, started_on: Date.current)
       post "/api/v1/cycles", params: params, headers: headers, as: :json
       expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body.dig("error", "code")).to eq("DUPLICATE_DATE")
     end
   end
 

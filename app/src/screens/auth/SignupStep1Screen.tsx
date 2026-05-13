@@ -25,7 +25,7 @@ function StrengthBar({ password }: { password: string }) {
 const sbStyles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 10, paddingHorizontal: 4 },
   bar: { flex: 1, height: 3, borderRadius: 2, backgroundColor: Colors.borderSoft },
-  label: { fontSize: 10, fontWeight: '700', color: Colors.ink3, marginLeft: 6 },
+  label: { fontSize: 10, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, marginLeft: 6 },
 });
 
 export function SignupStep1Screen({ navigation, route }: Props) {
@@ -100,16 +100,16 @@ const styles = StyleSheet.create({
   progressWrap: { flex: 1, flexDirection: 'row', gap: 4 },
   bar: { flex: 1, height: 4, borderRadius: 2, backgroundColor: Colors.borderSoft },
   barActive: { backgroundColor: Colors.ink1 },
-  stepLabel: { fontSize: 11, fontWeight: '700', color: Colors.ink3, minWidth: 28, textAlign: 'right' },
+  stepLabel: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, minWidth: 28, textAlign: 'right' },
   content: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 16 },
   hero: { marginBottom: 28 },
-  eyebrow: { fontSize: 11, fontWeight: '700', color: Colors.ink3, letterSpacing: 1.6 },
-  title: { fontSize: 44, fontWeight: '900', letterSpacing: -2.2, lineHeight: 42, marginTop: 10, color: Colors.ink1 },
+  eyebrow: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: 1.6 },
+  title: { fontSize: 44, fontFamily: 'NotoSansKR_900Black', letterSpacing: -2.2, lineHeight: 42, marginTop: 10, color: Colors.ink1 },
   coral: { color: Colors.coral },
   emailPill: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', backgroundColor: Colors.bgCard, borderRadius: 999, paddingVertical: 8, paddingLeft: 8, paddingRight: 12, marginTop: 12 },
   checkCircle: { width: 22, height: 22, borderRadius: 11, backgroundColor: Colors.bgInk, alignItems: 'center', justifyContent: 'center' },
-  check: { fontSize: 11, color: Colors.coral, fontWeight: '900' },
-  emailText: { fontSize: 11, fontWeight: '700', color: Colors.ink2 },
+  check: { fontSize: 11, color: Colors.coral, fontFamily: 'NotoSansKR_900Black' },
+  emailText: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink2 },
   form: { gap: 10 },
   footer: { paddingHorizontal: 24, paddingBottom: 36 },
 });

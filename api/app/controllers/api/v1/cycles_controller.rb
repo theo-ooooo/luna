@@ -17,12 +17,11 @@ module Api
       end
 
       def create
-        cycle = current_user.cycles.find_or_initialize_by(started_on: create_params[:started_on] || Date.current)
-        was_new = cycle.new_record?
-        cycle.assign_attributes(create_params.except(:started_on))
+        cycle = current_user.cycles.build(create_params)
+        cycle.started_on ||= Date.current
         cycle.save!
         PredictionService.new(current_user).compute!
-        success(cycle_json(cycle), status: was_new ? :created : :ok)
+        success(cycle_json(cycle), status: :created)
       end
 
       def update

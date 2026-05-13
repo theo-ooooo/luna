@@ -38,6 +38,6 @@ const styles = StyleSheet.create({
   },
   cardFocused: { borderColor: Colors.ink1 },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  label: { fontSize: 10, fontWeight: '700', color: Colors.ink3, letterSpacing: 1.2, textTransform: 'uppercase' },
-  input: { fontSize: 16, fontWeight: '600', color: Colors.ink1, letterSpacing: -0.2, padding: 0 },
+  label: { fontSize: 10, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: 1.2, textTransform: 'uppercase' },
+  input: { fontSize: 16, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.ink1, letterSpacing: -0.2, padding: 0 },
 });

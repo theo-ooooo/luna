@@ -54,6 +54,6 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: Colors.bgInk, borderColor: Colors.coral },
   dots: { flexDirection: 'row', gap: 3 },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  label: { fontSize: 11, fontWeight: '600', color: Colors.ink2 },
+  label: { fontSize: 11, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.ink2 },
   labelActive: { color: Colors.inkInv },
 });

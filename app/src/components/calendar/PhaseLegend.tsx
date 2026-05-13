@@ -23,5 +23,5 @@ const styles = StyleSheet.create({
   },
   item: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  label: { fontSize: 10, fontWeight: '600', color: Colors.ink2 },
+  label: { fontSize: 10, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.ink2 },
 });

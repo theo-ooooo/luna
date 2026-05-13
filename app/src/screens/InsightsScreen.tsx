@@ -26,6 +26,6 @@ export function InsightsScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.bg },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  topBarLabel: { fontSize: 13, fontWeight: '700', color: Colors.ink3, letterSpacing: -0.1 },
+  topBarLabel: { fontSize: 13, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: -0.1 },
   topBarRight: { width: 36, height: 36 },
 });

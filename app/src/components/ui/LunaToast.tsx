@@ -47,6 +47,6 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   body: { flex: 1 },
-  title: { fontSize: 13, fontWeight: '700', color: Colors.inkInv, letterSpacing: -0.2 },
+  title: { fontSize: 13, fontFamily: 'NotoSansKR_700Bold', color: Colors.inkInv, letterSpacing: -0.2 },
   sub: { fontSize: 12, color: Colors.ink3, marginTop: 2, lineHeight: 16 },
 });
