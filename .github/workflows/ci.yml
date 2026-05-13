@@ -27,6 +27,7 @@ jobs:
     env:
       RAILS_ENV: test
       DATABASE_URL: postgres://luna:luna@localhost:5432/luna_test
+      DEVISE_JWT_SECRET_KEY: ${{ secrets.DEVISE_JWT_SECRET_KEY || 'ci-test-secret-key-minimum-32-chars-long' }}
 
     steps:
       - uses: actions/checkout@v4
