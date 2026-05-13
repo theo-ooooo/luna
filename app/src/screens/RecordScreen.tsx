@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, TextInput, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -24,13 +24,12 @@ function dateStr(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-const MIN_DATE = (() => {
-  const d = new Date();
-  d.setDate(d.getDate() - 30);
-  return dateStr(d);
-})();
-
 export function RecordScreen() {
+  const minDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return dateStr(d);
+  }, []);
   const [selectedDate, setSelectedDate] = useState(() => dateStr(new Date()));
   const todayDate = dateStr(new Date());
   const isToday = selectedDate === todayDate;
@@ -48,7 +47,7 @@ export function RecordScreen() {
   function goToPrevDay() {
     const prev = new Date(selectedDate + 'T00:00:00');
     prev.setDate(prev.getDate() - 1);
-    if (dateStr(prev) >= MIN_DATE) setSelectedDate(dateStr(prev));
+    if (dateStr(prev) >= minDate) setSelectedDate(dateStr(prev));
   }
 
   function goToNextDay() {
