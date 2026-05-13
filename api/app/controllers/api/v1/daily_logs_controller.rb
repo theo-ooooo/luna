@@ -28,13 +28,17 @@ module Api
         log  = current_user.daily_logs.find_or_initialize_by(logged_on: date)
         log.assign_attributes(log_params.except(:logged_on))
         log.save!
-        CycleAutoService.new(current_user).call(log)
+        svc = CycleAutoService.new(current_user)
+        svc.call(log)
+        svc.check_period_end(log)
         success(log_json(log), status: log.previously_new_record? ? :created : :ok)
       end
 
       def update
         @log.update!(log_params.except(:logged_on))
-        CycleAutoService.new(current_user).call(@log)
+        svc = CycleAutoService.new(current_user)
+        svc.call(@log)
+        svc.check_period_end(@log)
         success(log_json(@log))
       end
 
