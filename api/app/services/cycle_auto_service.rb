@@ -8,8 +8,8 @@ class CycleAutoService
   def call(log)
     return unless log.flow_level.present? && log.flow_level > 0
 
-    # Skip if an active cycle already covers this date
-    return if @user.cycles.where(ended_on: nil).where("started_on <= ?", log.logged_on).exists?
+    # Skip if a cycle already started on the same day (idempotent)
+    return if @user.cycles.where(started_on: log.logged_on, ended_on: nil).exists?
 
     # Auto-close the previous cycle if it was left open
     prev_cycle = @user.cycles.where("started_on < ?", log.logged_on).order(started_on: :desc).first
@@ -25,7 +25,7 @@ class CycleAutoService
   end
 
   def check_period_end(log)
-    return unless log.flow_level.to_i == 0
+    return unless log.flow_level == 0
     active = @user.cycles.where(ended_on: nil)
                          .where("started_on <= ?", log.logged_on)
                          .order(started_on: :desc)
