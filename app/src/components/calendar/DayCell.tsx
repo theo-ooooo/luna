@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Colors, Phase, PhaseKey } from '../../theme/tokens';
-import { phaseForDay } from '../../utils/phase';
 
 interface DayCellProps {
   day: number;
@@ -9,12 +8,12 @@ interface DayCellProps {
   size: number;
   isToday: boolean;
   isSelected: boolean;
+  phaseKey?: PhaseKey;
   dimmed?: boolean;
   onPress: (day: number) => void;
 }
 
-export function DayCell({ day, month, size, isToday, isSelected, dimmed = false, onPress }: DayCellProps) {
-  const phaseKey: PhaseKey = phaseForDay(day);
+export function DayCell({ day, month, size, isToday, isSelected, phaseKey = 'follicular', dimmed = false, onPress }: DayCellProps) {
   const phase = Phase[phaseKey];
 
   return (
