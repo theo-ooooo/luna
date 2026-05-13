@@ -43,10 +43,8 @@ export type PhaseKey = keyof typeof Phase;
 // NotoSansKR 폰트 패밀리 이름 (fontWeight 숫자 → fontFamily 변환)
 // Android는 fontWeight 숫자 문자열을 올바르게 처리하지 못하므로
 // 각 굵기별 폰트 파일을 fontFamily로 직접 지정한다.
+// 100/200/300 굵기는 앱에서 사용되지 않아 로드하지 않으므로 제외한다.
 export const FontFamily = {
-  '100': 'NotoSansKR_100Thin',
-  '200': 'NotoSansKR_200ExtraLight',
-  '300': 'NotoSansKR_300Light',
   '400': 'NotoSansKR_400Regular',
   '500': 'NotoSansKR_500Medium',
   '600': 'NotoSansKR_600SemiBold',

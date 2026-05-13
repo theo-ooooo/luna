@@ -7,9 +7,6 @@ import { View, ActivityIndicator } from 'react-native';
 import Toast from 'react-native-toast-message';
 import {
   useFonts,
-  NotoSansKR_100Thin,
-  NotoSansKR_200ExtraLight,
-  NotoSansKR_300Light,
   NotoSansKR_400Regular,
   NotoSansKR_500Medium,
   NotoSansKR_600SemiBold,
@@ -41,9 +38,6 @@ export default function App() {
     () => new QueryClient({ defaultOptions: { queries: { retry: 1, staleTime: 60_000 } } }),
   );
   const [fontsLoaded, fontError] = useFonts({
-    NotoSansKR_100Thin,
-    NotoSansKR_200ExtraLight,
-    NotoSansKR_300Light,
     NotoSansKR_400Regular,
     NotoSansKR_500Medium,
     NotoSansKR_600SemiBold,
@@ -57,7 +51,13 @@ export default function App() {
   }, []);
 
   if (!fontsLoaded && !fontError) {
-    return <View style={{ flex: 1 }}><ActivityIndicator /></View>;
+    return (
+      <SafeAreaProvider>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator />
+        </View>
+      </SafeAreaProvider>
+    );
   }
 
   return (
