@@ -37,10 +37,10 @@ RSpec.describe CycleAutoService, type: :service do
     # 2. 이미 열린 주기 존재 → 조기 반환
     # ───────────────────────────────────────────────
 
-    context "log.logged_on 이전에 시작된 열린(ended_on nil) 주기가 이미 존재하는 경우" do
+    context "당일 시작된 열린(ended_on nil) 주기가 이미 존재하는 경우 (같은 날 중복 방지)" do
       before do
-        # started_on <= log.logged_on, ended_on nil → active cycle guard 발동
-        create(:cycle, user: user, started_on: 3.days.ago.to_date, ended_on: nil)
+        # started_on == log.logged_on, ended_on nil → 당일 중복 방지 가드 발동
+        create(:cycle, user: user, started_on: today, ended_on: nil)
       end
 
       it "조기 반환하며 새 주기를 생성하지 않는다" do
@@ -179,8 +179,8 @@ RSpec.describe CycleAutoService, type: :service do
       end
     end
 
-    context "조기 반환되는 경우 (active cycle 존재)" do
-      before { create(:cycle, user: user, started_on: 3.days.ago.to_date, ended_on: nil) }
+    context "조기 반환되는 경우 (당일 active cycle 존재)" do
+      before { create(:cycle, user: user, started_on: today, ended_on: nil) }
 
       it "PredictionService#compute! 를 호출하지 않는다" do
         expect(PredictionService).not_to receive(:new)
