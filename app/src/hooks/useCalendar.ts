@@ -5,6 +5,8 @@ import { phaseForDay } from '../utils/phase';
 const _now = new Date();
 const TODAY = { year: _now.getFullYear(), month: _now.getMonth() + 1, day: _now.getDate() };
 
+export type PhaseFilter = 'all' | PhaseKey;
+
 export interface CalendarState {
   year: number;
   month: number;
@@ -13,15 +15,19 @@ export interface CalendarState {
   daysInMonth: number;
   firstWeekday: number;
   selectedPhaseKey: PhaseKey;
+  activePhaseFilter: PhaseFilter;
   setSelectedDay: (d: number) => void;
   prevMonth: () => void;
   nextMonth: () => void;
+  jumpToDate: (isoDate: string) => void;
+  setActivePhaseFilter: (f: PhaseFilter) => void;
 }
 
 export function useCalendar(): CalendarState {
   const [year, setYear] = useState(TODAY.year);
   const [month, setMonth] = useState(TODAY.month);
   const [selectedDay, setSelectedDay] = useState(TODAY.day);
+  const [activePhaseFilter, setActivePhaseFilter] = useState<PhaseFilter>('all');
 
   const daysInMonth = new Date(year, month, 0).getDate();
   const firstWeekday = new Date(year, month - 1, 1).getDay();
@@ -43,10 +49,21 @@ export function useCalendar(): CalendarState {
     setYear(ny); setMonth(nm); clampDay(ny, nm);
   }
 
+  function jumpToDate(isoDate: string) {
+    // isoDate: 'YYYY-MM-DD'
+    const d = new Date(isoDate + 'T00:00:00');
+    if (isNaN(d.getTime())) return;
+    setYear(d.getFullYear());
+    setMonth(d.getMonth() + 1);
+    setSelectedDay(d.getDate());
+  }
+
   return {
     year, month, selectedDay, today: TODAY,
     daysInMonth, firstWeekday,
     selectedPhaseKey: phaseForDay(selectedDay),
+    activePhaseFilter,
     setSelectedDay, prevMonth, nextMonth,
+    jumpToDate, setActivePhaseFilter,
   };
 }
