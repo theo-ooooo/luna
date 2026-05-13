@@ -115,7 +115,6 @@ export async function scheduleNotifications(input: ScheduleInput): Promise<Notif
     pending.push({ id: IDS.monthlyReport, date: daysOffset(d, 1, 10), title: '월간 리포트 준비됨', body: '이번 주기 리포트를 확인해보세요.' });
   }
 
-  const now = new Date();
   await Promise.allSettled(
     pending.map(({ id, date, title, body }) =>
       id === IDS.dailyReminder
