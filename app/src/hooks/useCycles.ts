@@ -37,9 +37,8 @@ export function useLatestCycle() {
 export function useStartPeriod() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (flowLevel: 1 | 2 | 3) => {
-      const today = todayStr();
-      return api.post<Cycle>('/api/v1/cycles', { started_on: today, flow_level: flowLevel });
+    mutationFn: ({ flowLevel, startedOn }: { flowLevel: 1 | 2 | 3; startedOn: string }) => {
+      return api.post<Cycle>('/api/v1/cycles', { started_on: startedOn, flow_level: flowLevel });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['cycles'] });

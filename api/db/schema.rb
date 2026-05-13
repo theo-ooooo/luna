@@ -10,76 +10,76 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_13_014804) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_13_020000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "ai_conversations", force: :cascade do |t|
-    t.jsonb "context_snapshot"
+    t.jsonb "context_snapshot", comment: "대화 시점의 사용자 건강 컨텍스트 스냅샷"
     t.datetime "created_at", null: false
-    t.jsonb "messages", default: [], null: false
+    t.jsonb "messages", default: [], null: false, comment: "대화 메시지 배열 [{role, content, ts}]"
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
+    t.bigint "user_id", null: false, comment: "소유 유저"
     t.index ["user_id", "created_at"], name: "idx_ai_conv_user", order: { created_at: :desc }
     t.index ["user_id"], name: "index_ai_conversations_on_user_id"
   end
 
   create_table "ai_monthly_reports", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.datetime "generated_at"
-    t.integer "month"
-    t.boolean "stale", default: true, null: false
-    t.jsonb "stats"
-    t.text "summary"
+    t.datetime "generated_at", comment: "리포트 AI 생성 시각"
+    t.integer "month", comment: "리포트 월 (1~12)"
+    t.boolean "stale", default: true, null: false, comment: "캐시 무효화 여부 (true이면 다음 조회 시 AI 재생성)"
+    t.jsonb "stats", comment: "월간 통계 데이터 (JSONB)"
+    t.text "summary", comment: "AI 생성 월간 요약 텍스트"
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
-    t.integer "year"
+    t.bigint "user_id", null: false, comment: "소유 유저"
+    t.integer "year", comment: "리포트 연도"
     t.index ["user_id", "year", "month"], name: "index_ai_monthly_reports_on_user_id_and_year_and_month", unique: true
     t.index ["user_id"], name: "index_ai_monthly_reports_on_user_id"
   end
 
   create_table "cycles", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.date "ended_on"
-    t.integer "flow_level"
-    t.date "started_on", null: false
+    t.date "ended_on", comment: "생리 종료일 (null이면 진행 중)"
+    t.integer "flow_level", comment: "출혈량 (1=가벼움, 2=보통, 3=많음)"
+    t.date "started_on", null: false, comment: "생리 시작일"
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
+    t.bigint "user_id", null: false, comment: "소유 유저"
     t.index ["user_id", "started_on"], name: "idx_cycles_user_started", order: { started_on: :desc }
     t.index ["user_id", "started_on"], name: "uq_cycles_user_started", unique: true
     t.index ["user_id"], name: "index_cycles_on_user_id"
   end
 
   create_table "daily_logs", force: :cascade do |t|
-    t.decimal "bbt", precision: 4, scale: 2
-    t.integer "bloating", default: 0, null: false
-    t.integer "cramps", default: 0, null: false
+    t.decimal "bbt", precision: 4, scale: 2, comment: "기초체온 (℃, 소수점 2자리, null=미기록)"
+    t.integer "bloating", default: 0, null: false, comment: "부종 여부 (0=없음, 1=있음)"
+    t.integer "cramps", default: 0, null: false, comment: "복통 강도 (0=없음, 1=약함, 2=강함)"
     t.datetime "created_at", null: false
-    t.string "discharge_type", limit: 20
-    t.integer "fatigue", default: 0, null: false
-    t.integer "headache", default: 0, null: false
-    t.integer "lh_result"
-    t.date "logged_on", null: false
-    t.integer "mood"
-    t.text "notes"
+    t.string "discharge_type", limit: 20, comment: "분비물 유형 (none/spotting/creamy/watery/egg_white, null=미기록)"
+    t.integer "fatigue", default: 0, null: false, comment: "피로 여부 (0=없음, 1=있음)"
+    t.integer "headache", default: 0, null: false, comment: "두통 여부 (0=없음, 1=있음)"
+    t.integer "lh_result", comment: "LH 배란 테스트 결과 (0=음성, 1=양성, null=미기록)"
+    t.date "logged_on", null: false, comment: "기록 날짜"
+    t.integer "mood", comment: "기분 점수 (1=불안 ~ 5=좋음, null=미기록)"
+    t.text "notes", comment: "자유 메모"
     t.datetime "updated_at", null: false
-    t.bigint "user_id", null: false
+    t.bigint "user_id", null: false, comment: "소유 유저"
     t.index ["user_id", "logged_on"], name: "idx_daily_logs_user_date", order: { logged_on: :desc }
     t.index ["user_id", "logged_on"], name: "uq_daily_logs_user_date", unique: true
     t.index ["user_id"], name: "index_daily_logs_on_user_id"
   end
 
   create_table "predictions", force: :cascade do |t|
-    t.decimal "avg_cycle_length", precision: 5, scale: 2, null: false
-    t.integer "based_on_cycles_count", null: false
-    t.datetime "computed_at", null: false
-    t.bigint "cycle_id"
-    t.date "fertile_end", null: false
-    t.date "fertile_start", null: false
-    t.date "observed_ovulation_on"
-    t.date "predicted_ovulation_on", null: false
-    t.date "predicted_period_start", null: false
-    t.bigint "user_id", null: false
+    t.decimal "avg_cycle_length", precision: 5, scale: 2, null: false, comment: "예측에 사용된 평균 주기 길이(일)"
+    t.integer "based_on_cycles_count", null: false, comment: "평균 계산에 사용된 주기 수"
+    t.datetime "computed_at", null: false, comment: "예측 계산 시각"
+    t.bigint "cycle_id", comment: "예측 기준 주기 (주기 삭제 시 null)"
+    t.date "fertile_end", null: false, comment: "임신 가능 기간 종료일"
+    t.date "fertile_start", null: false, comment: "임신 가능 기간 시작일"
+    t.date "observed_ovulation_on", comment: "실측 배란일 (BBT 급등 또는 LH surge 기반, null=미확인)"
+    t.date "predicted_ovulation_on", null: false, comment: "예측 배란일 (다음 생리일 - 황체기 길이)"
+    t.date "predicted_period_start", null: false, comment: "예측 다음 생리 시작일"
+    t.bigint "user_id", null: false, comment: "소유 유저"
     t.index ["cycle_id"], name: "index_predictions_on_cycle_id"
     t.index ["user_id", "computed_at"], name: "idx_predictions_user", order: { computed_at: :desc }
     t.index ["user_id"], name: "index_predictions_on_user_id"
@@ -87,22 +87,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_014804) do
 
   create_table "push_tokens", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.string "platform", limit: 10, default: "ios", null: false
-    t.string "token", limit: 512, null: false
-    t.bigint "user_id", null: false
+    t.string "platform", limit: 10, default: "ios", null: false, comment: "플랫폼 (ios/android)"
+    t.string "token", limit: 512, null: false, comment: "디바이스 푸시 토큰 (최대 512자)"
+    t.bigint "user_id", null: false, comment: "소유 유저"
     t.index ["token"], name: "uq_push_tokens_token", unique: true
     t.index ["user_id"], name: "index_push_tokens_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.integer "cycle_length_default", default: 28, null: false
-    t.string "email", null: false
-    t.string "encrypted_password", null: false
-    t.string "jti", null: false
-    t.integer "luteal_phase_length", default: 14, null: false
-    t.string "nickname", limit: 50
-    t.boolean "notifications_enabled", default: true, null: false
+    t.integer "cycle_length_default", default: 28, null: false, comment: "기본 주기 길이(일), 주기 데이터 부족 시 예측 초기값으로 사용"
+    t.string "email", null: false, comment: "로그인 이메일"
+    t.string "encrypted_password", null: false, comment: "암호화된 비밀번호 (Devise)"
+    t.string "jti", null: false, comment: "JWT 토큰 고유 식별자 (devise-jwt 블랙리스트용)"
+    t.integer "luteal_phase_length", default: 14, null: false, comment: "황체기 길이(일), 배란일 역산에 사용 (기본 14일)"
+    t.string "nickname", limit: 50, comment: "앱 내 표시 이름 (최대 50자)"
+    t.boolean "notifications_enabled", default: true, null: false, comment: "푸시 알림 수신 여부"
     t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["jti"], name: "index_users_on_jti", unique: true

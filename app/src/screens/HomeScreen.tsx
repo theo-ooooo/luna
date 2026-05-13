@@ -14,6 +14,19 @@ import { phaseForDay, daysUntilPeriod, CYCLE_DEFAULTS } from '../utils/phase';
 import { usePrediction } from '../hooks/usePrediction';
 import { useLatestCycle, useStartPeriod, useEndPeriod } from '../hooks/useCycles';
 
+const RECENT_DATES = Array.from({ length: 7 }, (_, i) => {
+  const d = new Date();
+  d.setDate(d.getDate() - i);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+});
+
+function formatDateChip(dateStr: string, index: number): string {
+  if (index === 0) return '오늘';
+  if (index === 1) return '어제';
+  const d = new Date(dateStr + 'T00:00:00');
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
 export function HomeScreen() {
   const { width: screenW } = useWindowDimensions();
   const bentoHalfWidth = (screenW - 32 - 10) / 2;
@@ -22,6 +35,7 @@ export function HomeScreen() {
   const startPeriod = useStartPeriod();
   const endPeriod = useEndPeriod();
   const [selectedFlow, setSelectedFlow] = useState<1 | 2 | 3>(2);
+  const [selectedDate, setSelectedDate] = useState(RECENT_DATES[0]);
 
   const cycleDay = prediction?.cycle_day ?? 1;
   const cycleLength: number = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
@@ -32,7 +46,7 @@ export function HomeScreen() {
   const isActivePeriod = !!latestCycle && !latestCycle.ended_on && daysSince(latestCycle.started_on) <= 10;
 
   function handleStartPeriod() {
-    startPeriod.mutate(selectedFlow, {
+    startPeriod.mutate({ flowLevel: selectedFlow, startedOn: selectedDate }, {
       onSuccess: () => Toast.show({ type: 'success', text1: '생리 시작을 기록했어요.' }),
       onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
     });
@@ -90,6 +104,22 @@ export function HomeScreen() {
         ) : !cycleLoading ? (
           <View style={[styles.periodCard, Shadow.card]}>
             <Text style={styles.periodCardTitle}>생리가 시작됐나요?</Text>
+            <View style={styles.dateSectionRow}>
+              <Text style={styles.dateSectionLabel}>시작일</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dateScrollContent}>
+                {RECENT_DATES.map((dateStr, i) => (
+                  <TouchableOpacity
+                    key={dateStr}
+                    style={[styles.dateChip, selectedDate === dateStr && styles.dateChipActive]}
+                    onPress={() => setSelectedDate(dateStr)}
+                  >
+                    <Text style={[styles.dateChipText, selectedDate === dateStr && styles.dateChipTextActive]}>
+                      {formatDateChip(dateStr, i)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
             <View style={styles.flowRow}>
               {([1, 2, 3] as const).map((lv) => {
                 const labels = { 1: '가벼움', 2: '보통', 3: '많음' };
@@ -173,6 +203,13 @@ const styles = StyleSheet.create({
   activeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.coral },
   periodCardTitle: { fontSize: 14, fontWeight: '700', color: Colors.ink1 },
   periodCardSince: { fontSize: 12, color: Colors.ink3, marginLeft: 'auto' },
+  dateSectionRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  dateSectionLabel: { fontSize: 12, fontWeight: '600', color: Colors.ink3 },
+  dateScrollContent: { gap: 6, flexDirection: 'row' },
+  dateChip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: Radius.pill, backgroundColor: Colors.bgAlt, borderWidth: 1.5, borderColor: 'transparent' },
+  dateChipActive: { backgroundColor: Colors.bgInk, borderColor: Colors.coral },
+  dateChipText: { fontSize: 12, fontWeight: '600', color: Colors.ink2 },
+  dateChipTextActive: { color: Colors.inkInv },
   flowRow: { flexDirection: 'row', gap: 8 },
   flowChip: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: Radius.pill, backgroundColor: Colors.bgAlt, borderWidth: 1.5, borderColor: 'transparent' },
   flowChipActive: { backgroundColor: Colors.bgInk, borderColor: Colors.coral },
