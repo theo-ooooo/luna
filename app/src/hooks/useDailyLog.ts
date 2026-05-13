@@ -82,6 +82,11 @@ export function useSaveDailyLog() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['dailyLog', today] });
+      qc.invalidateQueries({ queryKey: ['bbt-history'] });
+      qc.invalidateQueries({ queryKey: ['symptom-heatmap'] });
+      qc.invalidateQueries({ queryKey: ['stats'] });
+      qc.invalidateQueries({ queryKey: ['monthly-report'] });
+      qc.invalidateQueries({ queryKey: ['prediction'] });
       // cancel log-nudge notification if user logged today
       import('../services/notifications').then(({ cancelLogNudge }) => cancelLogNudge()).catch(() => {});
     },
