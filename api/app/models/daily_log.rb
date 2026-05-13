@@ -14,4 +14,13 @@ class DailyLog < ApplicationRecord
   validates :notes, length: { maximum: 1000 }, allow_nil: true
 
   scope :for_range, ->(from, to) { where(logged_on: from..to).order(logged_on: :desc) }
+
+  after_save :mark_monthly_report_stale
+
+  private
+
+  def mark_monthly_report_stale
+    report = AiMonthlyReport.for(user, logged_on.year, logged_on.month)
+    report.update_columns(stale: true) if report.persisted?
+  end
 end

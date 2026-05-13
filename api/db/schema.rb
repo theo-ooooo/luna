@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_12_000006) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_13_013355) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -22,6 +22,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_12_000006) do
     t.bigint "user_id", null: false
     t.index ["user_id", "created_at"], name: "idx_ai_conv_user", order: { created_at: :desc }
     t.index ["user_id"], name: "index_ai_conversations_on_user_id"
+  end
+
+  create_table "ai_monthly_reports", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "generated_at"
+    t.integer "month"
+    t.boolean "stale", default: true, null: false
+    t.jsonb "stats"
+    t.text "summary"
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.integer "year"
+    t.index ["user_id", "year", "month"], name: "index_ai_monthly_reports_on_user_id_and_year_and_month", unique: true
+    t.index ["user_id"], name: "index_ai_monthly_reports_on_user_id"
   end
 
   create_table "cycles", force: :cascade do |t|
@@ -95,6 +109,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_12_000006) do
   end
 
   add_foreign_key "ai_conversations", "users", on_delete: :cascade
+  add_foreign_key "ai_monthly_reports", "users"
   add_foreign_key "cycles", "users", on_delete: :cascade
   add_foreign_key "daily_logs", "users", on_delete: :cascade
   add_foreign_key "predictions", "cycles", on_delete: :nullify

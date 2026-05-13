@@ -67,14 +67,26 @@ module Api
           return failure("VALIDATION_ERROR", "year(2020~2100) 또는 month(1~12) 범위를 확인하세요.", status: :bad_request)
         end
 
+        report = AiMonthlyReport.for(current_user, year, month)
+
+        if report.persisted? && !report.stale?
+          return success(report.slice(:year, :month, :summary, :stats, :generated_at))
+        end
+
         service = Ai::ChatService.new(current_user)
         result = service.monthly_report(current_user, year, month)
 
-        if result
-          success(result)
-        else
-          failure("NOT_FOUND", "해당 월의 주기 데이터가 없습니다.", status: :not_found)
-        end
+        return failure("NOT_FOUND", "해당 월의 주기 데이터가 없습니다.", status: :not_found) unless result
+
+        report.assign_attributes(
+          summary: result[:summary],
+          stats: result[:stats],
+          stale: false,
+          generated_at: result[:generated_at]
+        )
+        report.save!
+
+        success(result)
       end
 
       private
