@@ -5,6 +5,7 @@ export type { FlowId, LHResult };
 
 interface DailyLogSnapshot {
   discharge_type: string | null;
+  flow_level?: number | null;
   headache: number;
   cramps: number;
   fatigue: number;
@@ -19,7 +20,7 @@ const SCORE_TO_MOOD: Record<number, string> = { 5: '좋음', 4: '평온', 3: '�
 
 function logToFlow(log: DailyLogSnapshot | null | undefined): FlowId | null {
   if (!log) return null;
-  const lvl = (log as any).flow_level as number | null | undefined;
+  const lvl = log.flow_level;
   if (lvl === 0) return 'none';
   if (lvl === 1) return 'spot';
   if (lvl === 2) return 'light';

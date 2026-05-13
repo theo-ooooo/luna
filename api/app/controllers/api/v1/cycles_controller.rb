@@ -8,7 +8,7 @@ module Api
         page = (params[:page] || 1).to_i
         per = [[( params[:per] || 12).to_i, 24].min, 1].max
 
-        cycles = current_user.cycles.order(started_on: :desc).page(page).per(per)
+        cycles = current_user.cycles.includes(:user).order(started_on: :desc).page(page).per(per)
 
         success({
           cycles: cycles.map { |c| cycle_json(c) },

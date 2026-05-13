@@ -1,4 +1,4 @@
-class CreateNotificationLogs < ActiveRecord::Migration[8.0]
+class CreateNotificationLogs < ActiveRecord::Migration[8.1]
   def change
     create_table :notification_logs do |t|
       t.references :user, null: false, foreign_key: true, comment: "알림을 받은 사용자"
