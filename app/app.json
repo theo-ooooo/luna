@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "Luna",
+    "slug": "luna",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FF5A47"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.luna.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FF5A47"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.luna.app",
+      "versionCode": 1,
+      "minSdkVersion": 26
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#F2847C",
+          "sounds": []
+        }
+      ]
+    ]
+  }
+}
