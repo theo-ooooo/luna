@@ -39,6 +39,13 @@ RSpec.describe "Api::V1::Ai", type: :request do
       expect(response).to have_http_status(:service_unavailable)
       expect(response.parsed_body.dig("error", "code")).to eq("AI_UNAVAILABLE")
     end
+
+    it "OPENAI_API_KEY 미설정 시 503 반환 (RuntimeError)" do
+      allow_any_instance_of(Ai::ParseLogService).to receive(:parse).and_raise(RuntimeError, "OPENAI_API_KEY 환경변수가 설정되지 않았습니다.")
+      post "/api/v1/ai/parse_log", params: { text: "오늘 피곤해요." }, headers: headers
+      expect(response).to have_http_status(:service_unavailable)
+      expect(response.parsed_body.dig("error", "code")).to eq("AI_UNAVAILABLE")
+    end
   end
 
   describe "GET /api/v1/ai/monthly_report" do

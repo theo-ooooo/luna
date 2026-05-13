@@ -126,7 +126,10 @@ module Ai
     private
 
     def client
-      @client ||= OpenAI::Client.new(access_token: ENV.fetch("OPENAI_API_KEY"))
+      api_key = ENV.fetch("OPENAI_API_KEY") do
+        raise RuntimeError, "OPENAI_API_KEY 환경변수가 설정되지 않았습니다."
+      end
+      @client ||= OpenAI::Client.new(access_token: api_key)
     end
 
     def build_monthly_stats(user, year, month)
