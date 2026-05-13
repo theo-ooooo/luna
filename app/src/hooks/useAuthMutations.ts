@@ -31,6 +31,7 @@ export function useLogin() {
 
 export function useSignup() {
   const setAuth = useAuthStore(s => s.setAuth);
+  const setOnboardingDone = useAuthStore(s => s.setOnboardingDone);
   return useMutation({
     mutationFn: async ({
       email, password, nickname, cycleLength, lastPeriodDate,
@@ -42,9 +43,10 @@ export function useSignup() {
         user: { email, password, password_confirmation: password, nickname, cycle_length_default: cycleLength },
       });
       setAuth(auth.token, auth.user);
+      // setAuth와 동시에 설정해 token=true/onboardingDone=false 상태가 노출되지 않도록 함
+      setOnboardingDone(true);
       await api.post('/api/v1/cycles', { started_on: lastPeriodDate, flow_level: 1 });
       return auth;
     },
-    onSuccess: () => {},
   });
 }
