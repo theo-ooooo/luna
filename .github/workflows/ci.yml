@@ -37,7 +37,7 @@ jobs:
           bundler-cache: true
           working-directory: api
       - name: Set up DB
-        run: bundle exec rails db:schema:load
+        run: bundle exec rails db:schema:load && bundle exec rails db:migrate --trace
         working-directory: api
       - name: Run RSpec
         run: bundle exec rspec
