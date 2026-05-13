@@ -21,7 +21,7 @@
 | Auth | Devise + devise-jwt |
 | Mobile | React Native 0.81 (Expo), TypeScript |
 | 상태 관리 | TanStack Query v5, Zustand v5 |
-| AI | Claude Haiku (via ruby-openai) |
+| AI | GPT-4o mini (via ruby-openai) |
 | 배포 | fly.io (API), GitHub Actions CI/CD |
 
 ## 프로젝트 구조
@@ -39,7 +39,7 @@ luna/
 
 ### 사전 요구사항
 
-- Ruby 3.3+, Bundler
+- Ruby 4.0.1, Bundler
 - Node.js 20+, npm
 - Docker (PostgreSQL용)
 
@@ -63,7 +63,7 @@ bin/rails server
 
 ```
 DEVISE_JWT_SECRET_KEY=<최소 32자 랜덤 문자열>
-OPENAI_API_KEY=<OpenAI 또는 Anthropic API 키>
+OPENAI_API_KEY=<OpenAI API 키>
 ```
 
 ### 앱 (app/)
@@ -71,8 +71,10 @@ OPENAI_API_KEY=<OpenAI 또는 Anthropic API 키>
 ```bash
 cd app && npm install
 
-# iOS 시뮬레이터
-npx expo run:ios
+# 개발 서버 시작
+npx expo start
+
+# iOS 시뮬레이터: 터미널에서 i 입력
 ```
 
 ## API
