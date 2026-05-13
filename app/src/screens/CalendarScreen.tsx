@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { Colors, Radius } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
 import { PhaseLegend } from '../components/calendar/PhaseLegend';
@@ -8,6 +10,7 @@ import { DayCell } from '../components/calendar/DayCell';
 import { DayDetailCard } from '../components/calendar/DayDetailCard';
 import { InsightsBody } from '../components/insights/InsightsBody';
 import { useCalendar } from '../hooks/useCalendar';
+import type { TabParamList } from '../navigation/TabNavigator';
 
 const WEEK_HEADERS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 const CONTENT_PADDING = 16;
@@ -20,6 +23,7 @@ export function CalendarScreen() {
   const cellSize = Math.floor((screenW - 32 - 24) / 7);
   const chartW = screenW - CONTENT_PADDING * 2 - TILE_PADDING * 2;
   const [activeTab, setActiveTab] = useState<Tab>('calendar');
+  const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
 
   const {
     year, month, selectedDay, today,
@@ -34,6 +38,11 @@ export function CalendarScreen() {
   ];
 
   const monthEn = new Date(year, month - 1).toLocaleString('en', { month: 'short' }).toUpperCase();
+
+  const handleRecord = useCallback(() => {
+    const date = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
+    navigation.navigate('Record', { date });
+  }, [year, month, selectedDay, navigation]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -108,6 +117,7 @@ export function CalendarScreen() {
             phaseKey={selectedPhaseKey}
             isToday={selectedDay === today.day && month === today.month && year === today.year}
             logChips={[]}
+            onRecord={handleRecord}
           />
         </ScrollView>
       ) : (
