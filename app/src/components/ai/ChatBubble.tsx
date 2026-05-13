@@ -15,11 +15,11 @@ export function ChatBubble({ message }: ChatBubbleProps) {
     <View style={[styles.row, isUser && styles.rowUser]}>
       {!isUser && (
         <View style={styles.avatar}>
-          <Icon name="spark" size={13} strokeWidth={2.4} color={Colors.ink1} />
+          <Icon name="spark" size={16} strokeWidth={2.2} color={Colors.ink1} />
         </View>
       )}
-      <View style={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAI]}>
-        <Text style={[styles.text, isUser ? styles.textUser : styles.textAI]}>
+      <View style={[styles.bubble, isUser ? styles.bubbleUser : message.isError ? styles.bubbleError : styles.bubbleAI]}>
+        <Text style={[styles.text, isUser ? styles.textUser : message.isError ? styles.textError : styles.textAI]}>
           {message.content}
           {message.isStreaming && <Text style={styles.cursor}>▌</Text>}
         </Text>
@@ -49,7 +49,7 @@ export function ThinkingBubble() {
   return (
     <View style={styles.row}>
       <View style={styles.avatar}>
-        <Icon name="spark" size={13} strokeWidth={2.4} color={Colors.ink1} />
+        <Icon name="spark" size={16} strokeWidth={2.2} color={Colors.ink1} />
       </View>
       <View style={[styles.bubble, styles.bubbleAI]}>
         <View style={styles.dotRow}>
@@ -80,8 +80,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   bubbleAI: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: Colors.bgInkAlt,
     borderTopLeftRadius: 6,
+  },
+  bubbleError: {
+    backgroundColor: 'rgba(255,90,71,0.12)',
+    borderTopLeftRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,90,71,0.25)',
   },
   bubbleUser: {
     backgroundColor: Colors.lavender,
@@ -90,6 +96,7 @@ const styles = StyleSheet.create({
   text: { fontSize: 13, lineHeight: 20 },
   textAI: { color: Colors.inkInv, fontWeight: '400' },
   textUser: { color: Colors.ink1, fontWeight: '600' },
+  textError: { color: Colors.coralSoft, fontWeight: '400' },
   cursor: { color: Colors.lavender },
   dotRow: { flexDirection: 'row', gap: 4, paddingVertical: 2, paddingHorizontal: 4 },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Colors.lavender },
