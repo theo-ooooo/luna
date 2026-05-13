@@ -37,15 +37,21 @@ RSpec.describe CycleAutoService, type: :service do
     # 2. 이미 열린 주기 존재 → 조기 반환
     # ───────────────────────────────────────────────
 
-    context "당일 시작된 열린(ended_on nil) 주기가 이미 존재하는 경우 (같은 날 중복 방지)" do
+    context "log.logged_on 이전에 시작된 열린(ended_on nil) 주기가 이미 존재하는 경우 (진행 중 중복 방지)" do
       before do
-        # started_on == log.logged_on, ended_on nil → 당일 중복 방지 가드 발동
-        create(:cycle, user: user, started_on: today, ended_on: nil)
+        # started_on <= log.logged_on, ended_on nil → 가드 발동 (중복 방지)
+        create(:cycle, user: user, started_on: 3.days.ago.to_date, ended_on: nil)
       end
 
       it "조기 반환하며 새 주기를 생성하지 않는다" do
         log = build_log(logged_on: today, flow_level: 2)
         expect { service.call(log) }.not_to change { user.cycles.count }
+      end
+
+      it "열려 있는 주기를 닫지 않는다" do
+        log = build_log(logged_on: today, flow_level: 2)
+        service.call(log)
+        expect(user.cycles.find_by(started_on: 3.days.ago.to_date).ended_on).to be_nil
       end
     end
 
@@ -68,23 +74,24 @@ RSpec.describe CycleAutoService, type: :service do
     end
 
     # ───────────────────────────────────────────────
-    # 4. 이전 주기가 열려(ended_on nil) 있는 경우 → 자동 종료 후 새 주기 생성
+    # 4. started_on < log.logged_on 인 열린 주기 → 가드 발동, 조기 반환
+    #    (가드: where(ended_on: nil).where("started_on <= ?", log.logged_on))
     # ───────────────────────────────────────────────
 
-    context "이전 주기가 열려(ended_on nil) 있는 경우" do
-      let!(:prev_cycle) do
+    context "log 날짜 이전에 시작된 열린(ended_on nil) 주기가 있는 경우" do
+      let!(:active_cycle) do
         create(:cycle, user: user, started_on: 30.days.ago.to_date, ended_on: nil)
       end
 
-      it "이전 주기의 ended_on 을 log.logged_on - 1 로 자동 설정한다" do
+      it "가드에 의해 조기 반환되어 새 주기를 생성하지 않는다" do
         log = build_log(logged_on: today, flow_level: 2)
-        service.call(log)
-        expect(prev_cycle.reload.ended_on).to eq(today - 1)
+        expect { service.call(log) }.not_to change { user.cycles.count }
       end
 
-      it "새 주기도 생성한다" do
+      it "열려 있는 주기를 자동으로 닫지 않는다" do
         log = build_log(logged_on: today, flow_level: 2)
-        expect { service.call(log) }.to change { user.cycles.count }.by(1)
+        service.call(log)
+        expect(active_cycle.reload.ended_on).to be_nil
       end
     end
 
@@ -179,8 +186,8 @@ RSpec.describe CycleAutoService, type: :service do
       end
     end
 
-    context "조기 반환되는 경우 (당일 active cycle 존재)" do
-      before { create(:cycle, user: user, started_on: today, ended_on: nil) }
+    context "조기 반환되는 경우 (log 날짜를 포함하는 active cycle 존재)" do
+      before { create(:cycle, user: user, started_on: 3.days.ago.to_date, ended_on: nil) }
 
       it "PredictionService#compute! 를 호출하지 않는다" do
         expect(PredictionService).not_to receive(:new)
