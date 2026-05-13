@@ -91,7 +91,7 @@ module Ai
       ]
 
       response = client.chat(
-        parameters: { model: MODEL, max_tokens: 80, messages: messages }
+        parameters: { model: MODEL, max_tokens: 120, messages: messages }
       )
 
       content = response.dig("choices", 0, "message", "content")

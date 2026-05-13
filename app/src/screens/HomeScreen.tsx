@@ -24,6 +24,17 @@ import type { TabParamList } from '../navigation/TabNavigator';
 
 const MOOD_LABELS: Record<number, string> = { 5: '좋음', 4: '평온', 3: '짜증', 2: '피곤', 1: '불안' };
 
+function formatGeneratedAt(generatedAt: string | null | undefined): string | null {
+  if (!generatedAt) return null;
+  const d = new Date(generatedAt);
+  if (isNaN(d.getTime())) return null;
+  const hours = d.getHours();
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const period = hours < 12 ? '오전' : '오후';
+  const h = hours % 12 === 0 ? 12 : hours % 12;
+  return `${period} ${h}:${minutes} 생성`;
+}
+
 function formatDateChip(dateStr: string): string {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -229,9 +240,14 @@ export function HomeScreen() {
             {insightLoading ? (
               <ActivityIndicator size="small" color={Colors.coral} style={styles.aiLoader} />
             ) : (
-              <Text style={styles.aiText}>
-                {insight?.content ?? '오늘의 인사이트를 준비 중이에요.'}
-              </Text>
+              <>
+                <Text style={styles.aiText}>
+                  {insight?.content ?? '오늘의 인사이트를 준비 중이에요.'}
+                </Text>
+                {formatGeneratedAt(insight?.generated_at) != null && (
+                  <Text style={styles.aiTimestamp}>{formatGeneratedAt(insight?.generated_at)}</Text>
+                )}
+              </>
             )}
           </View>
 
@@ -273,6 +289,7 @@ const styles = StyleSheet.create({
   aiEyebrow: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: Colors.ink3 },
   aiText: { fontSize: 14, fontWeight: '500', color: Colors.ink1, lineHeight: 21, letterSpacing: -0.1 },
   aiLoader: { alignSelf: 'flex-start', marginTop: 4 },
+  aiTimestamp: { fontSize: 11, color: Colors.ink3, marginTop: 8 },
   periodCard: { width: '100%', backgroundColor: Colors.bgCard, borderRadius: 20, padding: 18, gap: 14 },
   periodCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   activeDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.coral },

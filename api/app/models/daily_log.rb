@@ -16,7 +16,7 @@ class DailyLog < ApplicationRecord
   scope :for_range, ->(from, to) { where(logged_on: from..to).order(logged_on: :desc) }
 
   after_save :mark_monthly_report_stale
-  after_save :invalidate_daily_insight
+  after_save_commit :invalidate_daily_insight, if: -> { saved_changes.except("updated_at", "created_at").any? }
 
   private
 

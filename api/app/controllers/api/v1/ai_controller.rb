@@ -84,8 +84,16 @@ module Api
         result = Ai::ChatService.new(current_user).daily_insight(date)
         return success({ content: nil }) unless result
         record.assign_attributes(content: result[:content], stale: false, generated_at: result[:generated_at])
-        record.save! rescue nil
+        begin
+          record.save!
+        rescue ActiveRecord::RecordNotUnique
+          record = AiDailyInsight.find_by!(user: current_user, date: date)
+          return success(record.slice(:date, :content, :generated_at))
+        end
         success(result)
+      rescue Faraday::Error, OpenAI::Error, RuntimeError => e
+        Rails.logger.error("AI daily_insight error: #{e.message}")
+        failure("AI_UNAVAILABLE", "AI 서비스를 일시적으로 사용할 수 없습니다.", status: :service_unavailable)
       end
 
       def monthly_report
