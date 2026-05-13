@@ -9,7 +9,7 @@ import { Icon } from '../components/ui/Icon';
 import { FlowSelector } from '../components/record/FlowSelector';
 import { TagChipGroup } from '../components/record/TagChipGroup';
 import { useRecordForm } from '../hooks/useRecordForm';
-import { useTodayLog, useSaveDailyLog, buildLogFields } from '../hooks/useDailyLog';
+import { useLogForDate, useSaveDailyLog, buildLogFields } from '../hooks/useDailyLog';
 import { useParseLog } from '../hooks/useParseLog';
 import type { TabParamList } from '../navigation/TabNavigator';
 
@@ -20,16 +20,43 @@ const MOOD_EMOJI: Record<string, string> = {
 const SYMPTOMS = ['두통', '복통', '요통', '유방통', '메스꺼움', '부종', '여드름', '식욕증가', '어지러움', '경련'] as const;
 const LH_OPTIONS = [{ val: 0 as const, label: '미측정' }, { val: 1 as const, label: '음성' }, { val: 2 as const, label: '양성 (surge)' }] as const;
 
+function dateStr(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+const MIN_DATE = (() => {
+  const d = new Date();
+  d.setDate(d.getDate() - 30);
+  return dateStr(d);
+})();
+
 export function RecordScreen() {
-  const { data: todayLog } = useTodayLog();
-  const form = useRecordForm(todayLog);
-  const save = useSaveDailyLog();
+  const [selectedDate, setSelectedDate] = useState(() => dateStr(new Date()));
+  const todayDate = dateStr(new Date());
+  const isToday = selectedDate === todayDate;
+
+  const { data: logForDate } = useLogForDate(selectedDate);
+  const form = useRecordForm(logForDate, selectedDate);
+  const save = useSaveDailyLog(selectedDate);
   const parseLog = useParseLog();
   const [aiText, setAiText] = useState('');
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
 
-  const today = new Date();
-  const dateLabel = `${today.getMonth() + 1}월 ${today.getDate()}일 · ${'일월화수목금토'[today.getDay()]}`;
+  const d = new Date(selectedDate + 'T00:00:00');
+  const dateLabel = `${d.getMonth() + 1}월 ${d.getDate()}일 · ${'일월화수목금토'[d.getDay()]}`;
+
+  function goToPrevDay() {
+    const prev = new Date(selectedDate + 'T00:00:00');
+    prev.setDate(prev.getDate() - 1);
+    if (dateStr(prev) >= MIN_DATE) setSelectedDate(dateStr(prev));
+  }
+
+  function goToNextDay() {
+    if (isToday) return;
+    const next = new Date(selectedDate + 'T00:00:00');
+    next.setDate(next.getDate() + 1);
+    setSelectedDate(dateStr(next));
+  }
 
   function handleAiParse() {
     if (!aiText.trim()) return;
@@ -50,10 +77,10 @@ export function RecordScreen() {
 
   function handleSave() {
     save.mutate(
-      { id: todayLog?.id, fields: buildLogFields(form) },
+      { id: logForDate?.id, fields: buildLogFields(form) },
       {
         onSuccess: () => {
-          Toast.show({ type: 'success', text1: '기록 저장 완료!', text2: '오늘의 기록이 저장됐어요.', onHide: () => navigation.navigate('Home') });
+          Toast.show({ type: 'success', text1: '기록 저장 완료!', text2: `${d.getMonth() + 1}/${d.getDate()} 기록이 저장됐어요.`, onHide: () => navigation.navigate('Home') });
         },
         onError: (err) => {
           Toast.show({ type: 'error', text1: '저장 실패', text2: (err as Error).message ?? '다시 시도해주세요.' });
@@ -75,8 +102,16 @@ export function RecordScreen() {
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={[styles.heroCard, Shadow.lift]}>
-          <Text style={styles.heroDate}>{dateLabel}</Text>
-          <Text style={styles.heroTitle}>오늘 어떠셨나요?</Text>
+          <View style={styles.heroDateNav}>
+            <TouchableOpacity onPress={goToPrevDay} style={styles.dateNavBtn} accessibilityRole="button" accessibilityLabel="이전 날">
+              <Icon name="chevDn" size={18} strokeWidth={2} color="rgba(242,238,232,0.6)" />
+            </TouchableOpacity>
+            <Text style={styles.heroDate}>{dateLabel}</Text>
+            <TouchableOpacity onPress={goToNextDay} disabled={isToday} style={[styles.dateNavBtn, isToday && styles.dateNavBtnDisabled]} accessibilityRole="button" accessibilityLabel="다음 날">
+              <Icon name="chev" size={18} strokeWidth={2} color="rgba(242,238,232,0.6)" />
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.heroTitle}>{isToday ? '오늘 어떠셨나요?' : '그날은 어땠나요?'}</Text>
         </View>
 
         {/* AI 자연어 입력 */}
@@ -202,8 +237,11 @@ const styles = StyleSheet.create({
   aiBtnDisabled: { opacity: 0.5 },
   aiBtnText: { fontSize: 16, color: Colors.inkInv, fontWeight: '700' },
   heroCard: { backgroundColor: Colors.bgInk, borderRadius: Radius.card, padding: 24 },
-  heroDate: { fontSize: 11, fontWeight: '700', color: 'rgba(242,238,232,0.5)', letterSpacing: 1.2, textTransform: 'uppercase' },
-  heroTitle: { fontSize: 28, fontWeight: '900', letterSpacing: -1, color: Colors.inkInv, marginTop: 8 },
+  heroDateNav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  heroDate: { fontSize: 11, fontWeight: '700', color: 'rgba(242,238,232,0.5)', letterSpacing: 1.2, textTransform: 'uppercase', textAlign: 'center', flex: 1 },
+  dateNavBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  dateNavBtnDisabled: { opacity: 0.25 },
+  heroTitle: { fontSize: 28, fontWeight: '900', letterSpacing: -1, color: Colors.inkInv },
   section: { backgroundColor: Colors.bgCard, borderRadius: Radius.tile, padding: 18 },
   sectionTitle: { fontSize: 11, fontWeight: '700', letterSpacing: 1.5, textTransform: 'uppercase', color: Colors.ink3, marginBottom: 14 },
   bbtRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },

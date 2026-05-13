@@ -50,9 +50,8 @@ export function useStartPeriod() {
 export function useEndPeriod() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (cycleId: number) => {
-      const today = todayStr();
-      return api.patch<Cycle>(`/api/v1/cycles/${cycleId}`, { ended_on: today });
+    mutationFn: ({ cycleId, endedOn }: { cycleId: number; endedOn: string }) => {
+      return api.patch<Cycle>(`/api/v1/cycles/${cycleId}`, { ended_on: endedOn });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['cycles'] });

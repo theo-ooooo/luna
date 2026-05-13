@@ -58,37 +58,41 @@ function todayStr() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-export function useTodayLog() {
-  const today = todayStr();
+export function useLogForDate(date: string) {
   return useQuery({
-    queryKey: ['dailyLog', today],
+    queryKey: ['dailyLog', date],
     queryFn: async () => {
-      const logs = await api.get<DailyLog[]>(`/api/v1/daily_logs?from=${today}&to=${today}`);
+      const logs = await api.get<DailyLog[]>(`/api/v1/daily_logs?from=${date}&to=${date}`);
       return logs[0] ?? null;
     },
   });
 }
 
-export function useSaveDailyLog() {
+export function useTodayLog() {
+  return useLogForDate(todayStr());
+}
+
+export function useSaveDailyLog(date: string = todayStr()) {
   const qc = useQueryClient();
-  const today = todayStr();
+  const isToday = date === todayStr();
 
   return useMutation({
     mutationFn: ({ id, fields }: { id?: number; fields: LogFields }) => {
       if (id) {
         return api.patch<DailyLog>(`/api/v1/daily_logs/${id}`, fields);
       }
-      return api.post<DailyLog>('/api/v1/daily_logs', { ...fields, logged_on: today });
+      return api.post<DailyLog>('/api/v1/daily_logs', { ...fields, logged_on: date });
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['dailyLog', today] });
+      qc.invalidateQueries({ queryKey: ['dailyLog', date] });
       qc.invalidateQueries({ queryKey: ['bbt-history'] });
       qc.invalidateQueries({ queryKey: ['symptom-heatmap'] });
       qc.invalidateQueries({ queryKey: ['stats'] });
       qc.invalidateQueries({ queryKey: ['monthly-report'] });
       qc.invalidateQueries({ queryKey: ['prediction'] });
-      // cancel log-nudge notification if user logged today
-      import('../services/notifications').then(({ cancelLogNudge }) => cancelLogNudge()).catch(() => {});
+      if (isToday) {
+        import('../services/notifications').then(({ cancelLogNudge }) => cancelLogNudge()).catch(() => {});
+      }
     },
   });
 }

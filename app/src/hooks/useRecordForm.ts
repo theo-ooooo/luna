@@ -58,7 +58,7 @@ export interface RecordFormState {
   setNotes: (v: string) => void;
 }
 
-export function useRecordForm(todayLog?: DailyLogSnapshot | null): RecordFormState {
+export function useRecordForm(todayLog?: DailyLogSnapshot | null, dateKey?: string): RecordFormState {
   const [flow, setFlow] = useState<FlowId | null>(null);
   const [moods, setMoods] = useState<string[]>([]);
   const [symptoms, setSymptoms] = useState<string[]>([]);
@@ -66,6 +66,20 @@ export function useRecordForm(todayLog?: DailyLogSnapshot | null): RecordFormSta
   const [lhResult, setLhResult] = useState<LHResult | null>(null);
   const [notes, setNotes] = useState('');
   const seeded = useRef(false);
+  const prevDateKey = useRef(dateKey);
+
+  useEffect(() => {
+    if (dateKey !== undefined && dateKey !== prevDateKey.current) {
+      prevDateKey.current = dateKey;
+      seeded.current = false;
+      setFlow(null);
+      setMoods([]);
+      setSymptoms([]);
+      setBbt('');
+      setLhResult(null);
+      setNotes('');
+    }
+  }, [dateKey]);
 
   useEffect(() => {
     if (todayLog && !seeded.current) {
