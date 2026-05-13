@@ -53,8 +53,7 @@ export function HomeScreen() {
   const phaseKey = phaseForDay(cycleDay, cycleLength);
   const dPeriod = daysUntilPeriod(cycleDay, cycleLength);
 
-  // Only treat as active if started within last 10 days — prevents historical signup cycle showing as "생리 중"
-  const isActivePeriod = !!latestCycle && !latestCycle.ended_on && daysSince(latestCycle.started_on) <= 10;
+  const isActivePeriod = !!latestCycle && !latestCycle.ended_on;
 
   const endDateOptions = useMemo(
     () => recentDates.filter(d => !latestCycle || d >= latestCycle.started_on),
@@ -233,11 +232,6 @@ export function HomeScreen() {
       <CycleHistoryModal visible={showCycleHistory} onClose={() => setShowCycleHistory(false)} />
     </SafeAreaView>
   );
-}
-
-function daysSince(dateStr: string): number {
-  const diff = Date.now() - new Date(dateStr + 'T00:00:00').getTime();
-  return Math.floor(diff / (1000 * 60 * 60 * 24));
 }
 
 const styles = StyleSheet.create({
