@@ -1,6 +1,7 @@
 module Api
   module V1
     class AiController < ApplicationController
+      include ActionController::Live
       def chat
         message = params.require(:message)
         conversation = find_or_create_conversation
