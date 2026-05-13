@@ -125,7 +125,9 @@ export function OnboardingDateScreen({ navigation }: Props) {
               <Text style={styles.selectedDate}>{month}월 {selectedDay}일</Text>
             </View>
             {isCurrentMonth && (
-              <Text style={styles.daysAgo}>{todayD - selectedDay}일 전</Text>
+              <Text style={styles.daysAgo}>
+                {selectedDay === todayD ? '오늘' : `${todayD - selectedDay}일 전`}
+              </Text>
             )}
           </View>
         )}
@@ -133,8 +135,9 @@ export function OnboardingDateScreen({ navigation }: Props) {
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.ctaBtn}
+          style={[styles.ctaBtn, selectedDay === null && styles.ctaBtnDisabled]}
           onPress={handleNext}
+          disabled={selectedDay === null}
           activeOpacity={0.85}
           accessibilityRole="button"
         >
@@ -205,6 +208,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  ctaBtnDisabled: { opacity: 0.4 },
   ctaText: { fontSize: 14, fontWeight: '700', color: Colors.inkInv },
   skipBtn: { alignItems: 'center', paddingVertical: 10 },
   skipText: { fontSize: 13, color: Colors.ink3, fontWeight: '500' },

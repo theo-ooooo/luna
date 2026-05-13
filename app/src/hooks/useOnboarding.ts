@@ -3,6 +3,18 @@ import Toast from 'react-native-toast-message';
 import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
 
+interface UpdateUserResponse {
+  user: {
+    id: number;
+    email: string;
+    nickname?: string;
+    cycle_length_default: number;
+    luteal_phase_length: number;
+    period_length_default: number;
+    notifications_enabled?: boolean;
+  };
+}
+
 export function useOnboarding() {
   const qc = useQueryClient();
   const setOnboardingDone = useAuthStore(s => s.setOnboardingDone);
@@ -15,8 +27,12 @@ export function useOnboarding() {
       cycleLen: number;
       lastPeriodDate: string | null;
     }) => {
-      // 주기 길이 기본값 업데이트
-      await api.patch('/api/v1/users/me', { cycle_length_default: cycleLen });
+      // 주기 길이 기본값 업데이트 후 응답으로 스토어 갱신
+      const response = await api.patch<UpdateUserResponse>('/api/v1/users/me', { cycle_length_default: cycleLen });
+      const { token, setAuth } = useAuthStore.getState();
+      if (token && response.user) {
+        setAuth(token, response.user);
+      }
 
       // 마지막 월경일이 선택된 경우 주기 데이터 생성
       if (lastPeriodDate != null) {

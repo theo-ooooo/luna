@@ -9,7 +9,7 @@ import type { OnboardingStackParamList } from '../../navigation/OnboardingNaviga
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'CycleLen'>;
 
-const QUICK_PICKS = [21, 28, 30, 35];
+const QUICK_PICKS = [26, 28, 30, 32];
 
 export function OnboardingCycleLenScreen({ navigation, route }: Props) {
   const { lastPeriodDate } = route.params;
@@ -53,7 +53,7 @@ export function OnboardingCycleLenScreen({ navigation, route }: Props) {
           </View>
           <TouchableOpacity
             style={styles.stepBtn}
-            onPress={() => setCycleLen(v => Math.min(45, v + 1))}
+            onPress={() => setCycleLen(v => Math.min(40, v + 1))}
             accessibilityRole="button"
             accessibilityLabel="주기 늘리기"
           >
