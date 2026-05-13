@@ -132,6 +132,9 @@ module Api
         end
 
         success(result)
+      rescue Faraday::Error, OpenAI::Error, RuntimeError => e
+        Rails.logger.error("AI monthly_report error: #{e.message}")
+        failure("AI_UNAVAILABLE", "AI 서비스를 일시적으로 사용할 수 없습니다.", status: :service_unavailable)
       end
 
       private
