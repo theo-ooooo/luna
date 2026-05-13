@@ -23,21 +23,4 @@ class CycleAutoService
   rescue ActiveRecord::RecordInvalid => e
     Rails.logger.warn("[CycleAutoService] failed for user=#{@user.id} log=#{log.id}: #{e.message}")
   end
-
-  def check_period_end(log)
-    return unless log.flow_level == 0
-    active = @user.cycles.where(ended_on: nil)
-                         .where("started_on <= ?", log.logged_on)
-                         .order(started_on: :desc)
-                         .first
-    return unless active
-    # Only auto-close if period has been active for at least 2 days (logged_on - started_on >= 2)
-    return if (log.logged_on - active.started_on).to_i < 2
-    # Don't close if there are flow > 0 logs after this date (retroactive record)
-    return if @user.daily_logs.where("logged_on > ?", log.logged_on).where("flow_level > 0").exists?
-    active.update!(ended_on: log.logged_on - 1)
-    PredictionService.new(@user).compute!
-  rescue ActiveRecord::RecordInvalid => e
-    Rails.logger.warn("[CycleAutoService] check_period_end failed for user=#{@user.id}: #{e.message}")
-  end
 end
