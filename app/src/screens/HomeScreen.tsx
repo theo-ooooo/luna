@@ -13,7 +13,7 @@ import { MiniSparkline } from '../components/home/MiniSparkline';
 import { CycleRingTile } from '../components/home/CycleRingTile';
 import { CycleHistoryModal } from '../components/home/CycleHistoryModal';
 import { DateSearchSheet } from '../components/home/DateSearchSheet';
-import { NotificationSheet } from '../components/home/NotificationSheet';
+import { NotificationHistorySheet } from '../components/home/NotificationHistorySheet';
 import { phaseForDay, daysUntilPeriod, CYCLE_DEFAULTS } from '../utils/phase';
 import { usePrediction } from '../hooks/usePrediction';
 import { useLatestCycle, useStartPeriod, useEndPeriod } from '../hooks/useCycles';
@@ -243,7 +243,7 @@ export function HomeScreen() {
         onClose={() => setShowDateSearch(false)}
         onSelect={(date) => navigation.navigate('Record', { date })}
       />
-      <NotificationSheet visible={showNotifications} onClose={() => setShowNotifications(false)} />
+      <NotificationHistorySheet visible={showNotifications} onClose={() => setShowNotifications(false)} />
     </SafeAreaView>
   );
 }

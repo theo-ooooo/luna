@@ -105,7 +105,7 @@ export function RecordScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
         <View style={styles.topBarLeft} />
-        <Text style={styles.topBarLabel}>03 · 기록</Text>
+        <Text style={styles.topBarLabel}>기록</Text>
         <View style={styles.topBarLeft} />
       </View>
 

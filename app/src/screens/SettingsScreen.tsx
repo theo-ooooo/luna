@@ -55,7 +55,7 @@ export function SettingsScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
         <View style={styles.topBarLeft} />
-        <Text style={styles.topBarLabel}>04 · 설정</Text>
+        <Text style={styles.topBarLabel}>설정</Text>
         <TouchableOpacity
           style={[styles.saveBtn, update.isPending && styles.saveBtnDisabled]}
           onPress={handleSave}
