@@ -52,6 +52,30 @@ export function SettingsScreen() {
     ]);
   }
 
+  function handleDeleteAccount() {
+    Alert.alert(
+      '회원탈퇴',
+      '정말 탈퇴하시겠어요? 모든 데이터가 삭제되며 복구할 수 없습니다.',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '탈퇴하기',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete('/api/v1/auth/me');
+            } catch {
+              // 서버 오류여도 클라이언트 인증 상태는 항상 초기화
+            } finally {
+              qc.clear();
+              useAuthStore.getState().clearAuth();
+            }
+          },
+        },
+      ],
+    );
+  }
+
   const initial = (user?.nickname || user?.email || 'L')[0].toUpperCase();
 
   return (
@@ -201,6 +225,11 @@ export function SettingsScreen() {
             <Text style={styles.logoutText}>로그아웃</Text>
             <Icon name="chev" size={16} strokeWidth={2} color={Colors.coral} />
           </TouchableOpacity>
+          <View style={styles.divider} />
+          <TouchableOpacity style={styles.logoutRow} onPress={handleDeleteAccount}>
+            <Text style={styles.deleteAccountText}>회원탈퇴</Text>
+            <Icon name="chev" size={16} strokeWidth={2} color={Colors.coralDeep} />
+          </TouchableOpacity>
         </Section>
       </ScrollView>
 
@@ -285,6 +314,7 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: Colors.borderSoft, marginVertical: 8 },
   logoutRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 40 },
   logoutText: { fontSize: 14, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.coral },
+  deleteAccountText: { fontSize: 14, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.coralDeep },
   notiWarning: { backgroundColor: Colors.bgAlt, borderRadius: 10, padding: 12, marginBottom: 14 },
   notiWarningText: { fontSize: 12, color: Colors.ink2, lineHeight: 18 },
 });
