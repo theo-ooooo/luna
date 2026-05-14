@@ -7,6 +7,6 @@ class CreateAppVersions < ActiveRecord::Migration[8.1]
       t.timestamps
     end
 
-    AppVersion.create!(latest_version: '1.0.1', min_version: '1.0.0')
+    execute "INSERT INTO app_versions (latest_version, min_version, created_at, updated_at) VALUES ('1.0.1', '1.0.0', NOW(), NOW())"
   end
 end
