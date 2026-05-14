@@ -7,3 +7,14 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+
+unless AppVersion.exists?
+  AppVersion.create!(
+    ios_latest_version: '1.0.1',
+    ios_min_version: '1.0.0',
+    ios_store_url: 'https://apps.apple.com/app/id6769269495',
+    android_latest_version: '1.0.1',
+    android_min_version: '1.0.0',
+    android_store_url: nil
+  )
+end

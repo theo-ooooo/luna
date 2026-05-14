@@ -21,6 +21,8 @@ import { useAuthStore } from './src/store/authStore';
 import { toastConfig } from './src/components/ui/LunaToast';
 import { useNotificationSetup } from './src/hooks/useNotificationSetup';
 import { useRegisterPushToken } from './src/hooks/usePushToken';
+import { useAppVersion } from './src/hooks/useAppVersion';
+import { UpdateModal } from './src/components/ui/UpdateModal';
 import { setupAndroidChannel } from './src/services/notifications';
 
 function AuthenticatedRoot() {
@@ -32,7 +34,21 @@ function AuthenticatedRoot() {
 
 function RootNavigator() {
   const token = useAuthStore(s => s.token);
-  return token ? <AuthenticatedRoot /> : <AuthNavigator />;
+  const { updateState, storeUrl } = useAppVersion();
+  const [dismissed, setDismissed] = useState(false);
+
+  return (
+    <>
+      {token ? <AuthenticatedRoot /> : <AuthNavigator />}
+      {updateState !== 'none' && (updateState === 'force' || !dismissed) && (
+        <UpdateModal
+          type={updateState}
+          storeUrl={storeUrl}
+          onDismiss={updateState === 'optional' ? () => setDismissed(true) : undefined}
+        />
+      )}
+    </>
+  );
 }
 
 export default function App() {
