@@ -21,7 +21,7 @@ module Api
           password_reset_sent_at: Time.current
         )
 
-        UserMailer.password_reset(user, code).deliver_later
+        UserMailer.password_reset(user, code).deliver_now
         success({ message: "인증코드가 발송되었습니다." })
       end
 
