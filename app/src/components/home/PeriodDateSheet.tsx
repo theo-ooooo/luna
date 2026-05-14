@@ -36,7 +36,7 @@ function buildDateOptions(minDate?: string, initialDate?: string): string[] {
     if (minDate && s < minDate) continue;
     dates.push(s);
   }
-  if (initialDate && initialDate <= todayS && !dates.includes(initialDate)) {
+  if (initialDate && initialDate <= todayS && (!minDate || initialDate >= minDate) && !dates.includes(initialDate)) {
     dates.push(initialDate);
     dates.sort((a, b) => (a > b ? -1 : 1));
   }

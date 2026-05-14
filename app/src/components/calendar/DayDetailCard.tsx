@@ -13,11 +13,11 @@ interface DayDetailCardProps {
   onRecord?: () => void;
   onStartPeriod?: () => void;
   onEndPeriod?: () => void;
-  showEndPeriod?: boolean;
 }
 
-export function DayDetailCard({ day, month, phaseKey, isToday, logChips = [], hasLog, onRecord, onStartPeriod, onEndPeriod, showEndPeriod }: DayDetailCardProps) {
+export function DayDetailCard({ day, month, phaseKey, isToday, logChips = [], hasLog, onRecord, onStartPeriod, onEndPeriod }: DayDetailCardProps) {
   const phase = Phase[phaseKey];
+  const hasBtns = !!(onRecord || onEndPeriod || onStartPeriod);
 
   return (
     <View style={[styles.card, { backgroundColor: phase.bg }, Shadow.card]}>
@@ -43,25 +43,27 @@ export function DayDetailCard({ day, month, phaseKey, isToday, logChips = [], ha
             ))}
           </View>
         )}
-        <View style={styles.btnRow}>
-          {onRecord && (
-            <TouchableOpacity style={styles.recordBtn} onPress={onRecord} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={hasLog ? '기록 수정' : '기록하기'}>
-              <Icon name="edit" size={14} strokeWidth={2.2} color={Colors.ink1} />
-              <Text style={styles.recordBtnText}>{hasLog ? '기록 수정' : '기록하기'}</Text>
-            </TouchableOpacity>
-          )}
-          {showEndPeriod && onEndPeriod ? (
-            <TouchableOpacity style={[styles.recordBtn, styles.periodEndBtn]} onPress={onEndPeriod} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="생리 종료">
-              <Icon name="minus" size={14} strokeWidth={2.2} color={Colors.coral} />
-              <Text style={[styles.recordBtnText, { color: Colors.coral }]}>생리 종료</Text>
-            </TouchableOpacity>
-          ) : onStartPeriod ? (
-            <TouchableOpacity style={[styles.recordBtn, styles.periodStartBtn]} onPress={onStartPeriod} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="생리 시작">
-              <Icon name="plus" size={14} strokeWidth={2.2} color={Colors.inkInv} />
-              <Text style={[styles.recordBtnText, { color: Colors.inkInv }]}>생리 시작</Text>
-            </TouchableOpacity>
-          ) : null}
-        </View>
+        {hasBtns && (
+          <View style={styles.btnRow}>
+            {onRecord && (
+              <TouchableOpacity style={styles.recordBtn} onPress={onRecord} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel={hasLog ? '기록 수정' : '기록하기'}>
+                <Icon name="edit" size={14} strokeWidth={2.2} color={Colors.ink1} />
+                <Text style={styles.recordBtnText}>{hasLog ? '기록 수정' : '기록하기'}</Text>
+              </TouchableOpacity>
+            )}
+            {onEndPeriod ? (
+              <TouchableOpacity style={[styles.recordBtn, styles.periodEndBtn]} onPress={onEndPeriod} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="생리 종료">
+                <Icon name="minus" size={14} strokeWidth={2.2} color={Colors.coral} />
+                <Text style={[styles.recordBtnText, { color: Colors.coral }]}>생리 종료</Text>
+              </TouchableOpacity>
+            ) : onStartPeriod ? (
+              <TouchableOpacity style={[styles.recordBtn, styles.periodStartBtn]} onPress={onStartPeriod} activeOpacity={0.8} accessibilityRole="button" accessibilityLabel="생리 시작">
+                <Icon name="plus" size={14} strokeWidth={2.2} color={Colors.inkInv} />
+                <Text style={[styles.recordBtnText, { color: Colors.inkInv }]}>생리 시작</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+        )}
       </View>
     </View>
   );

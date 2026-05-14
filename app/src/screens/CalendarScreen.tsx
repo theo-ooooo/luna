@@ -286,7 +286,6 @@ export function CalendarScreen() {
               onRecord={isFutureDate ? undefined : handleRecord}
               onStartPeriod={showStartPeriod ? () => setPeriodSheet('start') : undefined}
               onEndPeriod={showEndPeriod ? () => setPeriodSheet('end') : undefined}
-              showEndPeriod={showEndPeriod}
             />
           </ScrollView>
 
