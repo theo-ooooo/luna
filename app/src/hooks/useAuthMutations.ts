@@ -22,10 +22,14 @@ interface AuthResponse {
 
 export function useLogin() {
   const setAuth = useAuthStore(s => s.setAuth);
+  const setOnboardingDone = useAuthStore(s => s.setOnboardingDone);
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       api.post<AuthResponse>('/api/v1/auth/login', { user: { email, password } }),
-    onSuccess: ({ token, user }) => setAuth(token, user),
+    onSuccess: ({ token, user }) => {
+      setAuth(token, user);
+      setOnboardingDone(true);
+    },
   });
 }
 
