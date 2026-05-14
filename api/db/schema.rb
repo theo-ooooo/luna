@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_13_080000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_14_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -22,6 +22,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_080000) do
     t.bigint "user_id", null: false, comment: "소유 유저"
     t.index ["user_id", "created_at"], name: "idx_ai_conv_user", order: { created_at: :desc }
     t.index ["user_id"], name: "index_ai_conversations_on_user_id"
+  end
+
+  create_table "ai_daily_insights", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.date "date", null: false
+    t.text "content"
+    t.boolean "stale", default: true, null: false
+    t.datetime "generated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "date"], name: "index_ai_daily_insights_on_user_id_and_date", unique: true
+    t.index ["user_id"], name: "index_ai_daily_insights_on_user_id"
   end
 
   create_table "ai_monthly_reports", force: :cascade do |t|
@@ -104,6 +116,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_080000) do
     t.string "platform", limit: 10, default: "ios", null: false, comment: "플랫폼 (ios/android)"
     t.string "token", limit: 512, null: false, comment: "디바이스 푸시 토큰 (최대 512자)"
     t.bigint "user_id", null: false, comment: "소유 유저"
+    t.datetime "updated_at", null: false
     t.index ["token"], name: "uq_push_tokens_token", unique: true
     t.index ["user_id"], name: "index_push_tokens_on_user_id"
   end
@@ -124,10 +137,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_080000) do
   end
 
   add_foreign_key "ai_conversations", "users", on_delete: :cascade
+  add_foreign_key "ai_daily_insights", "users"
   add_foreign_key "ai_monthly_reports", "users", on_delete: :cascade
   add_foreign_key "cycles", "users", on_delete: :cascade
   add_foreign_key "daily_logs", "users", on_delete: :cascade
-  add_foreign_key "notification_logs", "users"
+  add_foreign_key "notification_logs", "users", on_delete: :cascade
   add_foreign_key "predictions", "cycles", on_delete: :nullify
   add_foreign_key "predictions", "users", on_delete: :cascade
   add_foreign_key "push_tokens", "users", on_delete: :cascade

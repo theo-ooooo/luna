@@ -41,6 +41,7 @@ module Api
 
       def destroy
         @cycle.destroy!
+        PredictionService.new(current_user).compute!
         success(nil)
       end
 

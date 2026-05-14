@@ -6,7 +6,7 @@ class Prediction < ApplicationRecord
 
   def current_phase
     today = Date.current
-    if (today - last_period_start).to_i + 1 <= 5
+    if (today - last_period_start).to_i + 1 <= user.period_length_default
       "menstrual"
     elsif today < fertile_start
       "follicular"
