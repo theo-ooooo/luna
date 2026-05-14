@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_14_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_14_000006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -137,7 +137,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000002) do
   end
 
   add_foreign_key "ai_conversations", "users", on_delete: :cascade
-  add_foreign_key "ai_daily_insights", "users"
+  add_foreign_key "ai_daily_insights", "users", on_delete: :cascade
   add_foreign_key "ai_monthly_reports", "users", on_delete: :cascade
   add_foreign_key "cycles", "users", on_delete: :cascade
   add_foreign_key "daily_logs", "users", on_delete: :cascade
