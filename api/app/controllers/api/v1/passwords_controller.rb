@@ -4,8 +4,7 @@ module Api
       skip_before_action :authenticate_user!, only: [:forgot, :verify]
 
       # POST /api/v1/passwords/forgot
-      # 이메일로 6자리 인증코드를 생성하고 저장합니다.
-      # 현재는 코드를 응답 바디에 직접 반환합니다 (이메일 발송 미구현).
+      # 이메일로 6자리 인증코드를 생성하고 저장한 뒤 Gmail SMTP로 발송합니다.
       def forgot
         email = params.require(:email).to_s.downcase.strip
         user = User.find_by(email: email)
@@ -22,9 +21,8 @@ module Api
           password_reset_sent_at: Time.current
         )
 
-        # 프로덕션에서는 코드를 응답에 포함하지 않음 (이메일 발송으로 전달)
-        response_data = Rails.env.production? ? nil : { code: code }
-        success(response_data&.merge(message: "인증코드가 발송되었습니다.") || { message: "인증코드가 발송되었습니다." })
+        UserMailer.password_reset(user, code).deliver_later
+        success({ message: "인증코드가 발송되었습니다." })
       end
 
       # POST /api/v1/passwords/verify
