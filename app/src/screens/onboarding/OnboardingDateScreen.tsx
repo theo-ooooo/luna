@@ -59,8 +59,9 @@ export function OnboardingDateScreen({ navigation }: Props) {
         <View style={styles.progressWrap}>
           <View style={[styles.bar, styles.barActive]} />
           <View style={styles.bar} />
+          <View style={styles.bar} />
         </View>
-        <Text style={styles.stepLabel}>1/2</Text>
+        <Text style={styles.stepLabel}>1/3</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>

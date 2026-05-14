@@ -23,12 +23,17 @@ export function useOnboarding() {
     mutationFn: async ({
       cycleLen,
       lastPeriodDate,
+      nickname,
     }: {
       cycleLen: number;
       lastPeriodDate: string | null;
+      nickname?: string;
     }) => {
-      // 주기 길이 기본값 업데이트 후 응답으로 스토어 갱신
-      const response = await api.patch<UpdateUserResponse>('/api/v1/users/me', { cycle_length_default: cycleLen });
+      // 주기 길이 + 닉네임 업데이트
+      const response = await api.patch<UpdateUserResponse>('/api/v1/users/me', {
+        cycle_length_default: cycleLen,
+        ...(nickname ? { nickname } : {}),
+      });
       const { token, setAuth } = useAuthStore.getState();
       if (token && response.user) {
         setAuth(token, response.user);
@@ -50,8 +55,8 @@ export function useOnboarding() {
   });
 
   return {
-    submit: (cycleLen: number, lastPeriodDate: string | null) =>
-      mutation.mutate({ cycleLen, lastPeriodDate }),
+    submit: (cycleLen: number, lastPeriodDate: string | null, nickname?: string) =>
+      mutation.mutate({ cycleLen, lastPeriodDate, nickname }),
     isPending: mutation.isPending,
   };
 }
