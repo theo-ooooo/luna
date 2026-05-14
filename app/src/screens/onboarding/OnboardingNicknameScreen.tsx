@@ -12,12 +12,12 @@ import type { OnboardingStackParamList } from '../../navigation/OnboardingNaviga
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'Nickname'>;
 
 export function OnboardingNicknameScreen({ route, navigation }: Props) {
-  const { cycleLen, lastPeriodDate } = route.params;
+  const { cycleLen, periodLen, lastPeriodDate } = route.params;
   const [nickname, setNickname] = useState('');
   const { submit, isPending } = useOnboarding();
 
   function handleStart() {
-    submit(cycleLen, lastPeriodDate, nickname.trim() || undefined);
+    submit(cycleLen, periodLen, lastPeriodDate, nickname.trim() || undefined);
   }
 
   return (
@@ -31,12 +31,13 @@ export function OnboardingNicknameScreen({ route, navigation }: Props) {
             <View style={[styles.bar, styles.barActive]} />
             <View style={[styles.bar, styles.barActive]} />
             <View style={[styles.bar, styles.barActive]} />
+            <View style={[styles.bar, styles.barActive]} />
           </View>
-          <Text style={styles.stepLabel}>3/3</Text>
+          <Text style={styles.stepLabel}>4/4</Text>
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.eyebrow}>STEP 03 · 호칭</Text>
+          <Text style={styles.eyebrow}>STEP 04 · 호칭</Text>
           <Text style={styles.title}>어떻게{'\n'}불러드릴까요<Text style={styles.coral}>?</Text></Text>
           <Text style={styles.body}>나중에 설정에서 언제든지 바꿀 수 있어요.</Text>
 

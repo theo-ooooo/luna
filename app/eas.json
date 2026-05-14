@@ -32,11 +32,7 @@
   },
   "submit": {
     "production": {
-      "ios": {
-        "appleId": "$APPLE_ID",
-        "ascAppId": "$APP_STORE_CONNECT_APP_ID",
-        "appleTeamId": "$APPLE_TEAM_ID"
-      },
+      "ios": {},
       "android": {
         "serviceAccountKeyPath": "./google-services-key.json",
         "track": "internal"

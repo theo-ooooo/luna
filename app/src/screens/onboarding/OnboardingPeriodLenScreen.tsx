@@ -6,16 +6,16 @@ import { Colors, Radius } from '../../theme/tokens';
 import { Icon } from '../../components/ui/Icon';
 import type { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 
-type Props = NativeStackScreenProps<OnboardingStackParamList, 'CycleLen'>;
+type Props = NativeStackScreenProps<OnboardingStackParamList, 'PeriodLen'>;
 
-const QUICK_PICKS = [26, 28, 30, 32];
+const QUICK_PICKS = [3, 4, 5, 6, 7];
 
-export function OnboardingCycleLenScreen({ navigation, route }: Props) {
-  const { lastPeriodDate } = route.params;
-  const [cycleLen, setCycleLen] = useState(28);
+export function OnboardingPeriodLenScreen({ navigation, route }: Props) {
+  const { cycleLen, lastPeriodDate } = route.params;
+  const [periodLen, setPeriodLen] = useState(5);
 
-  function handleStart() {
-    navigation.navigate('PeriodLen', { cycleLen, lastPeriodDate });
+  function handleNext() {
+    navigation.navigate('Nickname', { cycleLen, periodLen, lastPeriodDate });
   }
 
   return (
@@ -27,35 +27,35 @@ export function OnboardingCycleLenScreen({ navigation, route }: Props) {
         <View style={styles.progressWrap}>
           <View style={[styles.bar, styles.barActive]} />
           <View style={[styles.bar, styles.barActive]} />
-          <View style={styles.bar} />
+          <View style={[styles.bar, styles.barActive]} />
           <View style={styles.bar} />
         </View>
-        <Text style={styles.stepLabel}>2/4</Text>
+        <Text style={styles.stepLabel}>3/4</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.eyebrow}>STEP 02 · 주기 길이</Text>
-        <Text style={styles.title}>보통 며칠{'\n'}간격인가요<Text style={styles.coral}>?</Text></Text>
-        <Text style={styles.body}>모른다면 평균인 28일로 시작해도 좋아요. Luna가 사용하면서 학습해요.</Text>
+        <Text style={styles.eyebrow}>STEP 03 · 생리 기간</Text>
+        <Text style={styles.title}>보통 며칠{'\n'}지속되나요<Text style={styles.coral}>?</Text></Text>
+        <Text style={styles.body}>평균은 5일이에요. 모른다면 그대로 두셔도 돼요.</Text>
 
         <View style={styles.stepper}>
           <TouchableOpacity
             style={styles.stepBtn}
-            onPress={() => setCycleLen(v => Math.max(21, v - 1))}
+            onPress={() => setPeriodLen(v => Math.max(2, v - 1))}
             accessibilityRole="button"
-            accessibilityLabel="주기 줄이기"
+            accessibilityLabel="생리 기간 줄이기"
           >
             <Icon name="minus" size={20} strokeWidth={2.4} color={Colors.ink1} />
           </TouchableOpacity>
           <View style={styles.stepValue}>
-            <Text style={styles.stepNumber}>{cycleLen}</Text>
+            <Text style={styles.stepNumber}>{periodLen}</Text>
             <Text style={styles.stepUnit}>일 / DAYS</Text>
           </View>
           <TouchableOpacity
             style={styles.stepBtn}
-            onPress={() => setCycleLen(v => Math.min(40, v + 1))}
+            onPress={() => setPeriodLen(v => Math.min(10, v + 1))}
             accessibilityRole="button"
-            accessibilityLabel="주기 늘리기"
+            accessibilityLabel="생리 기간 늘리기"
           >
             <Icon name="plus" size={20} strokeWidth={2.4} color={Colors.ink1} />
           </TouchableOpacity>
@@ -65,11 +65,11 @@ export function OnboardingCycleLenScreen({ navigation, route }: Props) {
           {QUICK_PICKS.map(v => (
             <TouchableOpacity
               key={v}
-              style={[styles.quick, cycleLen === v && styles.quickActive]}
-              onPress={() => setCycleLen(v)}
+              style={[styles.quick, periodLen === v && styles.quickActive]}
+              onPress={() => setPeriodLen(v)}
               accessibilityRole="button"
             >
-              <Text style={[styles.quickText, cycleLen === v && styles.quickTextActive]}>{v}일</Text>
+              <Text style={[styles.quickText, periodLen === v && styles.quickTextActive]}>{v}일</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -78,7 +78,7 @@ export function OnboardingCycleLenScreen({ navigation, route }: Props) {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.ctaBtn}
-          onPress={handleStart}
+          onPress={handleNext}
           activeOpacity={0.85}
           accessibilityRole="button"
         >
@@ -121,6 +121,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ctaBtnDisabled: { backgroundColor: Colors.ink4 },
   ctaText: { fontSize: 14, fontFamily: 'NotoSansKR_700Bold', color: '#FFFFFF' },
 });

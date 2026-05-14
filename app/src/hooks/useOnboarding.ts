@@ -21,16 +21,19 @@ export function useOnboarding() {
   const mutation = useMutation({
     mutationFn: async ({
       cycleLen,
+      periodLen,
       lastPeriodDate,
       nickname,
     }: {
       cycleLen: number;
+      periodLen: number;
       lastPeriodDate: string | null;
       nickname?: string;
     }) => {
-      // 주기 길이 + 닉네임 + 온보딩 완료 플래그 업데이트
+      // 주기 길이 + 생리 기간 + 닉네임 + 온보딩 완료 플래그 업데이트
       const response = await api.patch<UpdateUserResponse>('/api/v1/users/me', {
         cycle_length_default: cycleLen,
+        period_length_default: periodLen,
         onboarding_completed: true,
         ...(nickname ? { nickname } : {}),
       });
@@ -39,10 +42,13 @@ export function useOnboarding() {
         setAuth(token, response);
       }
 
-      // 마지막 월경일이 선택된 경우 주기 데이터 생성 (이미 존재하면 무시)
+      // 마지막 월경일이 선택된 경우 완료된 주기로 생성 (ended_on 포함해 생리중 표시 방지)
       if (lastPeriodDate != null) {
+        const [y, m, d] = lastPeriodDate.split('-').map(Number);
+        const end = new Date(y, m - 1, d + periodLen - 1);
+        const endedOn = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
         try {
-          await api.post('/api/v1/cycles', { started_on: lastPeriodDate, flow_level: 1 });
+          await api.post('/api/v1/cycles', { started_on: lastPeriodDate, ended_on: endedOn, flow_level: 1 });
         } catch (e) {
           if (!(e instanceof ApiError && e.code === 'DUPLICATE_DATE')) throw e;
         }
@@ -59,8 +65,8 @@ export function useOnboarding() {
   });
 
   return {
-    submit: (cycleLen: number, lastPeriodDate: string | null, nickname?: string) =>
-      mutation.mutate({ cycleLen, lastPeriodDate, nickname }),
+    submit: (cycleLen: number, periodLen: number, lastPeriodDate: string | null, nickname?: string) =>
+      mutation.mutate({ cycleLen, periodLen, lastPeriodDate, nickname }),
     isPending: mutation.isPending,
   };
 }
