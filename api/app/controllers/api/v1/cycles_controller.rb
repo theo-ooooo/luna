@@ -41,7 +41,11 @@ module Api
 
       def destroy
         @cycle.destroy!
-        PredictionService.new(current_user).compute!
+        if current_user.cycles.exists?
+          PredictionService.new(current_user).compute! rescue nil
+        else
+          current_user.predictions.destroy_all
+        end
         success(nil)
       end
 
