@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_14_000009) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_14_135144) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -50,14 +50,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000009) do
     t.index ["user_id"], name: "index_ai_monthly_reports_on_user_id"
   end
 
-  create_table "oauth_identities", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.string "provider", limit: 50, null: false
-    t.string "uid", limit: 255, null: false
+  create_table "app_versions", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.string "latest_version", default: "1.0.0", null: false
+    t.string "min_version", default: "1.0.0", null: false
     t.datetime "updated_at", null: false
-    t.index ["user_id"], name: "index_oauth_identities_on_user_id"
-    t.index ["provider", "uid"], name: "uq_oauth_identities_provider_uid", unique: true
   end
 
   create_table "cycles", force: :cascade do |t|
@@ -111,6 +108,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000009) do
     t.index ["user_id"], name: "index_notification_logs_on_user_id"
   end
 
+  create_table "oauth_identities", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "provider", limit: 50, null: false
+    t.string "uid", limit: 255, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["provider", "uid"], name: "uq_oauth_identities_provider_uid", unique: true
+    t.index ["user_id"], name: "index_oauth_identities_on_user_id"
+  end
+
   create_table "predictions", force: :cascade do |t|
     t.decimal "avg_cycle_length", precision: 5, scale: 2, null: false, comment: "예측에 사용된 평균 주기 길이(일)"
     t.integer "based_on_cycles_count", null: false, comment: "평균 계산에 사용된 주기 수"
@@ -156,13 +163,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000009) do
     t.index ["password_reset_token"], name: "index_users_on_password_reset_token"
   end
 
-  add_foreign_key "oauth_identities", "users", on_delete: :cascade
   add_foreign_key "ai_conversations", "users", on_delete: :cascade
   add_foreign_key "ai_daily_insights", "users", on_delete: :cascade
   add_foreign_key "ai_monthly_reports", "users", on_delete: :cascade
   add_foreign_key "cycles", "users", on_delete: :cascade
   add_foreign_key "daily_logs", "users", on_delete: :cascade
   add_foreign_key "notification_logs", "users", on_delete: :cascade
+  add_foreign_key "oauth_identities", "users", on_delete: :cascade
   add_foreign_key "predictions", "cycles", on_delete: :nullify
   add_foreign_key "predictions", "users", on_delete: :cascade
   add_foreign_key "push_tokens", "users", on_delete: :cascade
