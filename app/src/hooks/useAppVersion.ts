@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { AppState, AppStateStatus } from 'react-native';
 import Constants from 'expo-constants';
 
 interface VersionInfo {
@@ -20,24 +21,40 @@ function compareVersions(a: string, b: string): number {
 
 export function useAppVersion() {
   const [updateState, setUpdateState] = useState<UpdateState>('none');
+  const appState = useRef(AppState.currentState);
 
   useEffect(() => {
     const currentVersion = Constants.expoConfig?.version ?? '0.0.0';
     const apiUrl = process.env.EXPO_PUBLIC_API_URL;
     if (!apiUrl) return;
 
-    fetch(`${apiUrl}/api/version`)
-      .then(res => res.json())
-      .then((data: { data?: VersionInfo }) => {
-        const info = data.data;
-        if (!info) return;
-        if (compareVersions(currentVersion, info.min_version) < 0) {
-          setUpdateState('force');
-        } else if (compareVersions(currentVersion, info.latest_version) < 0) {
-          setUpdateState('optional');
-        }
-      })
-      .catch(() => {});
+    function checkVersion() {
+      fetch(`${apiUrl}/api/version`)
+        .then(res => res.json())
+        .then((data: { data?: VersionInfo }) => {
+          const info = data.data;
+          if (!info) return;
+          if (compareVersions(currentVersion, info.min_version) < 0) {
+            setUpdateState('force');
+          } else if (compareVersions(currentVersion, info.latest_version) < 0) {
+            setUpdateState('optional');
+          } else {
+            setUpdateState('none');
+          }
+        })
+        .catch(() => {});
+    }
+
+    checkVersion();
+
+    const subscription = AppState.addEventListener('change', (next: AppStateStatus) => {
+      if (appState.current !== 'active' && next === 'active') {
+        checkVersion();
+      }
+      appState.current = next;
+    });
+
+    return () => subscription.remove();
   }, []);
 
   return updateState;
