@@ -17,8 +17,10 @@ export interface NotificationPrefs {
 interface NotificationState {
   permissionGranted: boolean;
   permissionChecked: boolean;
+  serverPushRegistered: boolean;
   prefs: NotificationPrefs;
   setPermissionGranted: (v: boolean) => void;
+  setServerPushRegistered: (v: boolean) => void;
   setPrefs: (p: Partial<NotificationPrefs>) => void;
 }
 
@@ -36,8 +38,10 @@ export const useNotificationStore = create<NotificationState>()(
     (set) => ({
       permissionGranted: false,
       permissionChecked: false,
+      serverPushRegistered: false,
       prefs: defaultPrefs,
       setPermissionGranted: (v) => set({ permissionGranted: v, permissionChecked: true }),
+      setServerPushRegistered: (v) => set({ serverPushRegistered: v }),
       setPrefs: (p) => set((s) => ({ prefs: { ...s.prefs, ...p } })),
     }),
     {

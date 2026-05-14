@@ -4,27 +4,33 @@ import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { useNotificationStore } from '../store/notificationStore';
 
 export function useRegisterPushToken() {
   const token = useAuthStore(s => s.token);
+  const setServerPushRegistered = useNotificationStore(s => s.setServerPushRegistered);
   const registeredToken = useRef<string | null>(null);
 
   useEffect(() => {
     if (!token) {
       registeredToken.current = null;
+      setServerPushRegistered(false);
       return;
     }
-    registerToken(registeredToken).catch(() => {});
+    registerToken(registeredToken, setServerPushRegistered).catch(() => {});
 
     // 앱 복귀 시 재시도 — 설정에서 권한 허용 후 돌아온 경우 처리
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') registerToken(registeredToken).catch(() => {});
+      if (state === 'active') registerToken(registeredToken, setServerPushRegistered).catch(() => {});
     });
     return () => sub.remove();
-  }, [token]);
+  }, [token, setServerPushRegistered]);
 }
 
-async function registerToken(registeredToken: React.MutableRefObject<string | null>) {
+async function registerToken(
+  registeredToken: React.MutableRefObject<string | null>,
+  setServerPushRegistered: (v: boolean) => void,
+) {
   let { status } = await Notifications.getPermissionsAsync();
   if (status !== 'granted') {
     const { status: requested } = await Notifications.requestPermissionsAsync();
@@ -43,4 +49,5 @@ async function registerToken(registeredToken: React.MutableRefObject<string | nu
     platform: Platform.OS,
   });
   registeredToken.current = pushToken;
+  setServerPushRegistered(true);
 }

@@ -37,6 +37,13 @@ module Api
           return failure("VALIDATION_ERROR", "비밀번호가 일치하지 않아요.", status: :unprocessable_content)
         end
 
+        # 이메일당 최대 5회 실패 허용 (무차별 대입 방지)
+        attempts_key = "pwd_reset_attempts:#{email}"
+        attempts = Rails.cache.read(attempts_key).to_i
+        if attempts >= 5
+          return failure("TOO_MANY_ATTEMPTS", "너무 많이 시도했어요. 잠시 후 다시 시도해주세요.", status: :too_many_requests)
+        end
+
         user = User.find_by(email: email)
 
         unless user&.password_reset_token.present?
@@ -50,9 +57,11 @@ module Api
 
         submitted_hash = Digest::SHA256.hexdigest(code)
         unless ActiveSupport::SecurityUtils.secure_compare(user.password_reset_token, submitted_hash)
+          Rails.cache.write(attempts_key, attempts + 1, expires_in: 10.minutes)
           return failure("INVALID_CODE", "인증코드가 올바르지 않아요.", status: :unprocessable_content)
         end
 
+        Rails.cache.delete(attempts_key)
         user.update!(password: password, password_confirmation: password_confirmation)
         user.update_columns(password_reset_token: nil, password_reset_sent_at: nil)
 

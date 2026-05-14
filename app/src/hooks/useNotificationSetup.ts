@@ -8,7 +8,7 @@ import { useSyncNotificationLog } from './useNotificationLog';
 export function useNotificationSetup() {
   const { data: prediction, isSuccess: predOk } = usePrediction();
   const { data: latestCycle, isSuccess: cycleOk } = useLatestCycle();
-  const { permissionGranted, prefs, setPermissionGranted } = useNotificationStore();
+  const { permissionGranted, serverPushRegistered, prefs, setPermissionGranted } = useNotificationStore();
   const syncLog = useSyncNotificationLog();
 
   useEffect(() => {
@@ -18,7 +18,8 @@ export function useNotificationSetup() {
   }, [setPermissionGranted]);
 
   useEffect(() => {
-    if (!permissionGranted || !predOk || !cycleOk) return;
+    // 서버 푸시가 등록된 경우 로컬 알림 중복 예약 방지
+    if (!permissionGranted || !predOk || !cycleOk || serverPushRegistered) return;
 
     scheduleNotifications({
       periodStart: prediction?.predicted_period_start ?? null,
@@ -37,5 +38,5 @@ export function useNotificationSetup() {
         })),
       );
     }).catch(() => {});
-  }, [permissionGranted, predOk, cycleOk, prediction, latestCycle, prefs]);
+  }, [permissionGranted, serverPushRegistered, predOk, cycleOk, prediction, latestCycle, prefs]);
 }
