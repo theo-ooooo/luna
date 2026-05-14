@@ -5,14 +5,14 @@ module Api
         token = params.require(:token)
         platform = params.fetch(:platform, "ios")
 
-        current_user.push_tokens.find_or_initialize_by(token: token).tap do |pt|
+        # 다른 유저에게 귀속된 토큰이면 재귀속 (기기 교체 등)
+        PushToken.where(token: token).where.not(user_id: current_user.id).destroy_all
+
+        current_user.push_tokens.find_or_create_by(token: token) do |pt|
           pt.platform = platform
-          pt.save!
         end
 
         success(nil, status: :ok)
-      rescue ActionController::ParameterMissing => e
-        failure("VALIDATION_ERROR", e.message)
       end
 
       def test_push

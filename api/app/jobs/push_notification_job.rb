@@ -4,8 +4,12 @@ class PushNotificationJob < ApplicationJob
   def perform
     today = Date.current
 
-    User.joins(:push_tokens, :predictions).distinct.find_each do |user|
-      prediction = user.predictions.order(computed_at: :desc).first
+    User.joins(:push_tokens, :predictions)
+        .where(notifications_enabled: true)
+        .includes(:push_tokens, :predictions)
+        .distinct
+        .find_each do |user|
+      prediction = user.predictions.max_by(&:computed_at)
       next unless prediction
 
       send_period_reminders(user, prediction, today)
