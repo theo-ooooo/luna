@@ -1,20 +1,20 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
+import { Modal, View, Text, TouchableOpacity, StyleSheet, Linking, Platform } from 'react-native';
 import { Colors, Radius } from '../../theme/tokens';
 import { LunaLogo } from './LunaLogo';
 
-const APP_STORE_URL = 'https://apps.apple.com/app/id6769269495';
-
 interface Props {
   type: 'optional' | 'force';
+  storeUrl: string | null;
   onDismiss?: () => void;
 }
 
-export function UpdateModal({ type, onDismiss }: Props) {
+export function UpdateModal({ type, storeUrl, onDismiss }: Props) {
   const isForce = type === 'force';
+  const storeName = Platform.OS === 'ios' ? 'App Store' : 'Google Play';
 
   function handleUpdate() {
-    Linking.openURL(APP_STORE_URL);
+    if (storeUrl) Linking.openURL(storeUrl);
   }
 
   return (
@@ -30,8 +30,13 @@ export function UpdateModal({ type, onDismiss }: Props) {
               ? '이 버전은 더 이상 지원하지 않아요.\n계속 사용하려면 업데이트해 주세요.'
               : '더 나은 Luna를 경험하세요.\n새로운 기능과 버그 수정이 포함돼 있어요.'}
           </Text>
-          <TouchableOpacity style={styles.updateBtn} onPress={handleUpdate} activeOpacity={0.8}>
-            <Text style={styles.updateBtnText}>App Store에서 업데이트</Text>
+          <TouchableOpacity
+            style={[styles.updateBtn, !storeUrl && styles.updateBtnDisabled]}
+            onPress={handleUpdate}
+            activeOpacity={0.8}
+            disabled={!storeUrl}
+          >
+            <Text style={styles.updateBtnText}>{storeName}에서 업데이트</Text>
           </TouchableOpacity>
           {!isForce && onDismiss && (
             <TouchableOpacity style={styles.dismissBtn} onPress={onDismiss} activeOpacity={0.7}>
@@ -82,6 +87,9 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  updateBtnDisabled: {
+    opacity: 0.4,
   },
   updateBtnText: {
     fontSize: 15,

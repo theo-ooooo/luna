@@ -1,7 +1,7 @@
 class AppVersion < ApplicationRecord
-  validates :latest_version, :min_version, presence: true
+  validates :ios_latest_version, :ios_min_version, :android_latest_version, :android_min_version, presence: true
 
-  def self.instance
-    first_or_create!(latest_version: '1.0.0', min_version: '1.0.0')
+  def self.latest
+    order(created_at: :desc).limit(1).first
   end
 end

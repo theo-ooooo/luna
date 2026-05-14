@@ -1,13 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Platform } from 'react-native';
 import Constants from 'expo-constants';
 
-interface VersionInfo {
+interface PlatformVersionInfo {
   latest_version: string;
   min_version: string;
+  store_url?: string;
+}
+
+interface VersionResponse {
+  ios: PlatformVersionInfo;
+  android: PlatformVersionInfo;
 }
 
 type UpdateState = 'none' | 'optional' | 'force';
+
+export interface AppVersionResult {
+  updateState: UpdateState;
+  storeUrl: string | null;
+}
 
 function compareVersions(a: string, b: string): number {
   const pa = a.split('.').map(Number);
@@ -19,8 +30,9 @@ function compareVersions(a: string, b: string): number {
   return 0;
 }
 
-export function useAppVersion() {
+export function useAppVersion(): AppVersionResult {
   const [updateState, setUpdateState] = useState<UpdateState>('none');
+  const [storeUrl, setStoreUrl] = useState<string | null>(null);
   const appState = useRef(AppState.currentState);
 
   useEffect(() => {
@@ -31,12 +43,14 @@ export function useAppVersion() {
     function checkVersion() {
       fetch(`${apiUrl}/api/version`)
         .then(res => res.json())
-        .then((data: { data?: VersionInfo }) => {
+        .then((data: { data?: VersionResponse }) => {
           const info = data.data;
           if (!info) return;
-          if (compareVersions(currentVersion, info.min_version) < 0) {
+          const platform = Platform.OS === 'ios' ? info.ios : info.android;
+          setStoreUrl(platform.store_url ?? null);
+          if (compareVersions(currentVersion, platform.min_version) < 0) {
             setUpdateState('force');
-          } else if (compareVersions(currentVersion, info.latest_version) < 0) {
+          } else if (compareVersions(currentVersion, platform.latest_version) < 0) {
             setUpdateState('optional');
           } else {
             setUpdateState('none');
@@ -57,5 +71,5 @@ export function useAppVersion() {
     return () => subscription.remove();
   }, []);
 
-  return updateState;
+  return { updateState, storeUrl };
 }

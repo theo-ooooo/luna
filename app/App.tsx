@@ -34,7 +34,7 @@ function AuthenticatedRoot() {
 
 function RootNavigator() {
   const token = useAuthStore(s => s.token);
-  const updateState = useAppVersion();
+  const { updateState, storeUrl } = useAppVersion();
   const [dismissed, setDismissed] = useState(false);
 
   return (
@@ -43,6 +43,7 @@ function RootNavigator() {
       {updateState !== 'none' && !dismissed && (
         <UpdateModal
           type={updateState}
+          storeUrl={storeUrl}
           onDismiss={updateState === 'optional' ? () => setDismissed(true) : undefined}
         />
       )}

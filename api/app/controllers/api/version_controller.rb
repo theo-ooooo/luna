@@ -3,11 +3,11 @@ module Api
     skip_before_action :authenticate_user!
 
     def show
-      av = AppVersion.instance
+      av = AppVersion.latest
       success({
         api_version: "v1",
-        latest_version: av.latest_version,
-        min_version: av.min_version,
+        ios: { latest_version: av.ios_latest_version, min_version: av.ios_min_version, store_url: av.ios_store_url },
+        android: { latest_version: av.android_latest_version, min_version: av.android_min_version, store_url: av.android_store_url },
         env: Rails.env
       })
     end
