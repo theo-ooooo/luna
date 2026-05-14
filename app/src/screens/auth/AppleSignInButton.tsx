@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, StyleSheet } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { api } from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
@@ -17,10 +17,6 @@ interface AuthResponse {
   };
 }
 
-/**
- * Apple Sign In 버튼 컴포넌트
- * iOS에서만 렌더링됩니다 (App Store 정책 상 서드파티 로그인 제공 시 필수)
- */
 export function AppleSignInButton() {
   const setAuth         = useAuthStore((s) => s.setAuth);
   const setOnboardingDone = useAuthStore((s) => s.setOnboardingDone);
@@ -48,35 +44,26 @@ export function AppleSignInButton() {
       setAuth(data.token, data.user);
       setOnboardingDone(true);
     } catch (error: any) {
-      // 사용자가 직접 취소한 경우 — 별도 알림 불필요
       if (error?.code === 'ERR_REQUEST_CANCELED') return;
-
       Alert.alert('Apple 로그인 실패', '로그인 중 문제가 발생했어요. 다시 시도해주세요.');
     }
   }
 
   return (
-    <View style={styles.wrap}>
-      <TouchableOpacity style={styles.button} onPress={handleAppleSignIn} activeOpacity={0.8}>
-        <Text style={styles.buttonText}>Apple로 로그인</Text>
-      </TouchableOpacity>
-    </View>
+    <AppleAuthentication.AppleAuthenticationButton
+      buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+      buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+      cornerRadius={12}
+      style={styles.button}
+      onPress={handleAppleSignIn}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginTop: 12 },
   button: {
     width: '100%',
     height: 50,
-    backgroundColor: '#000',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontFamily: 'NotoSansKR_600SemiBold',
+    marginTop: 12,
   },
 });
