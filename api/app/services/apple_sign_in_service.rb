@@ -7,6 +7,9 @@ class AppleSignInService
   APPLE_ISSUER   = "https://appleid.apple.com"
   APPLE_AUD      = "com.theo.luna"
 
+  # Solid Cache 미설치 환경에서도 동작하는 in-process 캐시 (1시간 TTL)
+  JWKS_CACHE = ActiveSupport::Cache::MemoryStore.new(expires_in: 1.hour)
+
   # identity_token (JWT 문자열) 을 검증하고 { apple_uid:, email: } 반환
   # 검증 실패 시 예외 발생
   def self.verify(identity_token)
@@ -44,7 +47,7 @@ class AppleSignInService
   end
 
   def fetch_apple_keys
-    Rails.cache.fetch("apple_jwks", expires_in: 1.hour) do
+    JWKS_CACHE.fetch("apple_jwks") do
       uri      = URI.parse(APPLE_KEYS_URI)
       http     = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true

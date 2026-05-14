@@ -22,7 +22,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   }
 
   return (
-    <View style={[styles.wrapper, { paddingBottom: insets.bottom + 80 }]}>
+    <View style={[styles.wrapper, { paddingBottom: insets.bottom || 12 }]}>
       {/* Gradient fade */}
       <View style={styles.gradientFade} pointerEvents="none" />
 
