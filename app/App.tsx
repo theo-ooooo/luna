@@ -40,7 +40,7 @@ function RootNavigator() {
   return (
     <>
       {token ? <AuthenticatedRoot /> : <AuthNavigator />}
-      {updateState !== 'none' && !dismissed && (
+      {updateState !== 'none' && (updateState === 'force' || !dismissed) && (
         <UpdateModal
           type={updateState}
           storeUrl={storeUrl}

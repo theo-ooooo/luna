@@ -51,9 +51,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_135144) do
   end
 
   create_table "app_versions", force: :cascade do |t|
+    t.string "ios_latest_version", null: false
+    t.string "ios_min_version", null: false
+    t.string "ios_store_url"
+    t.string "android_latest_version", null: false
+    t.string "android_min_version", null: false
+    t.string "android_store_url"
     t.datetime "created_at", null: false
-    t.string "latest_version", default: "1.0.0", null: false
-    t.string "min_version", default: "1.0.0", null: false
     t.datetime "updated_at", null: false
   end
 

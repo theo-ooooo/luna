@@ -4,6 +4,8 @@ module Api
 
     def show
       av = AppVersion.latest
+      return render json: { error: "version_not_configured" }, status: :service_unavailable unless av
+
       success({
         api_version: "v1",
         ios: { latest_version: av.ios_latest_version, min_version: av.ios_min_version, store_url: av.ios_store_url },
