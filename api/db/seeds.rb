@@ -10,10 +10,10 @@
 
 unless AppVersion.exists?
   AppVersion.create!(
-    ios_latest_version: '1.0.1',
+    ios_latest_version: '1.0.2',
     ios_min_version: '1.0.0',
     ios_store_url: 'https://apps.apple.com/app/id6769269495',
-    android_latest_version: '1.0.1',
+    android_latest_version: '1.0.2',
     android_min_version: '1.0.0',
     android_store_url: nil
   )
