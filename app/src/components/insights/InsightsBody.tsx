@@ -210,8 +210,8 @@ function BbtChart({ width, data, ovDay }: { width: number; data: number[]; ovDay
         ))}
       </Svg>
       <View style={styles.chartLegend}>
-        <View style={styles.legendItem}><View style={[styles.legendLine, { backgroundColor: Colors.coral }]} /><Text style={styles.legendText}>난포기</Text></View>
-        {hasOv && <View style={styles.legendItem}><View style={[styles.legendLine, { backgroundColor: Colors.lavenderDeep }]} /><Text style={styles.legendText}>황체기</Text></View>}
+        <View style={styles.legendItem}><View style={[styles.legendLine, { backgroundColor: Colors.coral }]} /><Text style={styles.legendText}>생리 후</Text></View>
+        {hasOv && <View style={styles.legendItem}><View style={[styles.legendLine, { backgroundColor: Colors.lavenderDeep }]} /><Text style={styles.legendText}>생리 전</Text></View>}
       </View>
     </View>
   );
