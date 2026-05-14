@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   logoWrap: { marginBottom: 32 },
   hero: { marginBottom: 32 },
   eyebrow: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: 1.6 },
-  title: { fontSize: 48, fontFamily: 'NotoSansKR_900Black', letterSpacing: -2.4, lineHeight: 46, marginTop: 12, color: Colors.ink1 },
+  title: { fontSize: 48, fontFamily: 'NotoSansKR_900Black', letterSpacing: -2.4, lineHeight: 56, marginTop: 12, color: Colors.ink1 },
   coral: { color: Colors.coral },
   body: { fontSize: 13, color: Colors.ink2, lineHeight: 20, marginTop: 14, maxWidth: 280 },
   form: { gap: 0 },

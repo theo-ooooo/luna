@@ -41,6 +41,12 @@
           "sounds": []
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "5b8935ae-1a64-4aa1-9334-26a35fd7b499"
+      }
+    },
+    "owner": "woni"
   }
 }

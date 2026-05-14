@@ -40,6 +40,11 @@ Rails.application.routes.draw do
         put  "/", to: "notifications#replace", as: :notifications_replace
       end
 
+      scope :push_tokens do
+        put  "/",     to: "push_tokens#upsert",     as: :push_tokens_upsert
+        post "test",  to: "push_tokens#test_push",  as: :push_tokens_test
+      end
+
       scope :ai do
         post "chat",                      to: "ai#chat",                 as: :ai_chat
         post "parse_log",                 to: "ai#parse_log",            as: :ai_parse_log

@@ -7,6 +7,7 @@ class User < ApplicationRecord
   has_many :cycles, dependent: :destroy
   has_many :daily_logs, dependent: :destroy
   has_many :predictions, dependent: :destroy
+  has_one :latest_prediction, -> { order(computed_at: :desc) }, class_name: 'Prediction', dependent: nil
   has_many :push_tokens, dependent: :destroy
   has_many :ai_conversations, dependent: :destroy
   has_many :ai_monthly_reports, dependent: :destroy

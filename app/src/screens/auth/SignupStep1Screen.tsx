@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 16 },
   hero: { marginBottom: 28 },
   eyebrow: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: 1.6 },
-  title: { fontSize: 44, fontFamily: 'NotoSansKR_900Black', letterSpacing: -2.2, lineHeight: 42, marginTop: 10, color: Colors.ink1 },
+  title: { fontSize: 44, fontFamily: 'NotoSansKR_900Black', letterSpacing: -2.2, lineHeight: 52, marginTop: 10, color: Colors.ink1 },
   coral: { color: Colors.coral },
   emailPill: { flexDirection: 'row', alignItems: 'center', gap: 8, alignSelf: 'flex-start', backgroundColor: Colors.bgCard, borderRadius: 999, paddingVertical: 8, paddingLeft: 8, paddingRight: 12, marginTop: 12 },
   checkCircle: { width: 22, height: 22, borderRadius: 11, backgroundColor: Colors.bgInk, alignItems: 'center', justifyContent: 'center' },
