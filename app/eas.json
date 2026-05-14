@@ -32,11 +32,7 @@
   },
   "submit": {
     "production": {
-      "ios": {
-        "appleId": "kkw9215@icloud.com",
-        "ascAppId": "6769269495",
-        "appleTeamId": "KHYU5VTC3M"
-      },
+      "ios": {},
       "android": {
         "serviceAccountKeyPath": "./google-services-key.json",
         "track": "internal"
