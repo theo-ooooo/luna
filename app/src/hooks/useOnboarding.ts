@@ -4,15 +4,14 @@ import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
 
 interface UpdateUserResponse {
-  user: {
-    id: number;
-    email: string;
-    nickname?: string;
-    cycle_length_default: number;
-    luteal_phase_length: number;
-    period_length_default: number;
-    notifications_enabled?: boolean;
-  };
+  id: number;
+  email: string;
+  nickname?: string;
+  cycle_length_default: number;
+  luteal_phase_length: number;
+  period_length_default: number;
+  notifications_enabled?: boolean;
+  onboarding_completed: boolean;
 }
 
 export function useOnboarding() {
@@ -29,14 +28,15 @@ export function useOnboarding() {
       lastPeriodDate: string | null;
       nickname?: string;
     }) => {
-      // 주기 길이 + 닉네임 업데이트
+      // 주기 길이 + 닉네임 + 온보딩 완료 플래그 업데이트
       const response = await api.patch<UpdateUserResponse>('/api/v1/users/me', {
         cycle_length_default: cycleLen,
+        onboarding_completed: true,
         ...(nickname ? { nickname } : {}),
       });
       const { token, setAuth } = useAuthStore.getState();
-      if (token && response.user) {
-        setAuth(token, response.user);
+      if (token && response) {
+        setAuth(token, response);
       }
 
       // 마지막 월경일이 선택된 경우 주기 데이터 생성

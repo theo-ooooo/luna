@@ -18,6 +18,7 @@ interface UserResponse {
   luteal_phase_length: number;
   period_length_default: number;
   notifications_enabled: boolean;
+  onboarding_completed: boolean;
 }
 
 export function useUpdateProfile() {

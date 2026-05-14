@@ -14,12 +14,12 @@ module Api
 
       def update_params
         params.permit(:nickname, :cycle_length_default, :luteal_phase_length,
-                      :period_length_default, :notifications_enabled)
+                      :period_length_default, :notifications_enabled, :onboarding_completed)
       end
 
       def user_json(user)
         user.slice(:id, :email, :nickname, :cycle_length_default, :luteal_phase_length,
-                   :period_length_default, :notifications_enabled, :created_at)
+                   :period_length_default, :notifications_enabled, :onboarding_completed, :created_at)
       end
     end
   end

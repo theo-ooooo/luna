@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_14_000008) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_14_000009) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -146,6 +146,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000008) do
     t.integer "luteal_phase_length", default: 14, null: false, comment: "황체기 길이(일), 배란일 역산에 사용 (기본 14일)"
     t.string "nickname", limit: 50, comment: "앱 내 표시 이름 (최대 50자)"
     t.boolean "notifications_enabled", default: true, null: false, comment: "푸시 알림 수신 여부"
+    t.boolean "onboarding_completed", default: false, null: false, comment: "온보딩 완료 여부 (앱 재설치 후에도 온보딩 재진입 방지)"
     t.datetime "password_reset_sent_at"
     t.string "password_reset_token"
     t.integer "period_length_default", default: 5, null: false, comment: "평균 생리 기간(일), 종료일 추정에 사용 (기본 5일)"
