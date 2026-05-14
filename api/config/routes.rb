@@ -45,6 +45,11 @@ Rails.application.routes.draw do
         post "test",  to: "push_tokens#test_push",  as: :push_tokens_test
       end
 
+      scope :passwords do
+        post "forgot", to: "passwords#forgot"
+        post "verify", to: "passwords#verify"
+      end
+
       scope :ai do
         post "chat",                      to: "ai#chat",                 as: :ai_chat
         post "parse_log",                 to: "ai#parse_log",            as: :ai_parse_log

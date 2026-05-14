@@ -33,6 +33,20 @@ export function useLogin() {
   });
 }
 
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (email: string) =>
+      api.post<{ message: string; code?: string }>('/api/v1/passwords/forgot', { email }),
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: ({ email, code, password }: { email: string; code: string; password: string }) =>
+      api.post<{ message: string }>('/api/v1/passwords/verify', { email, code, password }),
+  });
+}
+
 export function useSignup() {
   const setAuth = useAuthStore(s => s.setAuth);
   const setOnboardingDone = useAuthStore(s => s.setOnboardingDone);
