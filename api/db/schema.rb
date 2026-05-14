@@ -10,9 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_13_080000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_14_000006) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "ai_daily_insights", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.date "date", null: false
+    t.text "content"
+    t.boolean "stale", default: true, null: false
+    t.datetime "generated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "date"], name: "index_ai_daily_insights_on_user_id_and_date", unique: true
+    t.index ["user_id"], name: "index_ai_daily_insights_on_user_id"
+  end
 
   create_table "ai_conversations", force: :cascade do |t|
     t.jsonb "context_snapshot", comment: "대화 시점의 사용자 건강 컨텍스트 스냅샷"
@@ -123,6 +135,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_080000) do
     t.index ["jti"], name: "index_users_on_jti", unique: true
   end
 
+  add_foreign_key "ai_daily_insights", "users", on_delete: :cascade
   add_foreign_key "ai_conversations", "users", on_delete: :cascade
   add_foreign_key "ai_monthly_reports", "users", on_delete: :cascade
   add_foreign_key "cycles", "users", on_delete: :cascade
