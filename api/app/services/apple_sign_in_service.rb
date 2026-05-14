@@ -1,9 +1,11 @@
+require 'net/http'
+
 # Apple Sign In 서비스
 # Apple의 공개키로 identity token을 검증하고 apple_uid, email을 추출합니다.
 class AppleSignInService
   APPLE_KEYS_URI = "https://appleid.apple.com/auth/keys"
   APPLE_ISSUER   = "https://appleid.apple.com"
-  APPLE_AUD      = "com.luna.app"
+  APPLE_AUD      = "com.theo.luna"
 
   # identity_token (JWT 문자열) 을 검증하고 { apple_uid:, email: } 반환
   # 검증 실패 시 예외 발생
