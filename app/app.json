@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Luna",
+    "name": "Luna - 생리주기 달력",
     "slug": "luna",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,6 +16,7 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.theo.luna",
       "infoPlist": {
+        "CFBundleDisplayName": "Luna",
         "CFBundleDevelopmentRegion": "ko",
         "CFBundleLocalizations": ["ko", "en"],
         "ITSAppUsesNonExemptEncryption": false
