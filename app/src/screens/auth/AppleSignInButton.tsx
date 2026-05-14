@@ -14,6 +14,7 @@ interface AuthResponse {
     luteal_phase_length: number;
     period_length_default: number;
     notifications_enabled?: boolean;
+    onboarding_completed?: boolean;
   };
 }
 
@@ -41,12 +42,9 @@ export function AppleSignInButton() {
         identity_token: credential.identityToken,
       });
 
-      const alreadyOnboarded = useAuthStore.getState().onboardingDone;
       setAuth(data.token, data.user);
-      // 이미 온보딩 완료된 경우 덮어쓰지 않음 (재로그인 시 온보딩 재진입 방지)
-      if (!alreadyOnboarded) {
-        setOnboardingDone(!!data.user.nickname);
-      }
+      // 서버의 onboarding_completed 기준으로 판단 (기기 재설치에도 안전)
+      setOnboardingDone(!!data.user.onboarding_completed);
     } catch (error: any) {
       if (error?.code === 'ERR_REQUEST_CANCELED') return;
       Alert.alert('Apple 로그인 실패', '로그인 중 문제가 발생했어요. 다시 시도해주세요.');

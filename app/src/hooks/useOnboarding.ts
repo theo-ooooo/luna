@@ -29,9 +29,10 @@ export function useOnboarding() {
       lastPeriodDate: string | null;
       nickname?: string;
     }) => {
-      // 주기 길이 + 닉네임 업데이트
+      // 주기 길이 + 닉네임 + 온보딩 완료 플래그 업데이트
       const response = await api.patch<UpdateUserResponse>('/api/v1/users/me', {
         cycle_length_default: cycleLen,
+        onboarding_completed: true,
         ...(nickname ? { nickname } : {}),
       });
       const { token, setAuth } = useAuthStore.getState();
