@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors, Radius } from '../../theme/tokens';
+import { api } from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
 import type { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 
@@ -10,6 +11,11 @@ type Props = NativeStackScreenProps<OnboardingStackParamList, 'Welcome'>;
 
 export function OnboardingWelcomeScreen({ navigation }: Props) {
   const setOnboardingDone = useAuthStore(s => s.setOnboardingDone);
+
+  function handleSkip() {
+    api.patch('/api/v1/users/me', { onboarding_completed: true }).catch(() => {});
+    setOnboardingDone(true);
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -38,7 +44,7 @@ export function OnboardingWelcomeScreen({ navigation }: Props) {
 
         <TouchableOpacity
           style={styles.skipBtn}
-          onPress={() => setOnboardingDone(true)}
+          onPress={handleSkip}
           activeOpacity={0.7}
           accessibilityRole="button"
         >
