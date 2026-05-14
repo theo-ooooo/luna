@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     color: Colors.ink2,
     lineHeight: 22,
   },
-  actions: { gap: 0 },
+  actions: { gap: 8 },
   emailButton: {
     width: '100%',
     height: 50,
