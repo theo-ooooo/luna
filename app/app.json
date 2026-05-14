@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.luna.app"
+      "bundleIdentifier": "com.theo.luna"
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +23,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.luna.app",
+      "package": "com.theo.luna",
       "versionCode": 1,
       "minSdkVersion": 26
     },
