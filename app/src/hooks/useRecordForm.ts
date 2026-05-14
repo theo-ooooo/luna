@@ -10,6 +10,12 @@ interface DailyLogSnapshot {
   cramps: number;
   fatigue: number;
   bloating: number;
+  backache?: boolean;
+  breast_pain?: boolean;
+  nausea?: boolean;
+  acne?: boolean;
+  increased_appetite?: boolean;
+  dizziness?: boolean;
   mood: number | null;
   bbt: number | null;
   lh_result: LHResult | null;
@@ -37,6 +43,12 @@ function logToSymptoms(log: DailyLogSnapshot | null | undefined): string[] {
   else if (log.cramps === 1) s.push('복통');
   if (log.fatigue > 0) s.push('피곤');
   if (log.bloating > 0) s.push('부종');
+  if (log.backache) s.push('요통');
+  if (log.breast_pain) s.push('유방통');
+  if (log.nausea) s.push('메스꺼움');
+  if (log.acne) s.push('여드름');
+  if (log.increased_appetite) s.push('식욕증가');
+  if (log.dizziness) s.push('어지러움');
   return s;
 }
 
@@ -102,12 +114,17 @@ export function useRecordForm(todayLog?: DailyLogSnapshot | null, dateKey?: stri
     setArr(arr.includes(val) ? arr.filter(x => x !== val) : [...arr, val]);
   }
 
+  // 기분은 단일 선택: 같은 항목 탭 시 해제, 다른 항목 탭 시 교체
+  function toggleMoodSingle(val: string) {
+    setMoods(moods.includes(val) ? [] : [val]);
+  }
+
   return {
     flow, moods, symptoms, bbt, lhResult, notes,
     setFlow,
     setMoods,
     setSymptoms,
-    toggleMood: (v) => toggle(moods, setMoods, v),
+    toggleMood: toggleMoodSingle,
     toggleSymptom: (v) => toggle(symptoms, setSymptoms, v),
     setBbt,
     setLhResult,

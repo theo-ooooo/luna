@@ -9,6 +9,12 @@ interface DailyLog {
   headache: number;
   fatigue: number;
   bloating: number;
+  backache: boolean;
+  breast_pain: boolean;
+  nausea: boolean;
+  acne: boolean;
+  increased_appetite: boolean;
+  dizziness: boolean;
   mood: number | null;
   discharge_type: string | null;
   flow_level: number | null;
@@ -43,6 +49,12 @@ export function buildLogFields({
     cramps: symptoms.includes('경련') ? 2 : symptoms.includes('복통') ? 1 : 0,
     fatigue: moods.includes('피곤') ? 1 : 0,
     bloating: symptoms.includes('부종') ? 1 : 0,
+    backache: symptoms.includes('요통'),
+    breast_pain: symptoms.includes('유방통'),
+    nausea: symptoms.includes('메스꺼움'),
+    acne: symptoms.includes('여드름'),
+    increased_appetite: symptoms.includes('식욕증가'),
+    dizziness: symptoms.includes('어지러움'),
     mood: moods.length > 0 ? (MOOD_SCORE[moods[0]] ?? null) : null,
     discharge_type: null,
     flow_level: flow !== null ? FLOW_TO_LEVEL[flow] : null,
