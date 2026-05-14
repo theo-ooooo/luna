@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { AppState, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
@@ -7,20 +7,24 @@ import { useAuthStore } from '../store/authStore';
 
 export function useRegisterPushToken() {
   const token = useAuthStore(s => s.token);
+  const registeredToken = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
-    registerToken().catch(() => {});
+    if (!token) {
+      registeredToken.current = null;
+      return;
+    }
+    registerToken(registeredToken).catch(() => {});
 
     // 앱 복귀 시 재시도 — 설정에서 권한 허용 후 돌아온 경우 처리
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') registerToken().catch(() => {});
+      if (state === 'active') registerToken(registeredToken).catch(() => {});
     });
     return () => sub.remove();
   }, [token]);
 }
 
-async function registerToken() {
+async function registerToken(registeredToken: React.MutableRefObject<string | null>) {
   let { status } = await Notifications.getPermissionsAsync();
   if (status !== 'granted') {
     const { status: requested } = await Notifications.requestPermissionsAsync();
@@ -32,8 +36,11 @@ async function registerToken() {
   if (!projectId) return;
 
   const { data: pushToken } = await Notifications.getExpoPushTokenAsync({ projectId });
+  if (pushToken === registeredToken.current) return;
+
   await api.put('/api/v1/push_tokens', {
     token: pushToken,
     platform: Platform.OS,
   });
+  registeredToken.current = pushToken;
 }

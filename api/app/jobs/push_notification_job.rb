@@ -6,10 +6,10 @@ class PushNotificationJob < ApplicationJob
 
     User.joins(:push_tokens, :predictions)
         .where(notifications_enabled: true)
-        .includes(:push_tokens, :predictions)
+        .includes(:push_tokens, :latest_prediction)
         .distinct
         .find_each do |user|
-      prediction = user.predictions.max_by(&:computed_at)
+      prediction = user.latest_prediction
       next unless prediction
 
       send_period_reminders(user, prediction, today)

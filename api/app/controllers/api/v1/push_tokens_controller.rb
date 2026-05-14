@@ -11,6 +11,8 @@ module Api
         current_user.push_tokens.find_or_create_by(token: token) do |pt|
           pt.platform = platform
         end
+      rescue ActiveRecord::RecordNotUnique
+        current_user.push_tokens.find_by(token: token)
 
         success(nil, status: :ok)
       end
