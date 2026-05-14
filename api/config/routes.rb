@@ -13,7 +13,9 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
-      post  "auth/check_email", to: "auth#check_email"
+      post   "auth/check_email", to: "auth#check_email"
+      post   "auth/apple",      to: "apple_auth#create"
+      delete "auth/me",         to: "auth#destroy"
 
       get   "users/me",  to: "users#show"
       patch "users/me",  to: "users#update"
@@ -38,6 +40,16 @@ Rails.application.routes.draw do
       scope :notifications do
         get  "/", to: "notifications#index",   as: :notifications
         put  "/", to: "notifications#replace", as: :notifications_replace
+      end
+
+      scope :push_tokens do
+        put  "/",     to: "push_tokens#upsert",     as: :push_tokens_upsert
+        post "test",  to: "push_tokens#test_push",  as: :push_tokens_test
+      end
+
+      scope :passwords do
+        post "forgot", to: "passwords#forgot"
+        post "verify", to: "passwords#verify"
       end
 
       scope :ai do

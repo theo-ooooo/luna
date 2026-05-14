@@ -53,7 +53,9 @@ export function PasswordScreen({ navigation, route }: Props) {
               autoFocus
               accessibilityLabel="비밀번호 입력"
               trailing={
-                <Text style={styles.forgotLink}>찾기</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} accessibilityRole="button" accessibilityLabel="비밀번호 찾기">
+                  <Text style={styles.forgotLink}>찾기</Text>
+                </TouchableOpacity>
               }
             />
 
@@ -76,7 +78,7 @@ const styles = StyleSheet.create({
   backIcon: { fontSize: 16, color: Colors.ink1 },
   hero: { marginTop: 24, marginBottom: 24 },
   eyebrow: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: 1.6 },
-  title: { fontSize: 44, fontFamily: 'NotoSansKR_900Black', letterSpacing: -2.2, lineHeight: 42, marginTop: 12, color: Colors.ink1 },
+  title: { fontSize: 44, fontFamily: 'NotoSansKR_900Black', letterSpacing: -2.2, lineHeight: 52, marginTop: 12, color: Colors.ink1 },
   coral: { color: Colors.coral },
   emailPill: { flexDirection: 'row', alignItems: 'center', gap: 12, alignSelf: 'flex-start', backgroundColor: Colors.bgCard, borderRadius: Radius.pill, padding: 10, paddingRight: 16, marginBottom: 28 },
   avatar: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.bgInk, alignItems: 'center', justifyContent: 'center' },

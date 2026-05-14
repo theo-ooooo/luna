@@ -17,15 +17,36 @@ interface AuthResponse {
     nickname?: string;
     cycle_length_default: number;
     luteal_phase_length: number;
+    period_length_default: number;
+    notifications_enabled?: boolean;
+    onboarding_completed: boolean;
   };
 }
 
 export function useLogin() {
   const setAuth = useAuthStore(s => s.setAuth);
+  const setOnboardingDone = useAuthStore(s => s.setOnboardingDone);
   return useMutation({
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       api.post<AuthResponse>('/api/v1/auth/login', { user: { email, password } }),
-    onSuccess: ({ token, user }) => setAuth(token, user),
+    onSuccess: ({ token, user }) => {
+      setAuth(token, user);
+      setOnboardingDone(!!user.onboarding_completed);
+    },
+  });
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (email: string) =>
+      api.post<{ message: string; code?: string }>('/api/v1/passwords/forgot', { email }),
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: ({ email, code, password }: { email: string; code: string; password: string }) =>
+      api.post<{ message: string }>('/api/v1/passwords/verify', { email, code, password }),
   });
 }
 

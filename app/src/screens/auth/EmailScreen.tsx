@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors } from '../../theme/tokens';
 import { AuthField } from '../../components/auth/AuthField';
 import { PrimaryButton } from '../../components/auth/PrimaryButton';
 import { DomainChips, getEmailMatches } from '../../components/auth/DomainChips';
-import { LunaLogo } from '../../components/ui/LunaLogo';
 import { useCheckEmail } from '../../hooks/useAuthMutations';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 
@@ -38,8 +37,10 @@ export function EmailScreen({ navigation }: Props) {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <View style={styles.logoWrap}>
-            <LunaLogo size={22} />
+          <View style={styles.topBar}>
+            <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={12} accessibilityLabel="뒤로가기">
+              <Text style={styles.backArrow}>←</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.hero}>
@@ -73,6 +74,7 @@ export function EmailScreen({ navigation }: Props) {
                 계속하기
               </PrimaryButton>
             </View>
+
           </View>
 
           <Text style={styles.terms}>
@@ -88,10 +90,11 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.bg },
   flex: { flex: 1 },
   content: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 24, paddingBottom: 32 },
-  logoWrap: { marginBottom: 32 },
+  topBar: { marginBottom: 32 },
+  backArrow: { fontSize: 24, color: Colors.ink1, lineHeight: 28 },
   hero: { marginBottom: 32 },
   eyebrow: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: 1.6 },
-  title: { fontSize: 48, fontFamily: 'NotoSansKR_900Black', letterSpacing: -2.4, lineHeight: 46, marginTop: 12, color: Colors.ink1 },
+  title: { fontSize: 48, fontFamily: 'NotoSansKR_900Black', letterSpacing: -2.4, lineHeight: 56, marginTop: 12, color: Colors.ink1 },
   coral: { color: Colors.coral },
   body: { fontSize: 13, color: Colors.ink2, lineHeight: 20, marginTop: 14, maxWidth: 280 },
   form: { gap: 0 },

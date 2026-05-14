@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   },
   phaseWord: {
     fontSize: 64, fontFamily: 'NotoSansKR_900Black', letterSpacing: -3,
-    lineHeight: 64, color: Colors.inkInv, marginLeft: -2,
+    lineHeight: 74, color: Colors.inkInv, marginLeft: -2,
   },
   phaseDesc: {
     fontSize: 13, lineHeight: 20, color: 'rgba(242,238,232,0.7)',

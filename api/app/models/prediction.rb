@@ -5,8 +5,10 @@ class Prediction < ApplicationRecord
   PHASES = %w[menstrual follicular ovulation luteal].freeze
 
   def current_phase
+    return "unknown" if predicted_period_start.nil?
+
     today = Date.current
-    if (today - last_period_start).to_i + 1 <= 5
+    if (today - last_period_start).to_i + 1 <= user.period_length_default
       "menstrual"
     elsif today < fertile_start
       "follicular"

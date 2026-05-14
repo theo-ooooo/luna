@@ -1,8 +1,9 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors, Radius } from '../../theme/tokens';
+import { api } from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
 import type { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 
@@ -10,6 +11,16 @@ type Props = NativeStackScreenProps<OnboardingStackParamList, 'Welcome'>;
 
 export function OnboardingWelcomeScreen({ navigation }: Props) {
   const setOnboardingDone = useAuthStore(s => s.setOnboardingDone);
+  const [skipping, setSkipping] = useState(false);
+
+  async function handleSkip() {
+    setSkipping(true);
+    try {
+      await api.patch('/api/v1/users/me', { onboarding_completed: true });
+    } finally {
+      setOnboardingDone(true);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -38,11 +49,15 @@ export function OnboardingWelcomeScreen({ navigation }: Props) {
 
         <TouchableOpacity
           style={styles.skipBtn}
-          onPress={() => setOnboardingDone(true)}
+          onPress={handleSkip}
+          disabled={skipping}
           activeOpacity={0.7}
           accessibilityRole="button"
         >
-          <Text style={styles.skipText}>지금은 건너뛸게요</Text>
+          {skipping
+            ? <ActivityIndicator size="small" color={Colors.ink3} />
+            : <Text style={styles.skipText}>지금은 건너뛸게요</Text>
+          }
         </TouchableOpacity>
       </View>
     </SafeAreaView>

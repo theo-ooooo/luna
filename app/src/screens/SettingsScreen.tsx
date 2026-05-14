@@ -11,6 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { useUpdateProfile } from '../hooks/useProfile';
 import { useNotificationStore } from '../store/notificationStore';
+import { api } from '../api/client';
 
 export function SettingsScreen() {
   const user = useAuthStore(s => s.user);
@@ -49,6 +50,29 @@ export function SettingsScreen() {
       { text: '취소', style: 'cancel' },
       { text: '로그아웃', style: 'destructive', onPress: () => { qc.clear(); clearAuth(); } },
     ]);
+  }
+
+  function handleDeleteAccount() {
+    Alert.alert(
+      '회원탈퇴',
+      '정말 탈퇴하시겠어요? 모든 데이터가 삭제되며 복구할 수 없습니다.',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '탈퇴하기',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete('/api/v1/auth/me');
+              qc.clear();
+              useAuthStore.getState().clearAuth();
+            } catch {
+              Alert.alert('탈퇴 실패', '잠시 후 다시 시도해주세요.');
+            }
+          },
+        },
+      ],
+    );
   }
 
   const initial = (user?.nickname || user?.email || 'L')[0].toUpperCase();
@@ -174,11 +198,36 @@ export function SettingsScreen() {
           />
         </Section>
 
+        {/* 개발자 — dev 빌드에서만 표시 */}
+        {__DEV__ && (
+          <Section title="개발자">
+            <TouchableOpacity
+              style={styles.logoutRow}
+              onPress={async () => {
+                try {
+                  await api.post('/api/v1/push_tokens/test', {});
+                  Toast.show({ type: 'success', text1: '서버에서 푸시 발송했어요!' });
+                } catch {
+                  Toast.show({ type: 'error', text1: '푸시 발송 실패', text2: '푸시 토큰이 등록되지 않았을 수 있어요.' });
+                }
+              }}
+            >
+              <Text style={[styles.logoutText, { color: Colors.ink1 }]}>서버 푸시 테스트</Text>
+              <Icon name="chev" size={16} strokeWidth={2} color={Colors.ink3} />
+            </TouchableOpacity>
+          </Section>
+        )}
+
         {/* 계정 */}
         <Section title="계정">
           <TouchableOpacity style={styles.logoutRow} onPress={handleLogout}>
             <Text style={styles.logoutText}>로그아웃</Text>
             <Icon name="chev" size={16} strokeWidth={2} color={Colors.coral} />
+          </TouchableOpacity>
+          <View style={styles.divider} />
+          <TouchableOpacity style={styles.logoutRow} onPress={handleDeleteAccount}>
+            <Text style={styles.deleteAccountText}>회원탈퇴</Text>
+            <Icon name="chev" size={16} strokeWidth={2} color={Colors.coralDeep} />
           </TouchableOpacity>
         </Section>
       </ScrollView>
@@ -264,6 +313,7 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: Colors.borderSoft, marginVertical: 8 },
   logoutRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 40 },
   logoutText: { fontSize: 14, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.coral },
+  deleteAccountText: { fontSize: 14, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.coralDeep },
   notiWarning: { backgroundColor: Colors.bgAlt, borderRadius: 10, padding: 12, marginBottom: 14 },
   notiWarningText: { fontSize: 12, color: Colors.ink2, lineHeight: 18 },
 });

@@ -44,7 +44,8 @@ module Api
       end
 
       def user_json(user)
-        user.slice(:id, :email, :nickname, :cycle_length_default, :luteal_phase_length)
+        user.slice(:id, :email, :nickname, :cycle_length_default, :luteal_phase_length,
+                   :period_length_default, :notifications_enabled, :onboarding_completed)
       end
     end
   end

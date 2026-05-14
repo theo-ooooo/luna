@@ -1,17 +1,23 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { LandingScreen } from '../screens/auth/LandingScreen';
 import { EmailScreen } from '../screens/auth/EmailScreen';
 import { PasswordScreen } from '../screens/auth/PasswordScreen';
 import { SignupStep1Screen } from '../screens/auth/SignupStep1Screen';
 import { SignupStep2Screen } from '../screens/auth/SignupStep2Screen';
 import { SignupStep3Screen } from '../screens/auth/SignupStep3Screen';
+import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
+import { ResetPasswordScreen } from '../screens/auth/ResetPasswordScreen';
 
 export type AuthStackParamList = {
+  Landing: undefined;
   Email: undefined;
   Password: { email: string };
   SignupStep1: { email: string };
   SignupStep2: { email: string; nickname: string; password: string };
   SignupStep3: { email: string; nickname: string; password: string; lastPeriodDate: string };
+  ForgotPassword: undefined;
+  ResetPassword: { email: string; code: string };
 };
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -19,11 +25,14 @@ const Stack = createNativeStackNavigator<AuthStackParamList>();
 export function AuthNavigator() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+      <Stack.Screen name="Landing" component={LandingScreen} />
       <Stack.Screen name="Email" component={EmailScreen} />
       <Stack.Screen name="Password" component={PasswordScreen} />
       <Stack.Screen name="SignupStep1" component={SignupStep1Screen} />
       <Stack.Screen name="SignupStep2" component={SignupStep2Screen} />
       <Stack.Screen name="SignupStep3" component={SignupStep3Screen} />
+      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
     </Stack.Navigator>
   );
 }
