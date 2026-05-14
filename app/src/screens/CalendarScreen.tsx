@@ -13,6 +13,7 @@ import { DateSearchSheet } from '../components/home/DateSearchSheet';
 import { useCalendar } from '../hooks/useCalendar';
 import { useLatestCycle } from '../hooks/useCycles';
 import { usePrediction } from '../hooks/usePrediction';
+import { useLogForDate } from '../hooks/useDailyLog';
 import { phaseForDay, CYCLE_DEFAULTS } from '../utils/phase';
 import type { PhaseFilter } from '../hooks/useCalendar';
 import type { PhaseKey } from '../theme/tokens';
@@ -37,6 +38,8 @@ const PHASE_CHIPS: PhaseChipOption[] = [
   { label: '황체기', value: 'luteal' },
 ];
 
+const MOOD_LABELS: Record<number, string> = { 5: '좋음', 4: '평온', 3: '짜증', 2: '피곤', 1: '불안' };
+
 export function CalendarScreen() {
   const { width: screenW } = useWindowDimensions();
   const cellSize = Math.floor((screenW - 32 - 24) / 7);
@@ -55,6 +58,9 @@ export function CalendarScreen() {
 
   const { data: latestCycle } = useLatestCycle();
   const { data: prediction } = usePrediction();
+
+  const selectedDateStr = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
+  const { data: selectedLog } = useLogForDate(selectedDateStr);
 
   const cycleLength = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
 
@@ -91,6 +97,21 @@ export function CalendarScreen() {
     }
     return phases;
   }, [cycleStartMs, year, month, daysInMonth, cycleLength]);
+
+  // Derive display chips from the fetched daily log for the selected date
+  const logChips = useMemo(() => {
+    if (!selectedLog) return [];
+    const chips: string[] = [];
+    if (selectedLog.mood != null) {
+      const moodLabel = MOOD_LABELS[selectedLog.mood];
+      if (moodLabel) chips.push(moodLabel);
+    }
+    if ((selectedLog.headache ?? 0) > 0) chips.push('두통');
+    if ((selectedLog.cramps ?? 0) > 0) chips.push('복통');
+    if ((selectedLog.fatigue ?? 0) > 0) chips.push('피곤');
+    if ((selectedLog.bloating ?? 0) > 0) chips.push('부종');
+    return chips;
+  }, [selectedLog]);
 
   const grid: (number | null)[] = [
     ...Array(firstWeekday).fill(null),
@@ -224,7 +245,7 @@ export function CalendarScreen() {
               month={month}
               phaseKey={selectedPhaseKey}
               isToday={selectedDay === today.day && month === today.month && year === today.year}
-              logChips={[]}
+              logChips={logChips}
               onRecord={isFutureDate ? undefined : handleRecord}
             />
           </ScrollView>

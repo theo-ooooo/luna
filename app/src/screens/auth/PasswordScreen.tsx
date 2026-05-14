@@ -53,7 +53,9 @@ export function PasswordScreen({ navigation, route }: Props) {
               autoFocus
               accessibilityLabel="비밀번호 입력"
               trailing={
-                <Text style={styles.forgotLink}>찾기</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')} accessibilityRole="button" accessibilityLabel="비밀번호 찾기">
+                  <Text style={styles.forgotLink}>찾기</Text>
+                </TouchableOpacity>
               }
             />
 
