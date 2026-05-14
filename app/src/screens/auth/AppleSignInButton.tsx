@@ -42,7 +42,8 @@ export function AppleSignInButton() {
       });
 
       setAuth(data.token, data.user);
-      setOnboardingDone(true);
+      // 기존 유저(nickname 있음)는 온보딩 스킵, 신규 유저는 온보딩 진행
+      setOnboardingDone(!!data.user.nickname);
     } catch (error: any) {
       if (error?.code === 'ERR_REQUEST_CANCELED') return;
       Alert.alert('Apple 로그인 실패', '로그인 중 문제가 발생했어요. 다시 시도해주세요.');
