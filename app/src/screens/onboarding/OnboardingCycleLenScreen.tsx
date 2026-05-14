@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Colors, Radius } from '../../theme/tokens';
 import { Icon } from '../../components/ui/Icon';
-import { useOnboarding } from '../../hooks/useOnboarding';
 import type { OnboardingStackParamList } from '../../navigation/OnboardingNavigator';
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'CycleLen'>;
@@ -14,10 +13,9 @@ const QUICK_PICKS = [26, 28, 30, 32];
 export function OnboardingCycleLenScreen({ navigation, route }: Props) {
   const { lastPeriodDate } = route.params;
   const [cycleLen, setCycleLen] = useState(28);
-  const { submit, isPending } = useOnboarding();
 
   function handleStart() {
-    submit(cycleLen, lastPeriodDate);
+    navigation.navigate('Nickname', { cycleLen, lastPeriodDate });
   }
 
   return (
@@ -29,8 +27,9 @@ export function OnboardingCycleLenScreen({ navigation, route }: Props) {
         <View style={styles.progressWrap}>
           <View style={[styles.bar, styles.barActive]} />
           <View style={[styles.bar, styles.barActive]} />
+          <View style={styles.bar} />
         </View>
-        <Text style={styles.stepLabel}>2/2</Text>
+        <Text style={styles.stepLabel}>2/3</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -77,16 +76,12 @@ export function OnboardingCycleLenScreen({ navigation, route }: Props) {
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.ctaBtn, isPending && styles.ctaBtnDisabled]}
+          style={styles.ctaBtn}
           onPress={handleStart}
-          disabled={isPending}
           activeOpacity={0.85}
           accessibilityRole="button"
         >
-          {isPending
-            ? <ActivityIndicator color="#FFFFFF" />
-            : <Text style={styles.ctaText}>Luna 시작하기</Text>
-          }
+          <Text style={styles.ctaText}>다음</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
