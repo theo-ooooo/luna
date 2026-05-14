@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_14_000006) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_14_000008) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,13 +25,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000006) do
   end
 
   create_table "ai_daily_insights", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.date "date", null: false
     t.text "content"
-    t.boolean "stale", default: true, null: false
-    t.datetime "generated_at"
     t.datetime "created_at", null: false
+    t.date "date", null: false
+    t.datetime "generated_at"
+    t.boolean "stale", default: true, null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
     t.index ["user_id", "date"], name: "index_ai_daily_insights_on_user_id_and_date", unique: true
     t.index ["user_id"], name: "index_ai_daily_insights_on_user_id"
   end
@@ -50,6 +50,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000006) do
     t.index ["user_id"], name: "index_ai_monthly_reports_on_user_id"
   end
 
+  create_table "oauth_identities", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "provider", limit: 50, null: false
+    t.string "uid", limit: 255, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_oauth_identities_on_user_id"
+    t.index ["provider", "uid"], name: "uq_oauth_identities_provider_uid", unique: true
+  end
+
   create_table "cycles", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.date "ended_on", comment: "생리 종료일 (null이면 진행 중)"
@@ -63,17 +73,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000006) do
   end
 
   create_table "daily_logs", force: :cascade do |t|
+    t.boolean "acne", default: false, null: false, comment: "여드름 여부"
+    t.boolean "backache", default: false, null: false, comment: "요통 여부"
     t.decimal "bbt", precision: 4, scale: 2, comment: "기초체온 (℃, 소수점 2자리, null=미기록)"
     t.integer "bloating", default: 0, null: false, comment: "부종 여부 (0=없음, 1=있음)"
+    t.boolean "breast_pain", default: false, null: false, comment: "유방통 여부"
     t.integer "cramps", default: 0, null: false, comment: "복통 강도 (0=없음, 1=약함, 2=강함)"
     t.datetime "created_at", null: false
     t.string "discharge_type", limit: 20, comment: "분비물 유형 (none/spotting/creamy/watery/egg_white, null=미기록)"
+    t.boolean "dizziness", default: false, null: false, comment: "어지러움 여부"
     t.integer "fatigue", default: 0, null: false, comment: "피로 여부 (0=없음, 1=있음)"
     t.integer "flow_level", comment: "출혈량 (0=없음, 1=점출혈, 2=적음, 3=보통, 4=많음, null=미기록)"
     t.integer "headache", default: 0, null: false, comment: "두통 여부 (0=없음, 1=있음)"
+    t.boolean "increased_appetite", default: false, null: false, comment: "식욕증가 여부"
     t.integer "lh_result", comment: "LH 배란 테스트 결과 (0=음성, 1=양성, null=미기록)"
     t.date "logged_on", null: false, comment: "기록 날짜"
     t.integer "mood", comment: "기분 점수 (1=불안 ~ 5=좋음, null=미기록)"
+    t.boolean "nausea", default: false, null: false, comment: "메스꺼움 여부"
     t.text "notes", comment: "자유 메모"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false, comment: "소유 유저"
@@ -115,14 +131,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000006) do
     t.datetime "created_at", null: false
     t.string "platform", limit: 10, default: "ios", null: false, comment: "플랫폼 (ios/android)"
     t.string "token", limit: 512, null: false, comment: "디바이스 푸시 토큰 (최대 512자)"
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.bigint "user_id", null: false, comment: "소유 유저"
-    t.datetime "updated_at", null: false
     t.index ["token"], name: "uq_push_tokens_token", unique: true
     t.index ["user_id"], name: "index_push_tokens_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "apple_uid", comment: "Apple Sign In 고유 식별자 (sub)"
     t.datetime "created_at", null: false
     t.integer "cycle_length_default", default: 28, null: false, comment: "기본 주기 길이(일), 주기 데이터 부족 시 예측 초기값으로 사용"
     t.string "email", null: false, comment: "로그인 이메일"
@@ -131,13 +146,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000006) do
     t.integer "luteal_phase_length", default: 14, null: false, comment: "황체기 길이(일), 배란일 역산에 사용 (기본 14일)"
     t.string "nickname", limit: 50, comment: "앱 내 표시 이름 (최대 50자)"
     t.boolean "notifications_enabled", default: true, null: false, comment: "푸시 알림 수신 여부"
+    t.datetime "password_reset_sent_at"
+    t.string "password_reset_token"
     t.integer "period_length_default", default: 5, null: false, comment: "평균 생리 기간(일), 종료일 추정에 사용 (기본 5일)"
     t.datetime "updated_at", null: false
-    t.index ["apple_uid"], name: "index_users_on_apple_uid", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["jti"], name: "index_users_on_jti", unique: true
+    t.index ["password_reset_token"], name: "index_users_on_password_reset_token"
   end
 
+  add_foreign_key "oauth_identities", "users", on_delete: :cascade
   add_foreign_key "ai_conversations", "users", on_delete: :cascade
   add_foreign_key "ai_daily_insights", "users", on_delete: :cascade
   add_foreign_key "ai_monthly_reports", "users", on_delete: :cascade

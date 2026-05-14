@@ -13,19 +13,20 @@ class User < ApplicationRecord
   has_many :ai_monthly_reports, dependent: :destroy
   has_many :ai_daily_insights, dependent: :destroy
   has_many :notification_logs, dependent: :destroy
+  has_many :oauth_identities, dependent: :destroy
 
-  # Apple Sign In 유저는 email/password 없이 생성될 수 있음
+  # OAuth(Apple 등) 유저는 email/password 없이 생성될 수 있음
   def password_required?
-    apple_uid.present? ? false : super
+    oauth_identities.none? && super
   end
 
   def email_required?
-    apple_uid.present? ? false : super
+    oauth_identities.none? && super
   end
 
   validates :email, uniqueness: { case_sensitive: false, allow_blank: true },
                     format: { with: URI::MailTo::EMAIL_REGEXP, allow_blank: true },
-                    presence: true, unless: :apple_uid
+                    presence: true, unless: -> { oauth_identities.any? }
   validates :nickname, length: { maximum: 50 }, allow_blank: true
   validates :cycle_length_default, numericality: { in: 2..90 }
   validates :luteal_phase_length, numericality: { in: 5..20 }

@@ -1,3 +1,5 @@
+require 'net/http'
+
 # Apple Sign In 서비스
 # Apple의 공개키로 identity token을 검증하고 apple_uid, email을 추출합니다.
 class AppleSignInService

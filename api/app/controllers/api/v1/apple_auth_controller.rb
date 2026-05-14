@@ -39,35 +39,28 @@ module Api
       private
 
       def find_or_create_user(apple_uid:, email:)
-        # 1. apple_uid로 먼저 찾기
-        user = User.find_by(apple_uid: apple_uid)
-        return user if user
+        # 1. oauth_identities로 먼저 찾기
+        identity = OauthIdentity.find_by(provider: "apple", uid: apple_uid)
+        return identity.user if identity
 
-        # 2. 이메일이 있으면 이메일로 찾기 (기존 계정 연동)
-        if email.present?
-          user = User.find_by(email: email)
-          if user
-            user.update_column(:apple_uid, apple_uid)
-            return user
-          end
-        end
+        # 2. 이메일로 기존 계정 찾기 (연동)
+        user = email.present? ? User.find_by(email: email) : nil
 
-        # 3. 신규 생성 (동시 요청 race condition 대비)
+        # 3. 없으면 신규 유저 생성
+        user ||= User.create!(
+          email: email.presence || "apple-#{apple_uid}@privaterelay.luna.app",
+          password: SecureRandom.hex(24),
+          jti: SecureRandom.uuid
+        )
+
+        # 4. OauthIdentity 연결 (race condition 대비)
         begin
-          User.create!(
-            apple_uid: apple_uid,
-            email: email.presence || generated_placeholder_email(apple_uid),
-            password: SecureRandom.hex(24),
-            jti: SecureRandom.uuid
-          )
+          user.oauth_identities.create!(provider: "apple", uid: apple_uid)
         rescue ActiveRecord::RecordNotUnique
-          User.find_by!(apple_uid: apple_uid)
+          # 이미 연결된 경우 무시
         end
-      end
 
-      # Apple이 이메일을 제공하지 않는 경우 placeholder 생성
-      def generated_placeholder_email(apple_uid)
-        "apple-#{apple_uid}@privaterelay.luna.app"
+        user
       end
 
       def user_json(user)

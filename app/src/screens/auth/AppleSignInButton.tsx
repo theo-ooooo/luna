@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, Platform, StyleSheet, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { api } from '../../api/client';
 import { useAuthStore } from '../../store/authStore';
@@ -57,18 +57,26 @@ export function AppleSignInButton() {
 
   return (
     <View style={styles.wrap}>
-      <AppleAuthentication.AppleAuthenticationButton
-        buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-        buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-        cornerRadius={12}
-        style={styles.button}
-        onPress={handleAppleSignIn}
-      />
+      <TouchableOpacity style={styles.button} onPress={handleAppleSignIn} activeOpacity={0.8}>
+        <Text style={styles.buttonText}> Apple로 로그인</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrap: { marginTop: 12 },
-  button: { width: '100%', height: 50 },
+  button: {
+    width: '100%',
+    height: 50,
+    backgroundColor: '#000',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'NotoSansKR_600SemiBold',
+  },
 });
