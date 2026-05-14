@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
-import { api } from '../api/client';
+import { api, ApiError } from '../api/client';
 import { useAuthStore } from '../store/authStore';
 
 interface UpdateUserResponse {
@@ -39,9 +39,13 @@ export function useOnboarding() {
         setAuth(token, response);
       }
 
-      // 마지막 월경일이 선택된 경우 주기 데이터 생성
+      // 마지막 월경일이 선택된 경우 주기 데이터 생성 (이미 존재하면 무시)
       if (lastPeriodDate != null) {
-        await api.post('/api/v1/cycles', { started_on: lastPeriodDate, flow_level: 1 });
+        try {
+          await api.post('/api/v1/cycles', { started_on: lastPeriodDate, flow_level: 1 });
+        } catch (e) {
+          if (!(e instanceof ApiError && e.code === 'DUPLICATE_DATE')) throw e;
+        }
       }
     },
     onSuccess: () => {
