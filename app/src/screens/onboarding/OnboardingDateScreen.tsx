@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   stepLabel: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, minWidth: 28, textAlign: 'right' },
   content: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 16 },
   eyebrow: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: 1.6 },
-  title: { fontSize: 44, fontFamily: 'NotoSansKR_900Black', letterSpacing: -2.2, lineHeight: 42, marginTop: 10, color: Colors.ink1 },
+  title: { fontSize: 44, fontFamily: 'NotoSansKR_900Black', letterSpacing: -2.2, lineHeight: 48, marginTop: 10, color: Colors.ink1 },
   coral: { color: Colors.coral },
   body: { fontSize: 13, color: Colors.ink2, lineHeight: 20, marginTop: 14, marginBottom: 24, maxWidth: 280 },
   calCard: { backgroundColor: Colors.bgCard, borderRadius: Radius.tile, padding: 16 },

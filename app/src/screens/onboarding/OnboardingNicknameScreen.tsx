@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     fontSize: 44,
     fontFamily: 'NotoSansKR_900Black',
     letterSpacing: -2.2,
-    lineHeight: 42,
+    lineHeight: 48,
     marginTop: 10,
     color: Colors.ink1,
   },
