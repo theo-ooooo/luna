@@ -84,5 +84,11 @@ RSpec.describe "Api::V1::Cycles", type: :request do
       }.to change(Cycle, :count).by(-1)
       expect(response).to have_http_status(:ok)
     end
+
+    it "삭제 후 PredictionService 예측 재계산 호출" do
+      expect_any_instance_of(PredictionService).to receive(:compute!)
+      delete "/api/v1/cycles/#{cycle.id}", headers: headers
+      expect(response).to have_http_status(:ok)
+    end
   end
 end
