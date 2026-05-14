@@ -6,7 +6,6 @@ import { Colors } from '../../theme/tokens';
 import { AuthField } from '../../components/auth/AuthField';
 import { PrimaryButton } from '../../components/auth/PrimaryButton';
 import { DomainChips, getEmailMatches } from '../../components/auth/DomainChips';
-import { LunaLogo } from '../../components/ui/LunaLogo';
 import { useCheckEmail } from '../../hooks/useAuthMutations';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 
@@ -42,7 +41,6 @@ export function EmailScreen({ navigation }: Props) {
             <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={12} accessibilityLabel="뒤로가기">
               <Text style={styles.backArrow}>←</Text>
             </TouchableOpacity>
-            <LunaLogo size={22} />
           </View>
 
           <View style={styles.hero}>
@@ -92,7 +90,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.bg },
   flex: { flex: 1 },
   content: { flexGrow: 1, paddingHorizontal: 24, paddingTop: 24, paddingBottom: 32 },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 },
+  topBar: { marginBottom: 32 },
   backArrow: { fontSize: 24, color: Colors.ink1, lineHeight: 28 },
   hero: { marginBottom: 32 },
   eyebrow: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: 1.6 },
