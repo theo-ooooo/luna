@@ -64,11 +64,10 @@ export function SettingsScreen() {
           onPress: async () => {
             try {
               await api.delete('/api/v1/auth/me');
-            } catch {
-              // 서버 오류여도 클라이언트 인증 상태는 항상 초기화
-            } finally {
               qc.clear();
               useAuthStore.getState().clearAuth();
+            } catch {
+              Alert.alert('탈퇴 실패', '잠시 후 다시 시도해주세요.');
             }
           },
         },
