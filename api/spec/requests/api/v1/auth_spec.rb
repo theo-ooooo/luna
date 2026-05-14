@@ -84,4 +84,26 @@ RSpec.describe "Api::V1::Auth", type: :request do
       expect(response).to have_http_status(:unauthorized)
     end
   end
+
+  describe "DELETE /api/v1/auth/me" do
+    let!(:user) { create(:user, email: "delete@example.com", password: "password123") }
+    let(:headers) { auth_headers(user) }
+
+    it "인증된 요청 시 200 반환 및 유저 삭제" do
+      delete "/api/v1/auth/me", headers: headers
+      expect(response).to have_http_status(:ok)
+      expect(User.exists?(user.id)).to be false
+    end
+
+    it "탈퇴 후 기존 JWT 사용 시 401 반환 (JWT 무효화)" do
+      delete "/api/v1/auth/me", headers: headers
+      get "/api/v1/users/me", headers: headers
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it "인증 없이 요청 시 401 반환" do
+      delete "/api/v1/auth/me"
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
 end
