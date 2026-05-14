@@ -25,7 +25,7 @@ export function LandingScreen({ navigation }: Props) {
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.emailButton} onPress={() => navigation.navigate('Email')} activeOpacity={0.8}>
-            <Text style={styles.emailButtonText}>이메일로 계속하기</Text>
+            <Text style={styles.emailButtonText}>이메일로 로그인</Text>
           </TouchableOpacity>
 
           <AppleSignInButton />
