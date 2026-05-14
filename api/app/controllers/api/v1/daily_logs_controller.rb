@@ -99,12 +99,15 @@ module Api
 
       def log_params
         params.permit(:logged_on, :cramps, :headache, :fatigue, :bloating,
-                      :mood, :discharge_type, :bbt, :lh_result, :notes, :flow_level)
+                      :mood, :discharge_type, :bbt, :lh_result, :notes, :flow_level,
+                      :backache, :breast_pain, :nausea, :acne, :increased_appetite, :dizziness)
       end
 
       def log_json(log)
         log.slice(:id, :logged_on, :cramps, :headache, :fatigue, :bloating,
-                  :mood, :discharge_type, :bbt, :lh_result, :notes, :flow_level, :created_at)
+                  :mood, :discharge_type, :bbt, :lh_result, :notes, :flow_level,
+                  :backache, :breast_pain, :nausea, :acne, :increased_appetite, :dizziness,
+                  :created_at)
       end
     end
   end
