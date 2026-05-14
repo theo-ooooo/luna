@@ -19,3 +19,8 @@ app/.env
 # OS
 .DS_Store
 *.swp
+
+# Claude Code
+.claude/
+.claire/
+app/pnpm-lock.yaml

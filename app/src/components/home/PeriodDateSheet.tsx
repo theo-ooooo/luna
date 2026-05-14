@@ -14,6 +14,7 @@ interface Props {
   onClose: () => void;
   mode: 'start' | 'end';
   minDate?: string;
+  initialDate?: string;
   onConfirm: (params: { date: string; flowLevel?: 1 | 2 | 3 }) => void;
   isLoading?: boolean;
 }
@@ -23,7 +24,7 @@ function todayStr() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-function buildDateOptions(minDate?: string): string[] {
+function buildDateOptions(minDate?: string, initialDate?: string): string[] {
   const today = new Date();
   const todayS = todayStr();
   const dates: string[] = [];
@@ -34,6 +35,10 @@ function buildDateOptions(minDate?: string): string[] {
     if (s > todayS) continue;
     if (minDate && s < minDate) continue;
     dates.push(s);
+  }
+  if (initialDate && initialDate <= todayS && (!minDate || initialDate >= minDate) && !dates.includes(initialDate)) {
+    dates.push(initialDate);
+    dates.sort((a, b) => (a > b ? -1 : 1));
   }
   return dates;
 }
@@ -49,19 +54,19 @@ function fmtChip(iso: string): string {
 
 const FLOW_LABELS: Record<1 | 2 | 3, string> = { 1: '가벼움', 2: '보통', 3: '많음' };
 
-export function PeriodDateSheet({ visible, onClose, mode, minDate, onConfirm, isLoading }: Props) {
+export function PeriodDateSheet({ visible, onClose, mode, minDate, initialDate, onConfirm, isLoading }: Props) {
   const insets = useSafeAreaInsets();
   const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
-  const dateOptions = buildDateOptions(mode === 'end' ? minDate : undefined);
-  const [selectedDate, setSelectedDate] = useState(() => dateOptions[0] ?? todayStr());
+  const dateOptions = buildDateOptions(mode === 'end' ? minDate : undefined, initialDate);
+  const [selectedDate, setSelectedDate] = useState(() => initialDate ?? dateOptions[0] ?? todayStr());
   const [selectedFlow, setSelectedFlow] = useState<1 | 2 | 3>(2);
 
   useEffect(() => {
-    const dates = buildDateOptions(mode === 'end' ? minDate : undefined);
-    setSelectedDate(dates[0] ?? todayStr());
-  }, [visible, mode, minDate]);
+    const dates = buildDateOptions(mode === 'end' ? minDate : undefined, initialDate);
+    setSelectedDate(initialDate ?? dates[0] ?? todayStr());
+  }, [visible, mode, minDate, initialDate]);
 
   useEffect(() => {
     if (visible) {

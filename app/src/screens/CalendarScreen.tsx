@@ -11,9 +11,11 @@ import { DayDetailCard } from '../components/calendar/DayDetailCard';
 import { InsightsBody } from '../components/insights/InsightsBody';
 import { DateSearchSheet } from '../components/home/DateSearchSheet';
 import { useCalendar } from '../hooks/useCalendar';
-import { useLatestCycle } from '../hooks/useCycles';
+import { useLatestCycle, useStartPeriod, useEndPeriod } from '../hooks/useCycles';
 import { usePrediction } from '../hooks/usePrediction';
 import { useLogForDate } from '../hooks/useDailyLog';
+import { PeriodDateSheet } from '../components/home/PeriodDateSheet';
+import Toast from 'react-native-toast-message';
 import { phaseForDay, CYCLE_DEFAULTS } from '../utils/phase';
 import type { PhaseFilter } from '../hooks/useCalendar';
 import type { PhaseKey } from '../theme/tokens';
@@ -33,9 +35,9 @@ interface PhaseChipOption {
 const PHASE_CHIPS: PhaseChipOption[] = [
   { label: '전체', value: 'all' },
   { label: '생리기', value: 'menstrual' },
-  { label: '난포기', value: 'follicular' },
-  { label: '배란기', value: 'ovulation' },
-  { label: '황체기', value: 'luteal' },
+  { label: '생리 후', value: 'follicular' },
+  { label: '가임기', value: 'ovulation' },
+  { label: '생리 전', value: 'luteal' },
 ];
 
 const MOOD_LABELS: Record<number, string> = { 5: '좋음', 4: '평온', 3: '짜증', 2: '우울', 1: '불안' };
@@ -46,6 +48,7 @@ export function CalendarScreen() {
   const chartW = screenW - CONTENT_PADDING * 2 - TILE_PADDING * 2;
   const [activeTab, setActiveTab] = useState<Tab>('calendar');
   const [searchVisible, setSearchVisible] = useState(false);
+  const [periodSheet, setPeriodSheet] = useState<'start' | 'end' | null>(null);
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
 
   const {
@@ -58,6 +61,8 @@ export function CalendarScreen() {
 
   const { data: latestCycle } = useLatestCycle();
   const { data: prediction } = usePrediction();
+  const startPeriod = useStartPeriod();
+  const endPeriod = useEndPeriod();
 
   const selectedDateStr = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
   const { data: selectedLog } = useLogForDate(selectedDateStr);
@@ -127,6 +132,37 @@ export function CalendarScreen() {
     const date = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
     navigation.navigate('Record', { date });
   }, [year, month, selectedDay, navigation]);
+
+  // 진행 중인 사이클(ended_on 없음)이고 선택 날짜가 시작일 이후인 경우 생리 종료 버튼 표시
+  const showEndPeriod = !isFutureDate && !!latestCycle && !latestCycle.ended_on && selectedDateStr >= latestCycle.started_on;
+  // 진행 중인 사이클이 없거나, 선택 날짜가 현재 사이클 시작 전인 경우 생리 시작 버튼 표시
+  const showStartPeriod = !isFutureDate && (!latestCycle || !!latestCycle.ended_on);
+
+  function handlePeriodSheetConfirm({ date, flowLevel }: { date: string; flowLevel?: 1 | 2 | 3 }) {
+    if (periodSheet === 'start') {
+      startPeriod.mutate(
+        { flowLevel: flowLevel ?? 2, startedOn: date },
+        {
+          onSuccess: () => {
+            setPeriodSheet(null);
+            Toast.show({ type: 'success', text1: '생리 시작을 기록했어요.' });
+          },
+          onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
+        },
+      );
+    } else if (periodSheet === 'end' && latestCycle) {
+      endPeriod.mutate(
+        { cycleId: latestCycle.id, endedOn: date },
+        {
+          onSuccess: () => {
+            setPeriodSheet(null);
+            Toast.show({ type: 'success', text1: '생리 종료를 기록했어요.' });
+          },
+          onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
+        },
+      );
+    }
+  }
 
   function isDimmed(day: number): boolean {
     if (activePhaseFilter === 'all' || dayPhases === null) return false;
@@ -246,7 +282,10 @@ export function CalendarScreen() {
               phaseKey={selectedPhaseKey}
               isToday={selectedDay === today.day && month === today.month && year === today.year}
               logChips={logChips}
+              hasLog={!!selectedLog}
               onRecord={isFutureDate ? undefined : handleRecord}
+              onStartPeriod={showStartPeriod ? () => setPeriodSheet('start') : undefined}
+              onEndPeriod={showEndPeriod ? () => setPeriodSheet('end') : undefined}
             />
           </ScrollView>
 
@@ -254,6 +293,16 @@ export function CalendarScreen() {
             visible={searchVisible}
             onClose={() => setSearchVisible(false)}
             onSelect={jumpToDate}
+          />
+
+          <PeriodDateSheet
+            visible={periodSheet !== null}
+            onClose={() => setPeriodSheet(null)}
+            mode={periodSheet ?? 'start'}
+            initialDate={selectedDateStr}
+            minDate={periodSheet === 'end' ? latestCycle?.started_on : undefined}
+            onConfirm={handlePeriodSheetConfirm}
+            isLoading={startPeriod.isPending || endPeriod.isPending}
           />
         </>
       ) : (

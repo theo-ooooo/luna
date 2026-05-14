@@ -32,10 +32,10 @@ export const Colors = {
 } as const;
 
 export const Phase = {
-  menstrual:  { color: '#FF5A47', soft: '#FFB8AE', bg: '#FFDFD9', ink: '#FFFFFF', ko: '월경기', en: 'MENSTRUAL',  desc: '몸이 회복 중이에요. 무리하지 말고 천천히.' },
-  follicular: { color: '#B5E021', soft: '#ECFFB0', bg: '#F1FFC9', ink: '#14110F', ko: '난포기', en: 'FOLLICULAR', desc: '에너지가 차오르는 시기. 새로운 일을 시작해 보세요.' },
-  ovulation:  { color: '#FFD53D', soft: '#FFF1A8', bg: '#FFF6C9', ink: '#14110F', ko: '배란기', en: 'OVULATION',  desc: '몸과 마음이 가장 활기찬 때. 임신 가능성이 가장 높아요.' },
-  luteal:     { color: '#C9B8FF', soft: '#E2D7FF', bg: '#ECE3FF', ink: '#14110F', ko: '황체기', en: 'LUTEAL',     desc: 'PMS가 찾아올 수 있어요. 자신에게 다정해지세요.' },
+  menstrual:  { color: '#FF5A47', soft: '#FFB8AE', bg: '#FFDFD9', ink: '#FFFFFF', ko: '생리기', en: 'MENSTRUAL',  desc: '몸이 회복 중이에요. 무리하지 말고 천천히.' },
+  follicular: { color: '#B5E021', soft: '#ECFFB0', bg: '#F1FFC9', ink: '#14110F', ko: '생리 후', en: 'FOLLICULAR', desc: '에너지가 차오르는 시기. 새로운 일을 시작해 보세요.' },
+  ovulation:  { color: '#FFD53D', soft: '#FFF1A8', bg: '#FFF6C9', ink: '#14110F', ko: '가임기', en: 'OVULATION',  desc: '몸과 마음이 가장 활기찬 때. 임신 가능성이 가장 높아요.' },
+  luteal:     { color: '#C9B8FF', soft: '#E2D7FF', bg: '#ECE3FF', ink: '#14110F', ko: '생리 전', en: 'LUTEAL',     desc: 'PMS가 찾아올 수 있어요. 자신에게 다정해지세요.' },
 } as const;
 
 export type PhaseKey = keyof typeof Phase;

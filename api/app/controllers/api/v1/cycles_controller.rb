@@ -56,7 +56,7 @@ module Api
       end
 
       def create_params
-        params.permit(:started_on, :flow_level)
+        params.permit(:started_on, :ended_on, :flow_level)
       end
 
       def update_params
