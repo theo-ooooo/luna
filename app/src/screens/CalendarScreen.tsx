@@ -38,7 +38,7 @@ const PHASE_CHIPS: PhaseChipOption[] = [
   { label: '황체기', value: 'luteal' },
 ];
 
-const MOOD_LABELS: Record<number, string> = { 5: '좋음', 4: '평온', 3: '짜증', 2: '피곤', 1: '불안' };
+const MOOD_LABELS: Record<number, string> = { 5: '좋음', 4: '평온', 3: '짜증', 2: '우울', 1: '불안' };
 
 export function CalendarScreen() {
   const { width: screenW } = useWindowDimensions();

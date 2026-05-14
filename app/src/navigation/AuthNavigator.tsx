@@ -5,8 +5,6 @@ import { PasswordScreen } from '../screens/auth/PasswordScreen';
 import { SignupStep1Screen } from '../screens/auth/SignupStep1Screen';
 import { SignupStep2Screen } from '../screens/auth/SignupStep2Screen';
 import { SignupStep3Screen } from '../screens/auth/SignupStep3Screen';
-import { ForgotPasswordScreen } from '../screens/auth/ForgotPasswordScreen';
-import { ResetPasswordScreen } from '../screens/auth/ResetPasswordScreen';
 
 export type AuthStackParamList = {
   Email: undefined;
@@ -14,8 +12,6 @@ export type AuthStackParamList = {
   SignupStep1: { email: string };
   SignupStep2: { email: string; nickname: string; password: string };
   SignupStep3: { email: string; nickname: string; password: string; lastPeriodDate: string };
-  ForgotPassword: undefined;
-  ResetPassword: { email: string; code: string };
 };
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -28,8 +24,6 @@ export function AuthNavigator() {
       <Stack.Screen name="SignupStep1" component={SignupStep1Screen} />
       <Stack.Screen name="SignupStep2" component={SignupStep2Screen} />
       <Stack.Screen name="SignupStep3" component={SignupStep3Screen} />
-      <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
     </Stack.Navigator>
   );
 }
