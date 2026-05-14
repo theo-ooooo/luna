@@ -52,13 +52,17 @@ module Api
           end
         end
 
-        # 3. 신규 생성
-        User.create!(
-          apple_uid: apple_uid,
-          email: email.presence || generated_placeholder_email(apple_uid),
-          password: SecureRandom.hex(24),
-          jti: SecureRandom.uuid
-        )
+        # 3. 신규 생성 (동시 요청 race condition 대비)
+        begin
+          User.create!(
+            apple_uid: apple_uid,
+            email: email.presence || generated_placeholder_email(apple_uid),
+            password: SecureRandom.hex(24),
+            jti: SecureRandom.uuid
+          )
+        rescue ActiveRecord::RecordNotUnique
+          User.find_by!(apple_uid: apple_uid)
+        end
       end
 
       # Apple이 이메일을 제공하지 않는 경우 placeholder 생성

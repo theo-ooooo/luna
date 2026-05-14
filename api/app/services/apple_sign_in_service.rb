@@ -3,6 +3,7 @@
 class AppleSignInService
   APPLE_KEYS_URI = "https://appleid.apple.com/auth/keys"
   APPLE_ISSUER   = "https://appleid.apple.com"
+  APPLE_AUD      = "com.luna.app"
 
   # identity_token (JWT 문자열) 을 검증하고 { apple_uid:, email: } 반환
   # 검증 실패 시 예외 발생
@@ -41,15 +42,17 @@ class AppleSignInService
   end
 
   def fetch_apple_keys
-    uri      = URI.parse(APPLE_KEYS_URI)
-    http     = Net::HTTP.new(uri.host, uri.port)
-    http.use_ssl = true
-    http.open_timeout = 5
-    http.read_timeout = 5
-    response = http.get(uri.path)
-    raise AppleSignInError, "Apple 공개키 조회 실패 (#{response.code})" unless response.is_a?(Net::HTTPSuccess)
+    Rails.cache.fetch("apple_jwks", expires_in: 1.hour) do
+      uri      = URI.parse(APPLE_KEYS_URI)
+      http     = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      http.open_timeout = 5
+      http.read_timeout = 5
+      response = http.get(uri.path)
+      raise AppleSignInError, "Apple 공개키 조회 실패 (#{response.code})" unless response.is_a?(Net::HTTPSuccess)
 
-    JSON.parse(response.body)["keys"]
+      JSON.parse(response.body)["keys"]
+    end
   rescue Net::OpenTimeout, Net::ReadTimeout
     raise AppleSignInError, "Apple 공개키 조회 타임아웃"
   end
@@ -63,7 +66,9 @@ class AppleSignInService
       true,
       algorithms: [ jwk["alg"] || "RS256" ],
       iss: APPLE_ISSUER,
-      verify_iss: true
+      verify_iss: true,
+      aud: APPLE_AUD,
+      verify_aud: true
     )
     payload
   end
