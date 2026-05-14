@@ -24,6 +24,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000005) do
     t.index ["user_id"], name: "index_ai_conversations_on_user_id"
   end
 
+  create_table "ai_daily_insights", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.date "date", null: false
+    t.text "content"
+    t.boolean "stale", default: false, null: false
+    t.datetime "generated_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "date"], name: "index_ai_daily_insights_on_user_id_and_date", unique: true
+    t.index ["user_id"], name: "index_ai_daily_insights_on_user_id"
+  end
+
   create_table "ai_monthly_reports", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "generated_at", comment: "리포트 AI 생성 시각"
@@ -126,6 +138,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000005) do
   end
 
   add_foreign_key "ai_conversations", "users", on_delete: :cascade
+  add_foreign_key "ai_daily_insights", "users"
   add_foreign_key "ai_monthly_reports", "users", on_delete: :cascade
   add_foreign_key "cycles", "users", on_delete: :cascade
   add_foreign_key "daily_logs", "users", on_delete: :cascade
