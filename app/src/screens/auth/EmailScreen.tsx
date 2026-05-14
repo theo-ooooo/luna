@@ -9,6 +9,7 @@ import { DomainChips, getEmailMatches } from '../../components/auth/DomainChips'
 import { LunaLogo } from '../../components/ui/LunaLogo';
 import { useCheckEmail } from '../../hooks/useAuthMutations';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
+import { AppleSignInButton } from './AppleSignInButton';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Email'>;
 
@@ -73,6 +74,8 @@ export function EmailScreen({ navigation }: Props) {
                 계속하기
               </PrimaryButton>
             </View>
+
+            <AppleSignInButton />
           </View>
 
           <Text style={styles.terms}>
