@@ -2,7 +2,7 @@
   "expo": {
     "name": "Luna - 생리주기 달력",
     "slug": "luna",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
