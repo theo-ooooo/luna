@@ -85,10 +85,21 @@ RSpec.describe "Api::V1::Cycles", type: :request do
       expect(response).to have_http_status(:ok)
     end
 
-    it "삭제 후 PredictionService 예측 재계산 호출" do
-      expect_any_instance_of(PredictionService).to receive(:compute!)
-      delete "/api/v1/cycles/#{cycle.id}", headers: headers
-      expect(response).to have_http_status(:ok)
+    context "주기가 여러 개일 때 삭제하면 PredictionService 재계산 호출" do
+      it "PredictionService#compute! 호출" do
+        create(:cycle, user: user)
+        expect_any_instance_of(PredictionService).to receive(:compute!)
+        delete "/api/v1/cycles/#{cycle.id}", headers: headers
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
+    context "마지막 주기 삭제 시 예측 데이터 제거" do
+      it "prediction 삭제" do
+        PredictionService.new(user).compute!
+        delete "/api/v1/cycles/#{cycle.id}", headers: headers
+        expect(user.predictions.reload).to be_empty
+      end
     end
   end
 end
