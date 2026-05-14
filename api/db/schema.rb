@@ -137,7 +137,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000002) do
   end
 
   add_foreign_key "ai_conversations", "users", on_delete: :cascade
-  add_foreign_key "ai_daily_insights", "users", on_delete: :cascade
+  add_foreign_key "ai_daily_insights", "users"
   add_foreign_key "ai_monthly_reports", "users", on_delete: :cascade
   add_foreign_key "cycles", "users", on_delete: :cascade
   add_foreign_key "daily_logs", "users", on_delete: :cascade
