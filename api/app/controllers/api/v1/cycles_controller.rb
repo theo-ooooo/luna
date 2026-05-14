@@ -41,8 +41,11 @@ module Api
 
       def destroy
         @cycle.destroy!
-        # 주기 삭제 후 예측 재계산 — 실패해도 삭제는 이미 완료되었으므로 무시
-        PredictionService.new(current_user).compute! rescue nil
+        if current_user.cycles.exists?
+          PredictionService.new(current_user).compute! rescue nil
+        else
+          current_user.predictions.destroy_all
+        end
         success(nil)
       end
 
