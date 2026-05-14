@@ -25,7 +25,7 @@ export function ResetPasswordScreen({ navigation, route }: Props) {
     try {
       await resetPassword.mutateAsync({ email, code, password });
       Toast.show({ type: 'success', text1: '비밀번호가 변경되었어요', text2: '새 비밀번호로 로그인해주세요.' });
-      navigation.navigate('Password', { email });
+      navigation.reset({ index: 0, routes: [{ name: 'Password', params: { email } }] });
     } catch (err) {
       Toast.show({
         type: 'error',

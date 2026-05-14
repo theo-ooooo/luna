@@ -16,21 +16,28 @@ module Api
         end
 
         code = rand(100_000..999_999).to_s
+        hashed = Digest::SHA256.hexdigest(code)
         user.update_columns(
-          password_reset_token: code,
+          password_reset_token: hashed,
           password_reset_sent_at: Time.current
         )
 
-        # TODO: 이메일 발송 구현 후 code를 응답에서 제거
-        success({ message: "인증코드가 발송되었습니다.", code: code })
+        # 프로덕션에서는 코드를 응답에 포함하지 않음 (이메일 발송으로 전달)
+        response_data = Rails.env.production? ? nil : { code: code }
+        success(response_data&.merge(message: "인증코드가 발송되었습니다.") || { message: "인증코드가 발송되었습니다." })
       end
 
       # POST /api/v1/passwords/verify
       # 인증코드 검증 후 비밀번호를 변경합니다.
       def verify
-        email    = params.require(:email).to_s.downcase.strip
-        code     = params.require(:code).to_s.strip
-        password = params.require(:password)
+        email                 = params.require(:email).to_s.downcase.strip
+        code                  = params.require(:code).to_s.strip
+        password              = params.require(:password)
+        password_confirmation = params.fetch(:password_confirmation, password)
+
+        if password != password_confirmation
+          return failure("VALIDATION_ERROR", "비밀번호가 일치하지 않아요.", status: :unprocessable_content)
+        end
 
         user = User.find_by(email: email)
 
@@ -43,11 +50,12 @@ module Api
           return failure("EXPIRED_CODE", "인증코드가 만료되었습니다. 다시 요청해주세요.", status: :unprocessable_content)
         end
 
-        unless user.password_reset_token == code
-          return failure("INVALID_CODE", "인증코드가 올바르지 않습니다.", status: :unprocessable_content)
+        submitted_hash = Digest::SHA256.hexdigest(code)
+        unless ActiveSupport::SecurityUtils.secure_compare(user.password_reset_token, submitted_hash)
+          return failure("INVALID_CODE", "인증코드가 올바르지 않아요.", status: :unprocessable_content)
         end
 
-        user.update!(password: password, password_confirmation: password)
+        user.update!(password: password, password_confirmation: password_confirmation)
         user.update_columns(password_reset_token: nil, password_reset_sent_at: nil)
 
         success({ message: "비밀번호가 변경되었습니다." })
