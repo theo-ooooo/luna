@@ -4,6 +4,10 @@ module Api
       include ActionController::Live
       def chat
         message = params.require(:message)
+        if message.to_s.length > 1000
+          return failure("VALIDATION_ERROR", "메시지가 너무 길어요. 1000자 이하로 입력해주세요.", status: :unprocessable_content)
+        end
+
         conversation = find_or_create_conversation
 
         context = Ai::ContextBuilder.new(current_user).build
