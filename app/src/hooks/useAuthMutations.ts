@@ -17,6 +17,9 @@ interface AuthResponse {
     nickname?: string;
     cycle_length_default: number;
     luteal_phase_length: number;
+    period_length_default: number;
+    notifications_enabled?: boolean;
+    onboarding_completed: boolean;
   };
 }
 
@@ -28,7 +31,7 @@ export function useLogin() {
       api.post<AuthResponse>('/api/v1/auth/login', { user: { email, password } }),
     onSuccess: ({ token, user }) => {
       setAuth(token, user);
-      setOnboardingDone(true);
+      setOnboardingDone(!!user.onboarding_completed);
     },
   });
 }
