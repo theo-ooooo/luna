@@ -11,7 +11,7 @@ import type { OnboardingStackParamList } from '../../navigation/OnboardingNaviga
 
 type Props = NativeStackScreenProps<OnboardingStackParamList, 'Nickname'>;
 
-export function OnboardingNicknameScreen({ route }: Props) {
+export function OnboardingNicknameScreen({ route, navigation }: Props) {
   const { cycleLen, lastPeriodDate } = route.params;
   const [nickname, setNickname] = useState('');
   const { submit, isPending } = useOnboarding();
@@ -24,6 +24,9 @@ export function OnboardingNicknameScreen({ route }: Props) {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={styles.header}>
+          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+            <Text style={styles.backIcon}>←</Text>
+          </TouchableOpacity>
           <View style={styles.progressWrap}>
             <View style={[styles.bar, styles.barActive]} />
             <View style={[styles.bar, styles.barActive]} />
@@ -79,6 +82,8 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 8,
   },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Colors.bgCard, alignItems: 'center', justifyContent: 'center' },
+  backIcon: { fontSize: 16, color: Colors.ink1 },
   progressWrap: { flex: 1, flexDirection: 'row', gap: 4 },
   bar: { flex: 1, height: 4, borderRadius: 2, backgroundColor: Colors.borderSoft },
   barActive: { backgroundColor: Colors.ink1 },
