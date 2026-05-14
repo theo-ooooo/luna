@@ -44,9 +44,9 @@ export function useOnboarding() {
 
       // 마지막 월경일이 선택된 경우 완료된 주기로 생성 (ended_on 포함해 생리중 표시 방지)
       if (lastPeriodDate != null) {
-        const endDate = new Date(lastPeriodDate);
-        endDate.setDate(endDate.getDate() + periodLen - 1);
-        const endedOn = endDate.toISOString().split('T')[0];
+        const [y, m, d] = lastPeriodDate.split('-').map(Number);
+        const end = new Date(y, m - 1, d + periodLen - 1);
+        const endedOn = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}-${String(end.getDate()).padStart(2, '0')}`;
         try {
           await api.post('/api/v1/cycles', { started_on: lastPeriodDate, ended_on: endedOn, flow_level: 1 });
         } catch (e) {
