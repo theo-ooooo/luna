@@ -122,6 +122,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000006) do
   end
 
   create_table "users", force: :cascade do |t|
+    t.string "apple_uid", comment: "Apple Sign In 고유 식별자 (sub)"
     t.datetime "created_at", null: false
     t.integer "cycle_length_default", default: 28, null: false, comment: "기본 주기 길이(일), 주기 데이터 부족 시 예측 초기값으로 사용"
     t.string "email", null: false, comment: "로그인 이메일"
@@ -132,6 +133,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_000006) do
     t.boolean "notifications_enabled", default: true, null: false, comment: "푸시 알림 수신 여부"
     t.integer "period_length_default", default: 5, null: false, comment: "평균 생리 기간(일), 종료일 추정에 사용 (기본 5일)"
     t.datetime "updated_at", null: false
+    t.index ["apple_uid"], name: "index_users_on_apple_uid", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["jti"], name: "index_users_on_jti", unique: true
   end

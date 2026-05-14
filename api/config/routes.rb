@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       post   "auth/check_email", to: "auth#check_email"
+      post   "auth/apple",      to: "apple_auth#create"
       delete "auth/me",         to: "auth#destroy"
 
       get   "users/me",  to: "users#show"
