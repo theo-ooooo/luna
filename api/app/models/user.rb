@@ -13,20 +13,22 @@ class User < ApplicationRecord
   has_many :ai_monthly_reports, dependent: :destroy
   has_many :ai_daily_insights, dependent: :destroy
   has_many :notification_logs, dependent: :destroy
-  has_many :oauth_identities, dependent: :destroy
+  has_many :oauth_identities, dependent: :destroy, inverse_of: :user
 
   # OAuth(Apple 등) 유저는 email/password 없이 생성될 수 있음
+  # 신규 레코드는 Devise 기본값(email+password 필수)을 따르고, 컨트롤러에서 placeholder를 채워준다.
+  # 이미 저장된 OAuth 유저는 oauth_identities 존재 시 불필요.
   def password_required?
-    oauth_identities.none? && super
+    new_record? ? super : (oauth_identities.none? && super)
   end
 
   def email_required?
-    oauth_identities.none? && super
+    new_record? ? super : (oauth_identities.none? && super)
   end
 
   validates :email, uniqueness: { case_sensitive: false, allow_blank: true },
                     format: { with: URI::MailTo::EMAIL_REGEXP, allow_blank: true },
-                    presence: true, unless: -> { oauth_identities.any? }
+                    presence: true, unless: -> { !new_record? && oauth_identities.any? }
   validates :nickname, length: { maximum: 50 }, allow_blank: true
   validates :cycle_length_default, numericality: { in: 2..90 }
   validates :luteal_phase_length, numericality: { in: 5..20 }

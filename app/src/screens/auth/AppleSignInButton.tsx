@@ -58,7 +58,7 @@ export function AppleSignInButton() {
   return (
     <View style={styles.wrap}>
       <TouchableOpacity style={styles.button} onPress={handleAppleSignIn} activeOpacity={0.8}>
-        <Text style={styles.buttonText}> Apple로 로그인</Text>
+        <Text style={styles.buttonText}>Apple로 로그인</Text>
       </TouchableOpacity>
     </View>
   );

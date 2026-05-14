@@ -57,7 +57,9 @@ module Api
         begin
           user.oauth_identities.create!(provider: "apple", uid: apple_uid)
         rescue ActiveRecord::RecordNotUnique
-          # 이미 연결된 경우 무시
+          # 동시 요청으로 다른 유저에 먼저 연결된 경우 해당 유저를 반환
+          identity = OauthIdentity.find_by(provider: "apple", uid: apple_uid)
+          return identity.user if identity
         end
 
         user
