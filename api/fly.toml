@@ -5,7 +5,7 @@ console_command = "/rails/bin/rails console"
 [build]
 
 [deploy]
-  release_command = "./bin/rails db:migrate && ./bin/rails db:seed"
+  release_command = "bash -c './bin/rails db:migrate && ./bin/rails db:seed'"
 
 [env]
   HTTP_PORT = "8080"
