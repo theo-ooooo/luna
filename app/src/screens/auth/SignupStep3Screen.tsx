@@ -10,16 +10,18 @@ import { useSignup } from '../../hooks/useAuthMutations';
 import type { AuthStackParamList } from '../../navigation/AuthNavigator';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignupStep3'>;
-const QUICK_PICKS = [26, 28, 30, 32];
+const CYCLE_PICKS = [26, 28, 30, 32];
+const PERIOD_PICKS = [3, 4, 5, 6, 7];
 
 export function SignupStep3Screen({ navigation, route }: Props) {
   const { email, nickname, password, lastPeriodDate } = route.params;
   const [cycleLen, setCycleLen] = useState(28);
+  const [periodLen, setPeriodLen] = useState(5);
   const signup = useSignup();
 
   function handleStart() {
     signup.mutate(
-      { email, password, nickname, cycleLength: cycleLen, lastPeriodDate },
+      { email, password, nickname, cycleLength: cycleLen, periodLength: periodLen, lastPeriodDate },
       { onError: (err) => Toast.show({ type: 'error', text1: '가입 실패', text2: (err as Error).message ?? '가입에 실패했어요.' }) },
     );
   }
@@ -42,10 +44,12 @@ export function SignupStep3Screen({ navigation, route }: Props) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.eyebrow}>STEP 03 · 주기 길이</Text>
-        <Text style={styles.title}>보통 며칠{'\n'}간격인가요<Text style={styles.coral}>?</Text></Text>
-        <Text style={styles.body}>모른다면 평균인 28일로 시작해도 좋아요. Luna가 사용하면서 학습해요.</Text>
+        <Text style={styles.eyebrow}>STEP 03 · 주기 정보</Text>
+        <Text style={styles.title}>나의 주기를{'\n'}알려주세요<Text style={styles.coral}>.</Text></Text>
+        <Text style={styles.body}>모른다면 기본값으로 시작해도 좋아요. Luna가 사용하면서 학습해요.</Text>
 
+        {/* 주기 길이 */}
+        <Text style={styles.sectionLabel}>월경 주기 길이</Text>
         <View style={styles.stepper}>
           <TouchableOpacity style={styles.stepBtn} onPress={() => setCycleLen(v => Math.max(21, v - 1))}>
             <Icon name="minus" size={20} strokeWidth={2.4} color={Colors.ink1} />
@@ -60,9 +64,33 @@ export function SignupStep3Screen({ navigation, route }: Props) {
         </View>
 
         <View style={styles.quickRow}>
-          {QUICK_PICKS.map(v => (
+          {CYCLE_PICKS.map(v => (
             <TouchableOpacity key={v} style={[styles.quick, cycleLen === v && styles.quickActive]} onPress={() => setCycleLen(v)}>
               <Text style={[styles.quickText, cycleLen === v && styles.quickTextActive]}>{v}일</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* 생리 기간 */}
+        <View style={styles.divider} />
+        <Text style={styles.sectionLabel}>생리 기간</Text>
+        <View style={styles.stepperSmall}>
+          <TouchableOpacity style={styles.stepBtnSmall} onPress={() => setPeriodLen(v => Math.max(2, v - 1))}>
+            <Icon name="minus" size={16} strokeWidth={2.4} color={Colors.ink1} />
+          </TouchableOpacity>
+          <View style={styles.stepValueSmall}>
+            <Text style={styles.stepNumberSmall}>{periodLen}</Text>
+            <Text style={styles.stepUnit}>일 / DAYS</Text>
+          </View>
+          <TouchableOpacity style={styles.stepBtnSmall} onPress={() => setPeriodLen(v => Math.min(10, v + 1))}>
+            <Icon name="plus" size={16} strokeWidth={2.4} color={Colors.ink1} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.quickRow}>
+          {PERIOD_PICKS.map(v => (
+            <TouchableOpacity key={v} style={[styles.quick, periodLen === v && styles.quickActive]} onPress={() => setPeriodLen(v)}>
+              <Text style={[styles.quickText, periodLen === v && styles.quickTextActive]}>{v}일</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -77,7 +105,6 @@ export function SignupStep3Screen({ navigation, route }: Props) {
             </Text>
           </View>
         </View>
-
       </ScrollView>
 
       <View style={styles.footer}>
@@ -102,18 +129,24 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: 1.6 },
   title: { fontSize: 44, fontFamily: 'NotoSansKR_900Black', letterSpacing: -2.2, lineHeight: 52, marginTop: 10, color: Colors.ink1 },
   coral: { color: Colors.coral },
-  body: { fontSize: 13, color: Colors.ink2, lineHeight: 20, marginTop: 14, marginBottom: 40, maxWidth: 280 },
+  body: { fontSize: 13, color: Colors.ink2, lineHeight: 20, marginTop: 14, marginBottom: 32, maxWidth: 280 },
+  sectionLabel: { fontSize: 12, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: 0.8, marginBottom: 20 },
   stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 22 },
   stepBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.bgCard, alignItems: 'center', justifyContent: 'center' },
   stepValue: { alignItems: 'center', minWidth: 130 },
   stepNumber: { fontSize: 96, fontFamily: 'NotoSansKR_900Black', letterSpacing: -5, lineHeight: 100, color: Colors.ink1 },
+  stepperSmall: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 22 },
+  stepBtnSmall: { width: 44, height: 44, borderRadius: 22, backgroundColor: Colors.bgCard, alignItems: 'center', justifyContent: 'center' },
+  stepValueSmall: { alignItems: 'center', minWidth: 130 },
+  stepNumberSmall: { fontSize: 64, fontFamily: 'NotoSansKR_900Black', letterSpacing: -3, lineHeight: 68, color: Colors.ink1 },
   stepUnit: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: 1.2, marginTop: 4 },
-  quickRow: { flexDirection: 'row', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginTop: 32 },
+  quickRow: { flexDirection: 'row', gap: 6, justifyContent: 'center', flexWrap: 'wrap', marginTop: 20 },
   quick: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: Radius.pill, backgroundColor: Colors.bgCard },
   quickActive: { backgroundColor: Colors.bgInk },
   quickText: { fontSize: 12, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink2 },
   quickTextActive: { color: Colors.inkInv },
-  previewCard: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', backgroundColor: Colors.bgCard, borderRadius: 18, padding: 16, marginTop: 32 },
+  divider: { height: 1, backgroundColor: Colors.borderSoft, marginVertical: 28 },
+  previewCard: { flexDirection: 'row', gap: 12, alignItems: 'flex-start', backgroundColor: Colors.bgCard, borderRadius: 18, padding: 16, marginTop: 28 },
   previewBody: { flex: 1 },
   previewTitle: { fontSize: 12, fontFamily: 'NotoSansKR_800ExtraBold', color: Colors.ink1 },
   previewDate: { fontSize: 11, color: Colors.ink2, marginTop: 4, lineHeight: 17 },
