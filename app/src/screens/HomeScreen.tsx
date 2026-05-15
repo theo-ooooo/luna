@@ -21,8 +21,8 @@ import { useAiDailyInsight } from '../hooks/useAiDailyInsight';
 import { useLatestCycle, useStartPeriod, useEndPeriod } from '../hooks/useCycles';
 import { useTodayLog } from '../hooks/useDailyLog';
 import { useBbtHistory } from '../hooks/useBbtHistory';
+import { usePeriodLength } from '../hooks/usePeriodLength';
 import type { TabParamList } from '../navigation/TabNavigator';
-import { useAuthStore } from '../store/authStore';
 
 const MOOD_LABELS: Record<number, string> = { 5: '좋음', 4: '평온', 3: '짜증', 2: '피곤', 1: '불안' };
 
@@ -59,10 +59,9 @@ export function HomeScreen() {
   }, []);
   const { data: insight, isLoading: insightLoading } = useAiDailyInsight(todayIso);
 
-  const user = useAuthStore(s => s.user);
   const cycleDay = prediction?.cycle_day ?? 1;
   const cycleLength: number = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
-  const periodLength = user?.period_length_default ?? CYCLE_DEFAULTS.period;
+  const periodLength = usePeriodLength();
   const phaseKey = phaseForDay(cycleDay, cycleLength, periodLength);
   const dPeriod = daysUntilPeriod(cycleDay, cycleLength);
 

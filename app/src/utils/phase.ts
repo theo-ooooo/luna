@@ -3,8 +3,6 @@ import { Phase, PhaseKey } from '../theme/tokens';
 export const CYCLE_DEFAULTS = {
   length: 28,
   period: 5,
-  follicularEnd: 12,  // day ≤ this → follicular (scales with cycle length in future)
-  ovulationEnd: 16,   // day ≤ this → ovulation
 } as const;
 
 export function phaseForDay(
@@ -15,7 +13,7 @@ export function phaseForDay(
   if (day < 1) day = 1;
   if (day > cycleLength) day = ((day - 1) % cycleLength) + 1;
   const follicularEnd = periodLength + 7;
-  const ovulationEnd = follicularEnd + 4;
+  const ovulationEnd = Math.min(follicularEnd + 4, cycleLength - 1);
   if (day <= periodLength) return 'menstrual';
   if (day <= follicularEnd) return 'follicular';
   if (day <= ovulationEnd) return 'ovulation';
