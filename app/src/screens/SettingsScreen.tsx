@@ -4,6 +4,7 @@ import {
   TextInput, StyleSheet, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Constants from 'expo-constants';
 import { Colors, Radius, Shadow } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
 import Toast from 'react-native-toast-message';
@@ -230,6 +231,8 @@ export function SettingsScreen() {
             <Icon name="chev" size={16} strokeWidth={2} color={Colors.coralDeep} />
           </TouchableOpacity>
         </Section>
+
+        <Text style={styles.versionText}>v{Constants.expoConfig?.version ?? '—'}</Text>
       </ScrollView>
 
       <View style={styles.bottomBar}>
@@ -316,4 +319,5 @@ const styles = StyleSheet.create({
   deleteAccountText: { fontSize: 14, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.coralDeep },
   notiWarning: { backgroundColor: Colors.bgAlt, borderRadius: 10, padding: 12, marginBottom: 14 },
   notiWarningText: { fontSize: 12, color: Colors.ink2, lineHeight: 18 },
+  versionText: { fontSize: 12, color: Colors.ink3, textAlign: 'center', paddingVertical: 8 },
 });
