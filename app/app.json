@@ -2,7 +2,7 @@
   "expo": {
     "name": "Luna - 생리주기 달력",
     "slug": "luna",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -33,7 +33,7 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.theo.luna",
-      "versionCode": 3,
+      "versionCode": 4,
       "minSdkVersion": 26
     },
     "web": {
