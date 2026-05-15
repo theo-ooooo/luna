@@ -13,7 +13,7 @@ class PredictionService
     all_recent = @user.cycles.order(started_on: :desc).limit(MAX_CYCLES_USED + 1).to_a
     latest_cycle = all_recent.first
 
-    avg_length, cycles_count = if all_recent.size > MIN_CYCLES_FOR_PREDICTION
+    avg_length, cycles_count = if all_recent.size >= MIN_CYCLES_FOR_PREDICTION
       intervals = all_recent.each_cons(2).map { |newer, older| (newer.started_on - older.started_on).to_i }
       weighted_average(intervals.first(MAX_CYCLES_USED))
     else

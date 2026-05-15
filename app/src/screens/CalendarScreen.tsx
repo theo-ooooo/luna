@@ -19,6 +19,7 @@ import { useLogForDate } from '../hooks/useDailyLog';
 import { PeriodDateSheet } from '../components/home/PeriodDateSheet';
 import { CycleEditSheet } from '../components/home/CycleEditSheet';
 import Toast from 'react-native-toast-message';
+import { ApiError } from '../api/client';
 import { phaseForDay, CYCLE_DEFAULTS } from '../utils/phase';
 import { usePeriodLength } from '../hooks/usePeriodLength';
 import type { PhaseFilter } from '../hooks/useCalendar';
@@ -92,8 +93,7 @@ export function CalendarScreen() {
   }, [latestCycle?.started_on, prediction?.cycle_day]);
 
   // 날짜에 해당하는 사이클을 찾아 실제 started_on / ended_on 기반으로 위상 계산
-  function phaseForDate(dateStr: string, dayMs: number): PhaseKey {
-    // 날짜가 실제 사이클 범위 안에 있는지 먼저 확인
+  const phaseForDate = useCallback((dateStr: string, dayMs: number): PhaseKey => {
     const cycle = cycleList?.find(c =>
       dateStr >= c.started_on && (c.ended_on ? dateStr <= c.ended_on : true),
     );
@@ -109,30 +109,28 @@ export function CalendarScreen() {
       return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, effectivePeriodLen) : 'follicular';
     }
 
-    // 범위 밖이면 가장 최근 이전 사이클 기준으로 계산
-    // (ended_on이 있으면 실제 기간으로 cap → ended_on 이후 날이 생리기로 표시되지 않음)
+    // ended_on 이후 날짜: ended_on 캡은 첫 번째 주기 범위(cycleLength 이내)에만 적용
     const precedingCycle = cycleList?.find(c => c.started_on <= dateStr);
     if (precedingCycle) {
       const refStartMs = new Date(precedingCycle.started_on + 'T00:00:00').getTime();
+      const rawCycleDay = Math.floor((dayMs - refStartMs) / 86_400_000) + 1;
       let effectivePeriodLen = periodLength;
-      if (precedingCycle.ended_on) {
+      if (precedingCycle.ended_on && rawCycleDay <= cycleLength) {
         const endMs = new Date(precedingCycle.ended_on + 'T00:00:00').getTime();
         effectivePeriodLen = Math.round((endMs - refStartMs) / 86_400_000) + 1;
       }
-      const cycleDay = Math.floor((dayMs - refStartMs) / 86_400_000) + 1;
-      return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, effectivePeriodLen) : 'follicular';
+      return rawCycleDay >= 1 ? phaseForDay(rawCycleDay, cycleLength, effectivePeriodLen) : 'follicular';
     }
 
     if (cycleStartMs === null) return 'follicular';
     const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
     return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, periodLength) : 'follicular';
-  }
+  }, [cycleList, cycleStartMs, cycleLength, periodLength]);
 
   const selectedPhaseKey = useMemo(() => {
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
     return phaseForDate(dateStr, new Date(year, month - 1, selectedDay).getTime());
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cycleList, cycleStartMs, year, month, selectedDay, cycleLength, periodLength]);
+  }, [phaseForDate, year, month, selectedDay]);
 
   const dayPhases = useMemo(() => {
     const phases: Record<number, PhaseKey> = {};
@@ -141,8 +139,7 @@ export function CalendarScreen() {
       phases[d] = phaseForDate(dateStr, new Date(year, month - 1, d).getTime());
     }
     return phases;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cycleList, cycleStartMs, year, month, daysInMonth, cycleLength, periodLength]);
+  }, [phaseForDate, year, month, daysInMonth]);
 
   // Derive display chips from the fetched daily log for the selected date
   const logChips = useMemo(() => {
@@ -246,7 +243,7 @@ export function CalendarScreen() {
             setPeriodSheet(null);
             Toast.show({ type: 'success', text1: '생리 시작을 기록했어요.' });
           },
-          onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
+            onError: (err) => Toast.show({ type: 'error', text1: '기록 실패', text2: err instanceof ApiError ? err.message : '다시 시도해주세요.' }),
         },
       );
     } else if (periodSheet === 'end' && latestCycle) {
@@ -257,7 +254,7 @@ export function CalendarScreen() {
             setPeriodSheet(null);
             Toast.show({ type: 'success', text1: '생리 종료를 기록했어요.' });
           },
-          onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
+          onError: (err) => Toast.show({ type: 'error', text1: '기록 실패', text2: err instanceof ApiError ? err.message : '다시 시도해주세요.' }),
         },
       );
     }
@@ -272,7 +269,7 @@ export function CalendarScreen() {
           setEditCycle(null);
           Toast.show({ type: 'success', text1: '생리 기간을 수정했어요.' });
         },
-        onError: () => Toast.show({ type: 'error', text1: '수정 실패', text2: '다시 시도해주세요.' }),
+        onError: (err) => Toast.show({ type: 'error', text1: '수정 실패', text2: err instanceof ApiError ? err.message : '다시 시도해주세요.' }),
       },
     );
   }

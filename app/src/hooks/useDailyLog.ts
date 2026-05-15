@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api/client';
+import { todayStr } from '../utils/date';
 import type { FlowId, LHResult } from '../types/record';
 
 interface DailyLog {
@@ -62,11 +63,6 @@ export function buildLogFields({
     lh_result: lhResult,
     notes: notes || null,
   };
-}
-
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 export function useLogForDate(date: string) {

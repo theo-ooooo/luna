@@ -6,6 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Motion, Radius } from '../../theme/tokens';
 import { Icon } from '../ui/Icon';
+import { todayStr } from '../../utils/date';
 
 const SHEET_HEIGHT = 320;
 
@@ -17,11 +18,6 @@ interface Props {
   initialDate?: string;
   onConfirm: (params: { date: string; flowLevel?: 1 | 2 | 3 }) => void;
   isLoading?: boolean;
-}
-
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function buildDateOptions(minDate?: string, initialDate?: string): string[] {

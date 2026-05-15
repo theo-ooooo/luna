@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Motion, Radius } from '../../theme/tokens';
 import { Icon } from '../ui/Icon';
 import type { Cycle } from '../../hooks/useCycles';
+import { todayStr } from '../../utils/date';
 
 const SHEET_HEIGHT = 380;
 
@@ -16,11 +17,6 @@ interface Props {
   cycle: Cycle | null;
   onConfirm: (params: { startedOn: string; endedOn: string | null }) => void;
   isLoading?: boolean;
-}
-
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 function buildDateRange(center: string, daysBefore: number, daysAfter: number, maxDate?: string): string[] {
@@ -80,7 +76,7 @@ export function CycleEditSheet({ visible, onClose, cycle, onConfirm, isLoading }
 
   const startOptions = cycle ? buildDateRange(cycle.started_on, 7, 3) : [];
   const endOptions = cycle
-    ? buildDateRange(endedOn ?? cycle.ended_on ?? todayStr(), 3, 3, todayStr()).filter(d => d >= startedOn)
+    ? buildDateRange(endedOn ?? cycle.ended_on ?? todayStr(), 14, 14, todayStr()).filter(d => d >= startedOn)
     : [];
 
   function handleConfirm() {

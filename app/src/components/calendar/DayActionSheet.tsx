@@ -94,9 +94,9 @@ export function DayActionSheet({ visible, onClose, month, day, isToday, phaseKey
 
         {/* 액션 버튼 */}
         <View style={styles.actions}>
-          {actions.map((action, idx) => (
+          {actions.map((action) => (
             <TouchableOpacity
-              key={idx}
+              key={action.label}
               style={[styles.actionBtn, action.variant === 'coral' && styles.actionBtnCoral]}
               onPress={() => { onClose(); action.onPress(); }}
               activeOpacity={0.75}
