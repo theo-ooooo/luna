@@ -95,25 +95,42 @@ export function CalendarScreen() {
     return null;
   }, [latestCycle?.started_on, prediction?.cycle_day]);
 
-  // Compute phase key for the selected day using actual cycle day
-  const selectedPhaseKey = useMemo(() => {
-    if (cycleStartMs === null) return 'follicular';
-    const dayMs = new Date(year, month - 1, selectedDay).getTime();
-    const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
-    return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, periodLength) : 'follicular';
-  }, [cycleStartMs, year, month, selectedDay, cycleLength, periodLength]);
+  // 날짜에 해당하는 사이클을 찾아 실제 started_on / ended_on 기반으로 위상 계산
+  function phaseForDate(dateStr: string, dayMs: number): PhaseKey {
+    const cycle = cycleList?.find(c =>
+      dateStr >= c.started_on && (c.ended_on ? dateStr <= c.ended_on : true),
+    );
+    let refStartMs: number | null = null;
+    let effectivePeriodLen = periodLength;
+    if (cycle) {
+      refStartMs = new Date(cycle.started_on + 'T00:00:00').getTime();
+      if (cycle.ended_on) {
+        const endMs = new Date(cycle.ended_on + 'T00:00:00').getTime();
+        effectivePeriodLen = Math.round((endMs - refStartMs) / 86_400_000) + 1;
+      }
+    } else if (cycleStartMs !== null) {
+      refStartMs = cycleStartMs;
+    }
+    if (refStartMs === null) return 'follicular';
+    const cycleDay = Math.floor((dayMs - refStartMs) / 86_400_000) + 1;
+    return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, effectivePeriodLen) : 'follicular';
+  }
 
-  // Pre-compute phase per day-of-month for the current view
+  const selectedPhaseKey = useMemo(() => {
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
+    return phaseForDate(dateStr, new Date(year, month - 1, selectedDay).getTime());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cycleList, cycleStartMs, year, month, selectedDay, cycleLength, periodLength]);
+
   const dayPhases = useMemo(() => {
-    if (cycleStartMs === null) return null;
     const phases: Record<number, PhaseKey> = {};
     for (let d = 1; d <= daysInMonth; d++) {
-      const dayMs = new Date(year, month - 1, d).getTime();
-      const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
-      phases[d] = cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, periodLength) : 'follicular';
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      phases[d] = phaseForDate(dateStr, new Date(year, month - 1, d).getTime());
     }
     return phases;
-  }, [cycleStartMs, year, month, daysInMonth, cycleLength, periodLength]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cycleList, cycleStartMs, year, month, daysInMonth, cycleLength, periodLength]);
 
   // Derive display chips from the fetched daily log for the selected date
   const logChips = useMemo(() => {
