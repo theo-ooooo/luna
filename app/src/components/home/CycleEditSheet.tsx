@@ -80,7 +80,7 @@ export function CycleEditSheet({ visible, onClose, cycle, onConfirm, isLoading }
 
   const startOptions = cycle ? buildDateRange(cycle.started_on, 7, 3) : [];
   const endOptions = cycle
-    ? buildDateRange(cycle.ended_on ?? todayStr(), 3, 3, todayStr()).filter(d => d >= startedOn)
+    ? buildDateRange(endedOn ?? cycle.ended_on ?? todayStr(), 3, 3, todayStr()).filter(d => d >= startedOn)
     : [];
 
   function handleConfirm() {
