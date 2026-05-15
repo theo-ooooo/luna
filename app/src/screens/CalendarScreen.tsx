@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions, Alert, PanResponder } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions, Alert, PanResponder, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -137,12 +137,37 @@ export function CalendarScreen() {
   nextMonthRef.current = nextMonth;
   prevMonthRef.current = prevMonth;
 
+  const screenWRef = useRef(screenW);
+  screenWRef.current = screenW;
+
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  const SWIPE_THRESHOLD = 50;
+  const SLIDE_DURATION = 180;
+
   const swipePan = useRef(PanResponder.create({
     onMoveShouldSetPanResponder: (_, gs) =>
       Math.abs(gs.dx) > 12 && Math.abs(gs.dx) > Math.abs(gs.dy) * 1.5,
+    onPanResponderMove: (_, gs) => {
+      slideAnim.setValue(gs.dx);
+    },
     onPanResponderRelease: (_, gs) => {
-      if (gs.dx < -50) nextMonthRef.current();
-      else if (gs.dx > 50) prevMonthRef.current();
+      const w = screenWRef.current;
+      if (gs.dx < -SWIPE_THRESHOLD) {
+        Animated.timing(slideAnim, { toValue: -w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
+          nextMonthRef.current();
+          slideAnim.setValue(w);
+          Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start();
+        });
+      } else if (gs.dx > SWIPE_THRESHOLD) {
+        Animated.timing(slideAnim, { toValue: w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
+          prevMonthRef.current();
+          slideAnim.setValue(-w);
+          Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start();
+        });
+      } else {
+        Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20, stiffness: 300 }).start();
+      }
     },
   })).current;
 
@@ -288,7 +313,7 @@ export function CalendarScreen() {
               ))}
             </ScrollView>
 
-            <View {...swipePan.panHandlers}>
+            <Animated.View {...swipePan.panHandlers} style={{ transform: [{ translateX: slideAnim }] }}>
               <View style={styles.weekHeaders}>
                 {WEEK_HEADERS.map((w, i) => (
                   <View key={w} style={[styles.weekHeaderCell, { width: cellSize }]}>
@@ -314,7 +339,7 @@ export function CalendarScreen() {
                       />
                 )}
               </View>
-            </View>
+            </Animated.View>
 
             <DayDetailCard
               day={selectedDay}
