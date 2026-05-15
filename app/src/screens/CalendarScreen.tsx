@@ -70,19 +70,20 @@ export function CalendarScreen() {
   const cycleLength = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
   const periodLength = usePeriodLength();
 
-  // Compute cycle start date: from latestCycle.started_on, or estimate from prediction.cycle_day
+  // prediction.cycle_day 우선 — 서버 계산값이 HomeScreen 위상의 기준이므로 동일하게 사용
+  // latestCycle.started_on은 prediction이 없을 때만 폴백으로 사용
   const cycleStartMs = useMemo(() => {
-    if (latestCycle?.started_on) {
-      return new Date(latestCycle.started_on + 'T00:00:00').getTime();
-    }
     if (prediction?.cycle_day) {
       const t = new Date();
       t.setHours(0, 0, 0, 0);
       t.setDate(t.getDate() - (prediction.cycle_day - 1));
       return t.getTime();
     }
+    if (latestCycle?.started_on) {
+      return new Date(latestCycle.started_on + 'T00:00:00').getTime();
+    }
     return null;
-  }, [latestCycle?.started_on, prediction?.cycle_day]);
+  }, [prediction?.cycle_day, latestCycle?.started_on]);
 
   // Compute phase key for the selected day using actual cycle day
   const selectedPhaseKey = useMemo(() => {
