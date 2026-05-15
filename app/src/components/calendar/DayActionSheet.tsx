@@ -12,6 +12,7 @@ const SHEET_HEIGHT = 420;
 export interface DayAction {
   label: string;
   variant?: 'default' | 'coral';
+  disabled?: boolean;
   onPress: () => void;
 }
 
@@ -97,11 +98,22 @@ export function DayActionSheet({ visible, onClose, month, day, isToday, phaseKey
           {actions.map((action) => (
             <TouchableOpacity
               key={action.label}
-              style={[styles.actionBtn, action.variant === 'coral' && styles.actionBtnCoral]}
-              onPress={() => { onClose(); action.onPress(); }}
-              activeOpacity={0.75}
+              style={[
+                styles.actionBtn,
+                action.variant === 'coral' && styles.actionBtnCoral,
+                action.disabled && styles.actionBtnDisabled,
+              ]}
+              onPress={() => {
+                if (action.disabled) { action.onPress(); return; }
+                onClose(); action.onPress();
+              }}
+              activeOpacity={action.disabled ? 1 : 0.75}
             >
-              <Text style={[styles.actionLabel, action.variant === 'coral' && styles.actionLabelCoral]}>
+              <Text style={[
+                styles.actionLabel,
+                action.variant === 'coral' && styles.actionLabelCoral,
+                action.disabled && styles.actionLabelDisabled,
+              ]}>
                 {action.label}
               </Text>
             </TouchableOpacity>
@@ -155,8 +167,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bgAlt, alignItems: 'center',
   },
   actionBtnCoral: { backgroundColor: Colors.coral },
+  actionBtnDisabled: { opacity: 0.4 },
   actionLabel: { fontSize: 15, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink1 },
   actionLabelCoral: { color: Colors.inkInv },
+  actionLabelDisabled: { color: Colors.ink3 },
   cancelBtn: { paddingVertical: 12, alignItems: 'center' },
   cancelLabel: { fontSize: 14, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.ink3 },
 });

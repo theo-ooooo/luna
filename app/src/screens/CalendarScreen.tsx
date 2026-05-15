@@ -209,6 +209,14 @@ export function CalendarScreen() {
     setSelectedDay(day);
 
     if (isDateFuture) {
+      setDayActions([
+        {
+          label: '하루 기록하기',
+          disabled: true,
+          onPress: () => Toast.show({ type: 'error', text1: '미래의 일자는 기록할 수 없어요.' }),
+        },
+      ]);
+      setActionSheetVisible(true);
       return;
     }
 
