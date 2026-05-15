@@ -75,7 +75,7 @@ export function SignupStep3Screen({ navigation, route }: Props) {
         <View style={styles.divider} />
         <Text style={styles.sectionLabel}>생리 기간</Text>
         <View style={styles.stepperSmall}>
-          <TouchableOpacity style={styles.stepBtnSmall} onPress={() => setPeriodLen(v => Math.max(2, v - 1))}>
+          <TouchableOpacity style={styles.stepBtnSmall} onPress={() => setPeriodLen(v => Math.max(3, v - 1))}>
             <Icon name="minus" size={16} strokeWidth={2.4} color={Colors.ink1} />
           </TouchableOpacity>
           <View style={styles.stepValueSmall}>
@@ -103,6 +103,7 @@ export function SignupStep3Screen({ navigation, route }: Props) {
               {lastPeriodDate.slice(5, 7).replace(/^0/, '')}월 {lastPeriodDate.slice(8, 10).replace(/^0/, '')}일 + {cycleLen}일 ={' '}
               <Text style={styles.previewEmphasis}>{nextM}월 {nextD}일</Text>경
             </Text>
+            <Text style={[styles.previewDate, { marginTop: 6 }]}>생리 기간 <Text style={styles.previewEmphasis}>약 {periodLen}일</Text></Text>
           </View>
         </View>
       </ScrollView>
