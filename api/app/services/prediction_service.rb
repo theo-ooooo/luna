@@ -9,12 +9,13 @@ class PredictionService
 
   def compute!
     # 최근 주기를 한 번만 조회 — completed + ongoing 포함
+    # 인터벌 N개를 구하려면 N+1개의 사이클 시작일이 필요
     all_recent = @user.cycles.order(started_on: :desc).limit(MAX_CYCLES_USED + 1).to_a
     latest_cycle = all_recent.first
-    completed_cycles = all_recent.select(&:ended_on).first(MAX_CYCLES_USED)
 
-    avg_length, cycles_count = if completed_cycles.size >= MIN_CYCLES_FOR_PREDICTION
-      weighted_average(completed_cycles)
+    avg_length, cycles_count = if all_recent.size > MIN_CYCLES_FOR_PREDICTION
+      intervals = all_recent.each_cons(2).map { |newer, older| (newer.started_on - older.started_on).to_i }
+      weighted_average(intervals.first(MAX_CYCLES_USED))
     else
       [@user.cycle_length_default.to_f, 0]
     end
@@ -42,14 +43,11 @@ class PredictionService
 
   private
 
-  def weighted_average(cycles)
-    weights = WEIGHTS.first(cycles.size)
+  def weighted_average(intervals)
+    weights = WEIGHTS.first(intervals.size)
     total_weight = weights.sum.to_f
-    weighted_sum = cycles.each_with_index.sum do |cycle, i|
-      cycle.length_days * weights[i]
-    end
-    avg = weighted_sum / total_weight
-    [avg, cycles.size]
+    weighted_sum = intervals.each_with_index.sum { |len, i| len * weights[i] }
+    [weighted_sum / total_weight, intervals.size]
   end
 
   # BBT 급등(전날 대비 +0.2°C) 또는 LH surge(lh_result=2)로 실측 배란일 결정
