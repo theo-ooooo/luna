@@ -61,15 +61,14 @@ export function useSignup() {
       cycleLength: number; periodLength: number; lastPeriodDate: string;
     }) => {
       const auth = await api.post<AuthResponse>('/api/v1/auth/signup', {
-        user: { email, password, password_confirmation: password, nickname, cycle_length_default: cycleLength },
+        user: { email, password, password_confirmation: password, nickname, cycle_length_default: cycleLength, period_length_default: periodLength },
       });
-      setAuth(auth.token, auth.user);
-      setOnboardingDone(true);
-      await api.patch('/api/v1/users/me', { period_length_default: periodLength });
       const [py, pm, pd] = lastPeriodDate.split('-').map(Number);
       const endDate = new Date(py, pm - 1, pd + periodLength - 1);
       const endedOn = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
       await api.post('/api/v1/cycles', { started_on: lastPeriodDate, ended_on: endedOn, flow_level: 1 });
+      setAuth(auth.token, auth.user);
+      setOnboardingDone(true);
       return auth;
     },
   });
