@@ -29,8 +29,6 @@ const WEEK_HEADERS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 const CONTENT_PADDING = 16;
 const TILE_PADDING = 18;
 
-type Tab = 'calendar' | 'insights';
-
 interface PhaseChipOption {
   label: string;
   value: PhaseFilter;
@@ -50,7 +48,6 @@ export function CalendarScreen() {
   const { width: screenW } = useWindowDimensions();
   const cellSize = Math.floor((screenW - 32 - 24) / 7);
   const chartW = screenW - CONTENT_PADDING * 2 - TILE_PADDING * 2;
-  const [activeTab, setActiveTab] = useState<Tab>('calendar');
   const [searchVisible, setSearchVisible] = useState(false);
   const [periodSheet, setPeriodSheet] = useState<'start' | 'end' | null>(null);
   const [editCycle, setEditCycle] = useState<Cycle | null>(null);
@@ -289,43 +286,24 @@ export function CalendarScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
         <Text style={styles.topBarLabel}>캘린더</Text>
-        <View style={styles.segment}>
-          <TouchableOpacity
-            style={[styles.segBtn, activeTab === 'calendar' && styles.segBtnActive]}
-            onPress={() => setActiveTab('calendar')}
-            accessibilityRole="button"
-            accessibilityLabel="캘린더"
-          >
-            <Text style={[styles.segText, activeTab === 'calendar' && styles.segTextActive]}>캘린더</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.segBtn, activeTab === 'insights' && styles.segBtnActive]}
-            onPress={() => setActiveTab('insights')}
-            accessibilityRole="button"
-            accessibilityLabel="인사이트"
-          >
-            <Text style={[styles.segText, activeTab === 'insights' && styles.segTextActive]}>인사이트</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.navBtn}
+          onPress={() => setSearchVisible(true)}
+          accessibilityRole="button"
+          accessibilityLabel="날짜 검색"
+        >
+          <Icon name="search" size={18} strokeWidth={2.2} color={Colors.ink2} />
+        </TouchableOpacity>
       </View>
 
-      {activeTab === 'calendar' ? (
-        <>
-          <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.monthHeader}>
               <View>
                 <Text style={styles.monthEn}>{monthEn} · {year}</Text>
                 <Text style={styles.monthKo}>{month}월<Text style={{ color: Colors.coral }}>.</Text></Text>
               </View>
               <View style={styles.monthNav}>
-                <TouchableOpacity
-                  style={styles.navBtn}
-                  onPress={() => setSearchVisible(true)}
-                  accessibilityRole="button"
-                  accessibilityLabel="날짜 검색"
-                >
-                  <Icon name="search" size={18} strokeWidth={2.2} color={Colors.ink2} />
-                </TouchableOpacity>
                 <TouchableOpacity style={styles.navBtn} onPress={prevMonth} accessibilityRole="button" accessibilityLabel="이전 달">
                   <Icon name="chevLeft" size={18} strokeWidth={2.2} color={Colors.ink2} />
                 </TouchableOpacity>
@@ -394,6 +372,8 @@ export function CalendarScreen() {
               </View>
             </Animated.View>
 
+            <InsightsBody chartW={chartW} />
+
           </ScrollView>
 
           <DateSearchSheet
@@ -431,9 +411,6 @@ export function CalendarScreen() {
             actions={dayActions}
           />
         </>
-      ) : (
-        <InsightsBody chartW={chartW} scrollable />
-      )}
     </SafeAreaView>
   );
 }
@@ -445,26 +422,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 10,
   },
   topBarLabel: { fontSize: 13, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: -0.1 },
-  segment: {
-    flexDirection: 'row',
-    backgroundColor: Colors.bgAlt,
-    borderRadius: Radius.pill,
-    padding: 3,
-  },
-  segBtn: {
-    paddingHorizontal: 14, paddingVertical: 6,
-    borderRadius: Radius.pill,
-  },
-  segBtnActive: {
-    backgroundColor: Colors.bgCard,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  segText: { fontSize: 12, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.ink3 },
-  segTextActive: { color: Colors.ink1, fontFamily: 'NotoSansKR_700Bold' },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingBottom: 120, gap: 12 },
   monthHeader: {
