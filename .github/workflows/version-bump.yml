@@ -56,9 +56,7 @@ jobs:
 
           # seeds.rb 업데이트
           sed -i "s/ios_latest_version: '[0-9.]*'/ios_latest_version: '${NEW}'/" api/db/seeds.rb
-          sed -i "s/ios_min_version: '[0-9.]*'/ios_min_version: '${NEW}'/" api/db/seeds.rb
           sed -i "s/android_latest_version: '[0-9.]*'/android_latest_version: '${NEW}'/" api/db/seeds.rb
-          sed -i "s/android_min_version: '[0-9.]*'/android_min_version: '${NEW}'/" api/db/seeds.rb
 
           echo "new_version=${NEW}" >> $GITHUB_OUTPUT
           echo "Bumped ${CURRENT} → ${NEW} (versionCode ${CURRENT_CODE} → ${NEW_CODE})"
