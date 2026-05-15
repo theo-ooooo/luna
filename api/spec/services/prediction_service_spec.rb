@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe PredictionService, type: :service do
+RSpec.describe PredictionService, type: :service do # >= 3사이클 가중평균
   let(:user) { create(:user, cycle_length_default: 28, luteal_phase_length: 14) }
   subject(:service) { described_class.new(user) }
 
