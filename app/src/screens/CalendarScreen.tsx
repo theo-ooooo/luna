@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -11,7 +11,7 @@ import { DayDetailCard } from '../components/calendar/DayDetailCard';
 import { InsightsBody } from '../components/insights/InsightsBody';
 import { DateSearchSheet } from '../components/home/DateSearchSheet';
 import { useCalendar } from '../hooks/useCalendar';
-import { useLatestCycle, useStartPeriod, useEndPeriod } from '../hooks/useCycles';
+import { useLatestCycle, useEndPeriod } from '../hooks/useCycles';
 import { usePrediction } from '../hooks/usePrediction';
 import { useLogForDate } from '../hooks/useDailyLog';
 import { PeriodDateSheet } from '../components/home/PeriodDateSheet';
@@ -62,7 +62,6 @@ export function CalendarScreen() {
 
   const { data: latestCycle } = useLatestCycle();
   const { data: prediction } = usePrediction();
-  const startPeriod = useStartPeriod();
   const endPeriod = useEndPeriod();
 
   const selectedDateStr = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
@@ -127,32 +126,26 @@ export function CalendarScreen() {
 
   const monthEn = new Date(year, month - 1).toLocaleString('en', { month: 'short' }).toUpperCase();
 
-  const selectedDate = new Date(year, month - 1, selectedDay);
-  const isFutureDate = selectedDate > new Date(today.year, today.month - 1, today.day);
+  const handleDayCellPress = useCallback((day: number) => {
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const isDateFuture = new Date(year, month - 1, day) > new Date(today.year, today.month - 1, today.day);
+    if (isDateFuture) return;
 
-  const handleRecord = useCallback(() => {
-    const date = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
-    navigation.navigate('Record', { date });
-  }, [year, month, selectedDay, navigation]);
+    const canEndPeriod = !!latestCycle && !latestCycle.ended_on && dateStr >= latestCycle.started_on;
 
-  // 진행 중인 사이클(ended_on 없음)이고 선택 날짜가 시작일 이후인 경우 생리 종료 버튼 표시
-  const showEndPeriod = !isFutureDate && !!latestCycle && !latestCycle.ended_on && selectedDateStr >= latestCycle.started_on;
-  // 진행 중인 사이클이 없거나, 선택 날짜가 현재 사이클 시작 전인 경우 생리 시작 버튼 표시
-  const showStartPeriod = !isFutureDate && (!latestCycle || !!latestCycle.ended_on);
+    if (canEndPeriod) {
+      Alert.alert('', `${month}월 ${day}일`, [
+        { text: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
+        { text: '종료일 변경', onPress: () => { setSelectedDay(day); setPeriodSheet('end'); } },
+        { text: '취소', style: 'cancel' },
+      ]);
+    } else {
+      navigation.navigate('Record', { date: dateStr });
+    }
+  }, [year, month, today, latestCycle, navigation, setSelectedDay]);
 
-  function handlePeriodSheetConfirm({ date, flowLevel }: { date: string; flowLevel?: 1 | 2 | 3 }) {
-    if (periodSheet === 'start') {
-      startPeriod.mutate(
-        { flowLevel: flowLevel ?? 2, startedOn: date },
-        {
-          onSuccess: () => {
-            setPeriodSheet(null);
-            Toast.show({ type: 'success', text1: '생리 시작을 기록했어요.' });
-          },
-          onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
-        },
-      );
-    } else if (periodSheet === 'end' && latestCycle) {
+  function handlePeriodSheetConfirm({ date }: { date: string; flowLevel?: 1 | 2 | 3 }) {
+    if (periodSheet === 'end' && latestCycle) {
       endPeriod.mutate(
         { cycleId: latestCycle.id, endedOn: date },
         {
@@ -273,7 +266,7 @@ export function CalendarScreen() {
                       isSelected={d === selectedDay}
                       phaseKey={dayPhases?.[d] ?? 'follicular'}
                       dimmed={isDimmed(d)}
-                      onPress={setSelectedDay}
+                      onPress={handleDayCellPress}
                     />
               )}
             </View>
@@ -284,10 +277,6 @@ export function CalendarScreen() {
               phaseKey={selectedPhaseKey}
               isToday={selectedDay === today.day && month === today.month && year === today.year}
               logChips={logChips}
-              hasLog={!!selectedLog}
-              onRecord={isFutureDate ? undefined : handleRecord}
-              onStartPeriod={showStartPeriod ? () => setPeriodSheet('start') : undefined}
-              onEndPeriod={showEndPeriod ? () => setPeriodSheet('end') : undefined}
             />
           </ScrollView>
 
@@ -304,7 +293,7 @@ export function CalendarScreen() {
             initialDate={selectedDateStr}
             minDate={periodSheet === 'end' ? latestCycle?.started_on : undefined}
             onConfirm={handlePeriodSheetConfirm}
-            isLoading={startPeriod.isPending || endPeriod.isPending}
+            isLoading={endPeriod.isPending}
           />
         </>
       ) : (
