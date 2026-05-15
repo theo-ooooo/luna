@@ -10,16 +10,19 @@ import { AIMenuSheet } from '../components/ai/AIMenuSheet';
 import { useAiChat } from '../hooks/useAiChat';
 import { usePrediction } from '../hooks/usePrediction';
 import { phaseForDay, CYCLE_DEFAULTS } from '../utils/phase';
+import { useAuthStore } from '../store/authStore';
 
 export function AIScreen() {
   const { messages, isStreaming, sendMessage, resetConversation, loadConversation } = useAiChat();
   const { data: prediction } = usePrediction();
+  const user = useAuthStore(s => s.user);
   const [showHistory, setShowHistory] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
   const cycleDay = prediction?.cycle_day ?? 1;
   const cycleLength = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
-  const phaseKey = phaseForDay(cycleDay, cycleLength);
+  const periodLength = user?.period_length_default ?? CYCLE_DEFAULTS.period;
+  const phaseKey = phaseForDay(cycleDay, cycleLength, periodLength);
   const phase = Phase[phaseKey];
 
   return (

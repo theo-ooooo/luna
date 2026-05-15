@@ -20,6 +20,7 @@ import { phaseForDay, CYCLE_DEFAULTS } from '../utils/phase';
 import type { PhaseFilter } from '../hooks/useCalendar';
 import type { PhaseKey } from '../theme/tokens';
 import type { TabParamList } from '../navigation/TabNavigator';
+import { useAuthStore } from '../store/authStore';
 
 const WEEK_HEADERS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 const CONTENT_PADDING = 16;
@@ -67,7 +68,9 @@ export function CalendarScreen() {
   const selectedDateStr = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
   const { data: selectedLog } = useLogForDate(selectedDateStr);
 
+  const user = useAuthStore(s => s.user);
   const cycleLength = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
+  const periodLength = user?.period_length_default ?? CYCLE_DEFAULTS.period;
 
   // Compute cycle start date: from latestCycle.started_on, or estimate from prediction.cycle_day
   const cycleStartMs = useMemo(() => {
@@ -88,7 +91,7 @@ export function CalendarScreen() {
     if (cycleStartMs === null) return 'follicular';
     const dayMs = new Date(year, month - 1, selectedDay).getTime();
     const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
-    return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength) : 'follicular';
+    return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, periodLength) : 'follicular';
   }, [cycleStartMs, year, month, selectedDay, cycleLength]);
 
   // Pre-compute phase per day-of-month for the current view
@@ -98,7 +101,7 @@ export function CalendarScreen() {
     for (let d = 1; d <= daysInMonth; d++) {
       const dayMs = new Date(year, month - 1, d).getTime();
       const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
-      phases[d] = cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength) : 'follicular';
+      phases[d] = cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, periodLength) : 'follicular';
     }
     return phases;
   }, [cycleStartMs, year, month, daysInMonth, cycleLength]);
