@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useMemo, useRef } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions, Alert, PanResponder, Animated } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions, PanResponder, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -10,6 +10,8 @@ import { DayCell } from '../components/calendar/DayCell';
 import { DayDetailCard } from '../components/calendar/DayDetailCard';
 import { InsightsBody } from '../components/insights/InsightsBody';
 import { DateSearchSheet } from '../components/home/DateSearchSheet';
+import { DayActionSheet } from '../components/calendar/DayActionSheet';
+import type { DayAction } from '../components/calendar/DayActionSheet';
 import { useCalendar } from '../hooks/useCalendar';
 import { useLatestCycle, useStartPeriod, useEndPeriod, useCycleList, useUpdateCycle } from '../hooks/useCycles';
 import type { Cycle } from '../hooks/useCycles';
@@ -53,6 +55,8 @@ export function CalendarScreen() {
   const [searchVisible, setSearchVisible] = useState(false);
   const [periodSheet, setPeriodSheet] = useState<'start' | 'end' | null>(null);
   const [editCycle, setEditCycle] = useState<Cycle | null>(null);
+  const [dayActions, setDayActions] = useState<DayAction[]>([]);
+  const [actionSheetVisible, setActionSheetVisible] = useState(false);
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
 
   const {
@@ -176,12 +180,13 @@ export function CalendarScreen() {
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const isDateFuture = new Date(year, month - 1, day) > new Date(today.year, today.month - 1, today.day);
 
+    setSelectedDay(day);
+
     if (isDateFuture) {
-      setSelectedDay(day);
-      Alert.alert('', `${month}월 ${day}일`, [
-        { text: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
-        { text: '취소', style: 'cancel' },
+      setDayActions([
+        { label: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
       ]);
+      setActionSheetVisible(true);
       return;
     }
 
@@ -189,21 +194,18 @@ export function CalendarScreen() {
       dateStr >= c.started_on && (c.ended_on ? dateStr <= c.ended_on : true),
     ) ?? null;
 
-    setSelectedDay(day);
-
     if (matchedCycle) {
-      Alert.alert('', `${month}월 ${day}일`, [
-        { text: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
-        { text: '사이클 수정하기', onPress: () => setEditCycle(matchedCycle) },
-        { text: '취소', style: 'cancel' },
+      setDayActions([
+        { label: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
+        { label: '사이클 수정하기', variant: 'coral', onPress: () => setEditCycle(matchedCycle) },
       ]);
     } else {
-      Alert.alert('', `${month}월 ${day}일`, [
-        { text: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
-        { text: '사이클 추가하기', onPress: () => setPeriodSheet('start') },
-        { text: '취소', style: 'cancel' },
+      setDayActions([
+        { label: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
+        { label: '사이클 추가하기', variant: 'coral', onPress: () => setPeriodSheet('start') },
       ]);
     }
+    setActionSheetVisible(true);
   }, [year, month, today, cycleList, navigation, setSelectedDay]);
 
   function handlePeriodSheetConfirm({ date, flowLevel }: { date: string; flowLevel?: 1 | 2 | 3 }) {
@@ -391,6 +393,15 @@ export function CalendarScreen() {
             cycle={editCycle}
             onConfirm={handleCycleEditConfirm}
             isLoading={updateCycle.isPending}
+          />
+
+          <DayActionSheet
+            visible={actionSheetVisible}
+            onClose={() => setActionSheetVisible(false)}
+            month={month}
+            day={selectedDay}
+            phaseKey={selectedPhaseKey}
+            actions={dayActions}
           />
         </>
       ) : (
