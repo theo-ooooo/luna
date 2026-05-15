@@ -77,7 +77,7 @@ export function DayActionSheet({ visible, onClose, month, day, isToday, phaseKey
               <Text style={[styles.dayNumber, phase && { color: Colors.ink1 }]}>
                 {day}<Text style={{ color: phase?.color ?? Colors.coral }}>.</Text>
               </Text>
-              <Text style={styles.dayMeta}>{month}월 · {isToday ? '오늘' : `${month}/${day}`}</Text>
+              <Text style={styles.dayMeta}>{month}월 · {isToday ? '오늘' : `Day ${day}`}</Text>
             </View>
             {phase && <Text style={styles.phaseDesc}>{phase.desc}</Text>}
             {logChips.length > 0 && (

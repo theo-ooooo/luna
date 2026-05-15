@@ -7,7 +7,6 @@ import { Colors, Radius } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
 import { PhaseLegend } from '../components/calendar/PhaseLegend';
 import { DayCell } from '../components/calendar/DayCell';
-import { DayDetailCard } from '../components/calendar/DayDetailCard';
 import { InsightsBody } from '../components/insights/InsightsBody';
 import { DateSearchSheet } from '../components/home/DateSearchSheet';
 import { DayActionSheet } from '../components/calendar/DayActionSheet';
@@ -379,13 +378,6 @@ export function CalendarScreen() {
               </View>
             </Animated.View>
 
-            <DayDetailCard
-              day={selectedDay}
-              month={month}
-              phaseKey={selectedPhaseKey}
-              isToday={selectedDay === today.day && month === today.month && year === today.year}
-              logChips={logChips}
-            />
           </ScrollView>
 
           <DateSearchSheet
