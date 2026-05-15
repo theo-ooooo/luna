@@ -21,6 +21,7 @@ import { useAiDailyInsight } from '../hooks/useAiDailyInsight';
 import { useLatestCycle, useStartPeriod, useEndPeriod } from '../hooks/useCycles';
 import { useTodayLog } from '../hooks/useDailyLog';
 import { useBbtHistory } from '../hooks/useBbtHistory';
+import { usePeriodLength } from '../hooks/usePeriodLength';
 import type { TabParamList } from '../navigation/TabNavigator';
 
 const MOOD_LABELS: Record<number, string> = { 5: '좋음', 4: '평온', 3: '짜증', 2: '피곤', 1: '불안' };
@@ -58,9 +59,18 @@ export function HomeScreen() {
   }, []);
   const { data: insight, isLoading: insightLoading } = useAiDailyInsight(todayIso);
 
-  const cycleDay = prediction?.cycle_day ?? 1;
+  const cycleDay = useMemo(() => {
+    if (latestCycle?.started_on) {
+      const start = new Date(latestCycle.started_on + 'T00:00:00');
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      return Math.floor((now.getTime() - start.getTime()) / 86_400_000) + 1;
+    }
+    return prediction?.cycle_day ?? 1;
+  }, [latestCycle?.started_on, prediction?.cycle_day]);
   const cycleLength: number = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
-  const phaseKey = phaseForDay(cycleDay, cycleLength);
+  const periodLength = usePeriodLength();
+  const phaseKey = phaseForDay(cycleDay, cycleLength, periodLength);
   const dPeriod = daysUntilPeriod(cycleDay, cycleLength);
 
   const isActivePeriod = !!latestCycle && !latestCycle.ended_on;

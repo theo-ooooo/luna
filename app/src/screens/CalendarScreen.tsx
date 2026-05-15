@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions, PanResponder, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -7,16 +7,21 @@ import { Colors, Radius } from '../theme/tokens';
 import { Icon } from '../components/ui/Icon';
 import { PhaseLegend } from '../components/calendar/PhaseLegend';
 import { DayCell } from '../components/calendar/DayCell';
-import { DayDetailCard } from '../components/calendar/DayDetailCard';
 import { InsightsBody } from '../components/insights/InsightsBody';
 import { DateSearchSheet } from '../components/home/DateSearchSheet';
+import { DayActionSheet } from '../components/calendar/DayActionSheet';
+import type { DayAction } from '../components/calendar/DayActionSheet';
 import { useCalendar } from '../hooks/useCalendar';
-import { useLatestCycle, useStartPeriod, useEndPeriod } from '../hooks/useCycles';
+import { useLatestCycle, useStartPeriod, useEndPeriod, useCycleList, useUpdateCycle } from '../hooks/useCycles';
+import type { Cycle } from '../hooks/useCycles';
 import { usePrediction } from '../hooks/usePrediction';
 import { useLogForDate } from '../hooks/useDailyLog';
 import { PeriodDateSheet } from '../components/home/PeriodDateSheet';
+import { CycleEditSheet } from '../components/home/CycleEditSheet';
 import Toast from 'react-native-toast-message';
+import { ApiError } from '../api/client';
 import { phaseForDay, CYCLE_DEFAULTS } from '../utils/phase';
+import { usePeriodLength } from '../hooks/usePeriodLength';
 import type { PhaseFilter } from '../hooks/useCalendar';
 import type { PhaseKey } from '../theme/tokens';
 import type { TabParamList } from '../navigation/TabNavigator';
@@ -24,8 +29,6 @@ import type { TabParamList } from '../navigation/TabNavigator';
 const WEEK_HEADERS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 const CONTENT_PADDING = 16;
 const TILE_PADDING = 18;
-
-type Tab = 'calendar' | 'insights';
 
 interface PhaseChipOption {
   label: string;
@@ -46,9 +49,11 @@ export function CalendarScreen() {
   const { width: screenW } = useWindowDimensions();
   const cellSize = Math.floor((screenW - 32 - 24) / 7);
   const chartW = screenW - CONTENT_PADDING * 2 - TILE_PADDING * 2;
-  const [activeTab, setActiveTab] = useState<Tab>('calendar');
   const [searchVisible, setSearchVisible] = useState(false);
   const [periodSheet, setPeriodSheet] = useState<'start' | 'end' | null>(null);
+  const [editCycle, setEditCycle] = useState<Cycle | null>(null);
+  const [dayActions, setDayActions] = useState<DayAction[]>([]);
+  const [actionSheetVisible, setActionSheetVisible] = useState(false);
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
 
   const {
@@ -60,21 +65,25 @@ export function CalendarScreen() {
   } = useCalendar();
 
   const { data: latestCycle } = useLatestCycle();
+  const { data: cycleList } = useCycleList(12);
   const { data: prediction } = usePrediction();
   const startPeriod = useStartPeriod();
   const endPeriod = useEndPeriod();
+  const updateCycle = useUpdateCycle();
 
   const selectedDateStr = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
   const { data: selectedLog } = useLogForDate(selectedDateStr);
 
   const cycleLength = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
+  const periodLength = usePeriodLength();
 
-  // Compute cycle start date: from latestCycle.started_on, or estimate from prediction.cycle_day
+  // latestCycle.started_on 우선 — 유저가 직접 기록한 값이 기준
+  // prediction.cycle_day는 latestCycle이 없을 때만 폴백으로 사용
   const cycleStartMs = useMemo(() => {
     if (latestCycle?.started_on) {
       return new Date(latestCycle.started_on + 'T00:00:00').getTime();
     }
-    if (prediction?.cycle_day) {
+    if (prediction?.cycle_day != null) {
       const t = new Date();
       t.setHours(0, 0, 0, 0);
       t.setDate(t.getDate() - (prediction.cycle_day - 1));
@@ -83,25 +92,54 @@ export function CalendarScreen() {
     return null;
   }, [latestCycle?.started_on, prediction?.cycle_day]);
 
-  // Compute phase key for the selected day using actual cycle day
-  const selectedPhaseKey = useMemo(() => {
-    if (cycleStartMs === null) return 'follicular';
-    const dayMs = new Date(year, month - 1, selectedDay).getTime();
-    const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
-    return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength) : 'follicular';
-  }, [cycleStartMs, year, month, selectedDay, cycleLength]);
+  // 날짜에 해당하는 사이클을 찾아 실제 started_on / ended_on 기반으로 위상 계산
+  const phaseForDate = useCallback((dateStr: string, dayMs: number): PhaseKey => {
+    const cycle = cycleList?.find(c =>
+      dateStr >= c.started_on && (c.ended_on ? dateStr <= c.ended_on : true),
+    );
 
-  // Pre-compute phase per day-of-month for the current view
+    if (cycle) {
+      const refStartMs = new Date(cycle.started_on + 'T00:00:00').getTime();
+      let effectivePeriodLen = periodLength;
+      if (cycle.ended_on) {
+        const endMs = new Date(cycle.ended_on + 'T00:00:00').getTime();
+        effectivePeriodLen = Math.round((endMs - refStartMs) / 86_400_000) + 1;
+      }
+      const cycleDay = Math.floor((dayMs - refStartMs) / 86_400_000) + 1;
+      return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, effectivePeriodLen) : 'follicular';
+    }
+
+    // ended_on 이후 날짜: ended_on 캡은 첫 번째 주기 범위(cycleLength 이내)에만 적용
+    const precedingCycle = cycleList?.find(c => c.started_on <= dateStr);
+    if (precedingCycle) {
+      const refStartMs = new Date(precedingCycle.started_on + 'T00:00:00').getTime();
+      const rawCycleDay = Math.floor((dayMs - refStartMs) / 86_400_000) + 1;
+      let effectivePeriodLen = periodLength;
+      if (precedingCycle.ended_on && rawCycleDay <= cycleLength) {
+        const endMs = new Date(precedingCycle.ended_on + 'T00:00:00').getTime();
+        effectivePeriodLen = Math.round((endMs - refStartMs) / 86_400_000) + 1;
+      }
+      return rawCycleDay >= 1 ? phaseForDay(rawCycleDay, cycleLength, effectivePeriodLen) : 'follicular';
+    }
+
+    if (cycleStartMs === null) return 'follicular';
+    const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
+    return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, periodLength) : 'follicular';
+  }, [cycleList, cycleStartMs, cycleLength, periodLength]);
+
+  const selectedPhaseKey = useMemo(() => {
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
+    return phaseForDate(dateStr, new Date(year, month - 1, selectedDay).getTime());
+  }, [phaseForDate, year, month, selectedDay]);
+
   const dayPhases = useMemo(() => {
-    if (cycleStartMs === null) return null;
     const phases: Record<number, PhaseKey> = {};
     for (let d = 1; d <= daysInMonth; d++) {
-      const dayMs = new Date(year, month - 1, d).getTime();
-      const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
-      phases[d] = cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength) : 'follicular';
+      const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+      phases[d] = phaseForDate(dateStr, new Date(year, month - 1, d).getTime());
     }
     return phases;
-  }, [cycleStartMs, year, month, daysInMonth, cycleLength]);
+  }, [phaseForDate, year, month, daysInMonth]);
 
   // Derive display chips from the fetched daily log for the selected date
   const logChips = useMemo(() => {
@@ -125,29 +163,91 @@ export function CalendarScreen() {
 
   const monthEn = new Date(year, month - 1).toLocaleString('en', { month: 'short' }).toUpperCase();
 
-  const selectedDate = new Date(year, month - 1, selectedDay);
-  const isFutureDate = selectedDate > new Date(today.year, today.month - 1, today.day);
+  const nextMonthRef = useRef(nextMonth);
+  const prevMonthRef = useRef(prevMonth);
+  nextMonthRef.current = nextMonth;
+  prevMonthRef.current = prevMonth;
 
-  const handleRecord = useCallback(() => {
-    const date = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
-    navigation.navigate('Record', { date });
-  }, [year, month, selectedDay, navigation]);
+  const screenWRef = useRef(screenW);
+  screenWRef.current = screenW;
 
-  // 진행 중인 사이클(ended_on 없음)이고 선택 날짜가 시작일 이후인 경우 생리 종료 버튼 표시
-  const showEndPeriod = !isFutureDate && !!latestCycle && !latestCycle.ended_on && selectedDateStr >= latestCycle.started_on;
-  // 진행 중인 사이클이 없거나, 선택 날짜가 현재 사이클 시작 전인 경우 생리 시작 버튼 표시
-  const showStartPeriod = !isFutureDate && (!latestCycle || !!latestCycle.ended_on);
+  const slideAnim = useRef(new Animated.Value(0)).current;
+
+  const SWIPE_THRESHOLD = 50;
+  const SLIDE_DURATION = 180;
+
+  const swipePan = useRef(PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gs) =>
+      Math.abs(gs.dx) > 12 && Math.abs(gs.dx) > Math.abs(gs.dy) * 1.5,
+    onPanResponderMove: (_, gs) => {
+      slideAnim.setValue(gs.dx);
+    },
+    onPanResponderRelease: (_, gs) => {
+      const w = screenWRef.current;
+      if (gs.dx < -SWIPE_THRESHOLD) {
+        Animated.timing(slideAnim, { toValue: -w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
+          nextMonthRef.current();
+          slideAnim.setValue(w);
+          Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start();
+        });
+      } else if (gs.dx > SWIPE_THRESHOLD) {
+        Animated.timing(slideAnim, { toValue: w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
+          prevMonthRef.current();
+          slideAnim.setValue(-w);
+          Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start();
+        });
+      } else {
+        Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20, stiffness: 300 }).start();
+      }
+    },
+  })).current;
+
+  const handleDayCellPress = useCallback((day: number) => {
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const isDateFuture = new Date(year, month - 1, day) > new Date(today.year, today.month - 1, today.day);
+
+    setSelectedDay(day);
+
+    if (isDateFuture) {
+      setDayActions([
+        {
+          label: '하루 기록하기',
+          disabled: true,
+          onPress: () => Toast.show({ type: 'error', text1: '미래의 일자는 기록할 수 없어요.' }),
+        },
+      ]);
+      setActionSheetVisible(true);
+      return;
+    }
+
+    const matchedCycle = cycleList?.find(c =>
+      dateStr >= c.started_on && (c.ended_on ? dateStr <= c.ended_on : true),
+    ) ?? null;
+
+    if (matchedCycle) {
+      setDayActions([
+        { label: '하루 기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
+        { label: '사이클 수정하기', variant: 'coral', onPress: () => setEditCycle(matchedCycle) },
+      ]);
+    } else {
+      setDayActions([
+        { label: '하루 기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
+        { label: '생리 기록하기', variant: 'coral', onPress: () => setPeriodSheet('start') },
+      ]);
+    }
+    setActionSheetVisible(true);
+  }, [year, month, today, cycleList, navigation, setSelectedDay]);
 
   function handlePeriodSheetConfirm({ date, flowLevel }: { date: string; flowLevel?: 1 | 2 | 3 }) {
     if (periodSheet === 'start') {
       startPeriod.mutate(
-        { flowLevel: flowLevel ?? 2, startedOn: date },
+        { startedOn: date, flowLevel: flowLevel ?? 2 },
         {
           onSuccess: () => {
             setPeriodSheet(null);
             Toast.show({ type: 'success', text1: '생리 시작을 기록했어요.' });
           },
-          onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
+            onError: (err) => Toast.show({ type: 'error', text1: '기록 실패', text2: err instanceof ApiError ? err.message : '다시 시도해주세요.' }),
         },
       );
     } else if (periodSheet === 'end' && latestCycle) {
@@ -158,10 +258,24 @@ export function CalendarScreen() {
             setPeriodSheet(null);
             Toast.show({ type: 'success', text1: '생리 종료를 기록했어요.' });
           },
-          onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
+          onError: (err) => Toast.show({ type: 'error', text1: '기록 실패', text2: err instanceof ApiError ? err.message : '다시 시도해주세요.' }),
         },
       );
     }
+  }
+
+  function handleCycleEditConfirm({ startedOn, endedOn }: { startedOn: string; endedOn: string | null }) {
+    if (!editCycle) return;
+    updateCycle.mutate(
+      { cycleId: editCycle.id, startedOn, endedOn },
+      {
+        onSuccess: () => {
+          setEditCycle(null);
+          Toast.show({ type: 'success', text1: '생리 기간을 수정했어요.' });
+        },
+        onError: (err) => Toast.show({ type: 'error', text1: '수정 실패', text2: err instanceof ApiError ? err.message : '다시 시도해주세요.' }),
+      },
+    );
   }
 
   function isDimmed(day: number): boolean {
@@ -173,43 +287,24 @@ export function CalendarScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
         <Text style={styles.topBarLabel}>캘린더</Text>
-        <View style={styles.segment}>
-          <TouchableOpacity
-            style={[styles.segBtn, activeTab === 'calendar' && styles.segBtnActive]}
-            onPress={() => setActiveTab('calendar')}
-            accessibilityRole="button"
-            accessibilityLabel="캘린더"
-          >
-            <Text style={[styles.segText, activeTab === 'calendar' && styles.segTextActive]}>캘린더</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.segBtn, activeTab === 'insights' && styles.segBtnActive]}
-            onPress={() => setActiveTab('insights')}
-            accessibilityRole="button"
-            accessibilityLabel="인사이트"
-          >
-            <Text style={[styles.segText, activeTab === 'insights' && styles.segTextActive]}>인사이트</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.navBtn}
+          onPress={() => setSearchVisible(true)}
+          accessibilityRole="button"
+          accessibilityLabel="날짜 검색"
+        >
+          <Icon name="search" size={18} strokeWidth={2.2} color={Colors.ink2} />
+        </TouchableOpacity>
       </View>
 
-      {activeTab === 'calendar' ? (
-        <>
-          <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.monthHeader}>
               <View>
                 <Text style={styles.monthEn}>{monthEn} · {year}</Text>
                 <Text style={styles.monthKo}>{month}월<Text style={{ color: Colors.coral }}>.</Text></Text>
               </View>
               <View style={styles.monthNav}>
-                <TouchableOpacity
-                  style={styles.navBtn}
-                  onPress={() => setSearchVisible(true)}
-                  accessibilityRole="button"
-                  accessibilityLabel="날짜 검색"
-                >
-                  <Icon name="search" size={18} strokeWidth={2.2} color={Colors.ink2} />
-                </TouchableOpacity>
                 <TouchableOpacity style={styles.navBtn} onPress={prevMonth} accessibilityRole="button" accessibilityLabel="이전 달">
                   <Icon name="chevLeft" size={18} strokeWidth={2.2} color={Colors.ink2} />
                 </TouchableOpacity>
@@ -250,43 +345,36 @@ export function CalendarScreen() {
               ))}
             </ScrollView>
 
-            <View style={styles.weekHeaders}>
-              {WEEK_HEADERS.map((w, i) => (
-                <View key={w} style={[styles.weekHeaderCell, { width: cellSize }]}>
-                  <Text style={[styles.weekHeaderText, i === 0 && styles.weekHeaderSun]}>{w}</Text>
-                </View>
-              ))}
-            </View>
+            <Animated.View {...swipePan.panHandlers} style={{ transform: [{ translateX: slideAnim }] }}>
+              <View style={styles.weekHeaders}>
+                {WEEK_HEADERS.map((w, i) => (
+                  <View key={w} style={[styles.weekHeaderCell, { width: cellSize }]}>
+                    <Text style={[styles.weekHeaderText, i === 0 && styles.weekHeaderSun]}>{w}</Text>
+                  </View>
+                ))}
+              </View>
 
-            <View style={styles.dayGrid}>
-              {grid.map((d, i) =>
-                d === null
-                  ? <View key={`e-${i}`} style={{ width: cellSize, height: cellSize }} />
-                  : <DayCell
-                      key={d}
-                      day={d}
-                      month={month}
-                      size={cellSize}
-                      isToday={d === today.day && month === today.month && year === today.year}
-                      isSelected={d === selectedDay}
-                      phaseKey={dayPhases?.[d] ?? 'follicular'}
-                      dimmed={isDimmed(d)}
-                      onPress={setSelectedDay}
-                    />
-              )}
-            </View>
+              <View style={styles.dayGrid}>
+                {grid.map((d, i) =>
+                  d === null
+                    ? <View key={`e-${i}`} style={{ width: cellSize, height: cellSize }} />
+                    : <DayCell
+                        key={d}
+                        day={d}
+                        month={month}
+                        size={cellSize}
+                        isToday={d === today.day && month === today.month && year === today.year}
+                        isSelected={d === selectedDay}
+                        phaseKey={dayPhases?.[d] ?? 'follicular'}
+                        dimmed={isDimmed(d)}
+                        onPress={handleDayCellPress}
+                      />
+                )}
+              </View>
+            </Animated.View>
 
-            <DayDetailCard
-              day={selectedDay}
-              month={month}
-              phaseKey={selectedPhaseKey}
-              isToday={selectedDay === today.day && month === today.month && year === today.year}
-              logChips={logChips}
-              hasLog={!!selectedLog}
-              onRecord={isFutureDate ? undefined : handleRecord}
-              onStartPeriod={showStartPeriod ? () => setPeriodSheet('start') : undefined}
-              onEndPeriod={showEndPeriod ? () => setPeriodSheet('end') : undefined}
-            />
+            <InsightsBody chartW={chartW} />
+
           </ScrollView>
 
           <DateSearchSheet
@@ -302,12 +390,28 @@ export function CalendarScreen() {
             initialDate={selectedDateStr}
             minDate={periodSheet === 'end' ? latestCycle?.started_on : undefined}
             onConfirm={handlePeriodSheetConfirm}
-            isLoading={startPeriod.isPending || endPeriod.isPending}
+            isLoading={endPeriod.isPending}
+          />
+
+          <CycleEditSheet
+            visible={editCycle !== null}
+            onClose={() => setEditCycle(null)}
+            cycle={editCycle}
+            onConfirm={handleCycleEditConfirm}
+            isLoading={updateCycle.isPending}
+          />
+
+          <DayActionSheet
+            visible={actionSheetVisible}
+            onClose={() => setActionSheetVisible(false)}
+            month={month}
+            day={selectedDay}
+            isToday={selectedDay === today.day && month === today.month && year === today.year}
+            phaseKey={selectedPhaseKey}
+            logChips={logChips}
+            actions={dayActions}
           />
         </>
-      ) : (
-        <InsightsBody chartW={chartW} scrollable />
-      )}
     </SafeAreaView>
   );
 }
@@ -319,26 +423,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 10,
   },
   topBarLabel: { fontSize: 13, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: -0.1 },
-  segment: {
-    flexDirection: 'row',
-    backgroundColor: Colors.bgAlt,
-    borderRadius: Radius.pill,
-    padding: 3,
-  },
-  segBtn: {
-    paddingHorizontal: 14, paddingVertical: 6,
-    borderRadius: Radius.pill,
-  },
-  segBtnActive: {
-    backgroundColor: Colors.bgCard,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  segText: { fontSize: 12, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.ink3 },
-  segTextActive: { color: Colors.ink1, fontFamily: 'NotoSansKR_700Bold' },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingBottom: 120, gap: 12 },
   monthHeader: {

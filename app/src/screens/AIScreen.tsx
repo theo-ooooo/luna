@@ -10,6 +10,7 @@ import { AIMenuSheet } from '../components/ai/AIMenuSheet';
 import { useAiChat } from '../hooks/useAiChat';
 import { usePrediction } from '../hooks/usePrediction';
 import { phaseForDay, CYCLE_DEFAULTS } from '../utils/phase';
+import { usePeriodLength } from '../hooks/usePeriodLength';
 
 export function AIScreen() {
   const { messages, isStreaming, sendMessage, resetConversation, loadConversation } = useAiChat();
@@ -19,7 +20,8 @@ export function AIScreen() {
 
   const cycleDay = prediction?.cycle_day ?? 1;
   const cycleLength = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
-  const phaseKey = phaseForDay(cycleDay, cycleLength);
+  const periodLength = usePeriodLength();
+  const phaseKey = phaseForDay(cycleDay, cycleLength, periodLength);
   const phase = Phase[phaseKey];
 
   return (

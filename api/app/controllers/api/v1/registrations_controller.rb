@@ -36,7 +36,7 @@ module Api
       end
 
       def configure_sign_up_params
-        devise_parameter_sanitizer.permit(:sign_up, keys: [:nickname, :cycle_length_default, :luteal_phase_length])
+        devise_parameter_sanitizer.permit(:sign_up, keys: [:nickname, :cycle_length_default, :luteal_phase_length, :period_length_default])
       end
 
       def current_token
