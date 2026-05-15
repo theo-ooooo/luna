@@ -46,7 +46,7 @@ function LunaTabBar({ state, navigation }: BottomTabBarProps) {
   const wrapperBg = SCREEN_BG[currentTabId] ?? Colors.bg;
 
   return (
-    <View style={[styles.tabBarWrapper, { paddingBottom: Math.max(insets.bottom, 8), backgroundColor: wrapperBg }]}>
+    <View style={[styles.tabBarWrapper, { paddingBottom: Math.max(insets.bottom, 8) + 8, backgroundColor: wrapperBg }]}>
       <View style={[styles.tabBar, Shadow.lift]}>
         {TABS.map((tab, index) => {
           const active = state.index === index;
@@ -111,8 +111,8 @@ export function TabNavigator() {
 
 const styles = StyleSheet.create({
   tabBarWrapper: {
-    marginHorizontal: 16,
-    marginBottom: 8,
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
   tabBar: {
     backgroundColor: Colors.bgInk,
