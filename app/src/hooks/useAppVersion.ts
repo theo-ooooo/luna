@@ -36,6 +36,7 @@ export function useAppVersion(): AppVersionResult {
   const appState = useRef(AppState.currentState);
 
   useEffect(() => {
+    if (__DEV__) return;
     const currentVersion = Constants.expoConfig?.version ?? '0.0.0';
     const apiUrl = process.env.EXPO_PUBLIC_API_URL;
     if (!apiUrl) return;
