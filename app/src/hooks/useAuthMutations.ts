@@ -66,7 +66,11 @@ export function useSignup() {
       setAuth(auth.token, auth.user);
       // setAuth와 동시에 설정해 token=true/onboardingDone=false 상태가 노출되지 않도록 함
       setOnboardingDone(true);
-      await api.post('/api/v1/cycles', { started_on: lastPeriodDate, flow_level: 1 });
+      const periodLen = auth.user.period_length_default ?? 5;
+      const [py, pm, pd] = lastPeriodDate.split('-').map(Number);
+      const endDate = new Date(py, pm - 1, pd + periodLen - 1);
+      const endedOn = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+      await api.post('/api/v1/cycles', { started_on: lastPeriodDate, ended_on: endedOn, flow_level: 1 });
       return auth;
     },
   });
