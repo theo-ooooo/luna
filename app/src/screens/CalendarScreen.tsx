@@ -11,7 +11,7 @@ import { DayDetailCard } from '../components/calendar/DayDetailCard';
 import { InsightsBody } from '../components/insights/InsightsBody';
 import { DateSearchSheet } from '../components/home/DateSearchSheet';
 import { useCalendar } from '../hooks/useCalendar';
-import { useLatestCycle, useEndPeriod, useCycleList, useUpdateCycle } from '../hooks/useCycles';
+import { useLatestCycle, useStartPeriod, useEndPeriod, useCycleList, useUpdateCycle } from '../hooks/useCycles';
 import type { Cycle } from '../hooks/useCycles';
 import { usePrediction } from '../hooks/usePrediction';
 import { useLogForDate } from '../hooks/useDailyLog';
@@ -66,6 +66,7 @@ export function CalendarScreen() {
   const { data: latestCycle } = useLatestCycle();
   const { data: cycleList } = useCycleList(12);
   const { data: prediction } = usePrediction();
+  const startPeriod = useStartPeriod();
   const endPeriod = useEndPeriod();
   const updateCycle = useUpdateCycle();
 
@@ -174,32 +175,50 @@ export function CalendarScreen() {
   const handleDayCellPress = useCallback((day: number) => {
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const isDateFuture = new Date(year, month - 1, day) > new Date(today.year, today.month - 1, today.day);
-    if (isDateFuture) return;
 
-    // 해당 날짜가 속한 싸이클 찾기
+    if (isDateFuture) {
+      setSelectedDay(day);
+      Alert.alert('', `${month}월 ${day}일`, [
+        { text: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
+        { text: '취소', style: 'cancel' },
+      ]);
+      return;
+    }
+
     const matchedCycle = cycleList?.find(c =>
       dateStr >= c.started_on && (c.ended_on ? dateStr <= c.ended_on : true),
     ) ?? null;
 
-    const isActiveCycle = !!matchedCycle && !matchedCycle.ended_on;
-    const isCompletedCycle = !!matchedCycle && !!matchedCycle.ended_on;
+    setSelectedDay(day);
 
-    if (isActiveCycle) {
+    if (matchedCycle) {
       Alert.alert('', `${month}월 ${day}일`, [
         { text: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
-        { text: '생리 기간 수정', onPress: () => { setSelectedDay(day); setEditCycle(matchedCycle); } },
+        { text: '사이클 수정하기', onPress: () => setEditCycle(matchedCycle) },
         { text: '취소', style: 'cancel' },
       ]);
-    } else if (isCompletedCycle) {
-      setSelectedDay(day);
-      setEditCycle(matchedCycle);
     } else {
-      navigation.navigate('Record', { date: dateStr });
+      Alert.alert('', `${month}월 ${day}일`, [
+        { text: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
+        { text: '사이클 추가하기', onPress: () => setPeriodSheet('start') },
+        { text: '취소', style: 'cancel' },
+      ]);
     }
   }, [year, month, today, cycleList, navigation, setSelectedDay]);
 
-  function handlePeriodSheetConfirm({ date }: { date: string; flowLevel?: 1 | 2 | 3 }) {
-    if (periodSheet === 'end' && latestCycle) {
+  function handlePeriodSheetConfirm({ date, flowLevel }: { date: string; flowLevel?: 1 | 2 | 3 }) {
+    if (periodSheet === 'start') {
+      startPeriod.mutate(
+        { startedOn: date, flowLevel: flowLevel ?? 2 },
+        {
+          onSuccess: () => {
+            setPeriodSheet(null);
+            Toast.show({ type: 'success', text1: '생리 시작을 기록했어요.' });
+          },
+          onError: () => Toast.show({ type: 'error', text1: '기록 실패', text2: '다시 시도해주세요.' }),
+        },
+      );
+    } else if (periodSheet === 'end' && latestCycle) {
       endPeriod.mutate(
         { cycleId: latestCycle.id, endedOn: date },
         {
