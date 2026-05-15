@@ -35,7 +35,7 @@ const PHASE_CHIPS: PhaseChipOption[] = [
   { label: '생리기', value: 'menstrual' },
   { label: '난포기', value: 'follicular' },
   { label: '배란기', value: 'ovulation' },
-  { label: '황체기', value: 'luteal' },
+  { label: '생리 전', value: 'luteal' },
 ];
 
 const MOOD_LABELS: Record<number, string> = { 5: '좋음', 4: '평온', 3: '짜증', 2: '우울', 1: '불안' };

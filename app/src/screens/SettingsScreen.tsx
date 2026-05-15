@@ -124,7 +124,7 @@ export function SettingsScreen() {
             </View>
           </SettingRow>
           <View style={styles.divider} />
-          <SettingRow label="황체기 길이" detail={`${lutealLen}일`}>
+          <SettingRow label="생리 전 기간 길이" detail={`${lutealLen}일`}>
             <View style={styles.stepperRow}>
               <TouchableOpacity style={styles.stepBtn} onPress={() => setLutealLen(v => Math.max(10, v - 1))}>
                 <Icon name="minus" size={16} strokeWidth={2.4} color={Colors.ink1} />
