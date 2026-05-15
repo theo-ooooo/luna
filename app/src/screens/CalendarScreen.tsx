@@ -96,23 +96,39 @@ export function CalendarScreen() {
 
   // 날짜에 해당하는 사이클을 찾아 실제 started_on / ended_on 기반으로 위상 계산
   function phaseForDate(dateStr: string, dayMs: number): PhaseKey {
+    // 날짜가 실제 사이클 범위 안에 있는지 먼저 확인
     const cycle = cycleList?.find(c =>
       dateStr >= c.started_on && (c.ended_on ? dateStr <= c.ended_on : true),
     );
-    let refStartMs: number | null = null;
-    let effectivePeriodLen = periodLength;
+
     if (cycle) {
-      refStartMs = new Date(cycle.started_on + 'T00:00:00').getTime();
+      const refStartMs = new Date(cycle.started_on + 'T00:00:00').getTime();
+      let effectivePeriodLen = periodLength;
       if (cycle.ended_on) {
         const endMs = new Date(cycle.ended_on + 'T00:00:00').getTime();
         effectivePeriodLen = Math.round((endMs - refStartMs) / 86_400_000) + 1;
       }
-    } else if (cycleStartMs !== null) {
-      refStartMs = cycleStartMs;
+      const cycleDay = Math.floor((dayMs - refStartMs) / 86_400_000) + 1;
+      return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, effectivePeriodLen) : 'follicular';
     }
-    if (refStartMs === null) return 'follicular';
-    const cycleDay = Math.floor((dayMs - refStartMs) / 86_400_000) + 1;
-    return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, effectivePeriodLen) : 'follicular';
+
+    // 범위 밖이면 가장 최근 이전 사이클 기준으로 계산
+    // (ended_on이 있으면 실제 기간으로 cap → ended_on 이후 날이 생리기로 표시되지 않음)
+    const precedingCycle = cycleList?.find(c => c.started_on <= dateStr);
+    if (precedingCycle) {
+      const refStartMs = new Date(precedingCycle.started_on + 'T00:00:00').getTime();
+      let effectivePeriodLen = periodLength;
+      if (precedingCycle.ended_on) {
+        const endMs = new Date(precedingCycle.ended_on + 'T00:00:00').getTime();
+        effectivePeriodLen = Math.round((endMs - refStartMs) / 86_400_000) + 1;
+      }
+      const cycleDay = Math.floor((dayMs - refStartMs) / 86_400_000) + 1;
+      return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, effectivePeriodLen) : 'follicular';
+    }
+
+    if (cycleStartMs === null) return 'follicular';
+    const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
+    return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, periodLength) : 'follicular';
   }
 
   const selectedPhaseKey = useMemo(() => {
