@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions, Alert } from 'react-native';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions, Alert, PanResponder } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -11,10 +11,12 @@ import { DayDetailCard } from '../components/calendar/DayDetailCard';
 import { InsightsBody } from '../components/insights/InsightsBody';
 import { DateSearchSheet } from '../components/home/DateSearchSheet';
 import { useCalendar } from '../hooks/useCalendar';
-import { useLatestCycle, useEndPeriod } from '../hooks/useCycles';
+import { useLatestCycle, useEndPeriod, useCycleList, useUpdateCycle } from '../hooks/useCycles';
+import type { Cycle } from '../hooks/useCycles';
 import { usePrediction } from '../hooks/usePrediction';
 import { useLogForDate } from '../hooks/useDailyLog';
 import { PeriodDateSheet } from '../components/home/PeriodDateSheet';
+import { CycleEditSheet } from '../components/home/CycleEditSheet';
 import Toast from 'react-native-toast-message';
 import { phaseForDay, CYCLE_DEFAULTS } from '../utils/phase';
 import { usePeriodLength } from '../hooks/usePeriodLength';
@@ -50,6 +52,7 @@ export function CalendarScreen() {
   const [activeTab, setActiveTab] = useState<Tab>('calendar');
   const [searchVisible, setSearchVisible] = useState(false);
   const [periodSheet, setPeriodSheet] = useState<'start' | 'end' | null>(null);
+  const [editCycle, setEditCycle] = useState<Cycle | null>(null);
   const navigation = useNavigation<BottomTabNavigationProp<TabParamList>>();
 
   const {
@@ -61,8 +64,10 @@ export function CalendarScreen() {
   } = useCalendar();
 
   const { data: latestCycle } = useLatestCycle();
+  const { data: cycleList } = useCycleList(12);
   const { data: prediction } = usePrediction();
   const endPeriod = useEndPeriod();
+  const updateCycle = useUpdateCycle();
 
   const selectedDateStr = `${year}-${String(month).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
   const { data: selectedLog } = useLogForDate(selectedDateStr);
@@ -127,23 +132,46 @@ export function CalendarScreen() {
 
   const monthEn = new Date(year, month - 1).toLocaleString('en', { month: 'short' }).toUpperCase();
 
+  const nextMonthRef = useRef(nextMonth);
+  const prevMonthRef = useRef(prevMonth);
+  nextMonthRef.current = nextMonth;
+  prevMonthRef.current = prevMonth;
+
+  const swipePan = useRef(PanResponder.create({
+    onMoveShouldSetPanResponder: (_, gs) =>
+      Math.abs(gs.dx) > 12 && Math.abs(gs.dx) > Math.abs(gs.dy) * 1.5,
+    onPanResponderRelease: (_, gs) => {
+      if (gs.dx < -50) nextMonthRef.current();
+      else if (gs.dx > 50) prevMonthRef.current();
+    },
+  })).current;
+
   const handleDayCellPress = useCallback((day: number) => {
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const isDateFuture = new Date(year, month - 1, day) > new Date(today.year, today.month - 1, today.day);
     if (isDateFuture) return;
 
-    const canEndPeriod = !!latestCycle && !latestCycle.ended_on && dateStr >= latestCycle.started_on;
+    // 해당 날짜가 속한 싸이클 찾기
+    const matchedCycle = cycleList?.find(c =>
+      dateStr >= c.started_on && (c.ended_on ? dateStr <= c.ended_on : true),
+    ) ?? null;
 
-    if (canEndPeriod) {
+    const isActiveCycle = !!matchedCycle && !matchedCycle.ended_on;
+    const isCompletedCycle = !!matchedCycle && !!matchedCycle.ended_on;
+
+    if (isActiveCycle) {
       Alert.alert('', `${month}월 ${day}일`, [
         { text: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
-        { text: '종료일 변경', onPress: () => { setSelectedDay(day); setPeriodSheet('end'); } },
+        { text: '생리 기간 수정', onPress: () => { setSelectedDay(day); setEditCycle(matchedCycle); } },
         { text: '취소', style: 'cancel' },
       ]);
+    } else if (isCompletedCycle) {
+      setSelectedDay(day);
+      setEditCycle(matchedCycle);
     } else {
       navigation.navigate('Record', { date: dateStr });
     }
-  }, [year, month, today, latestCycle, navigation, setSelectedDay]);
+  }, [year, month, today, cycleList, navigation, setSelectedDay]);
 
   function handlePeriodSheetConfirm({ date }: { date: string; flowLevel?: 1 | 2 | 3 }) {
     if (periodSheet === 'end' && latestCycle) {
@@ -158,6 +186,20 @@ export function CalendarScreen() {
         },
       );
     }
+  }
+
+  function handleCycleEditConfirm({ startedOn, endedOn }: { startedOn: string; endedOn: string | null }) {
+    if (!editCycle) return;
+    updateCycle.mutate(
+      { cycleId: editCycle.id, startedOn, endedOn },
+      {
+        onSuccess: () => {
+          setEditCycle(null);
+          Toast.show({ type: 'success', text1: '생리 기간을 수정했어요.' });
+        },
+        onError: () => Toast.show({ type: 'error', text1: '수정 실패', text2: '다시 시도해주세요.' }),
+      },
+    );
   }
 
   function isDimmed(day: number): boolean {
@@ -246,30 +288,32 @@ export function CalendarScreen() {
               ))}
             </ScrollView>
 
-            <View style={styles.weekHeaders}>
-              {WEEK_HEADERS.map((w, i) => (
-                <View key={w} style={[styles.weekHeaderCell, { width: cellSize }]}>
-                  <Text style={[styles.weekHeaderText, i === 0 && styles.weekHeaderSun]}>{w}</Text>
-                </View>
-              ))}
-            </View>
+            <View {...swipePan.panHandlers}>
+              <View style={styles.weekHeaders}>
+                {WEEK_HEADERS.map((w, i) => (
+                  <View key={w} style={[styles.weekHeaderCell, { width: cellSize }]}>
+                    <Text style={[styles.weekHeaderText, i === 0 && styles.weekHeaderSun]}>{w}</Text>
+                  </View>
+                ))}
+              </View>
 
-            <View style={styles.dayGrid}>
-              {grid.map((d, i) =>
-                d === null
-                  ? <View key={`e-${i}`} style={{ width: cellSize, height: cellSize }} />
-                  : <DayCell
-                      key={d}
-                      day={d}
-                      month={month}
-                      size={cellSize}
-                      isToday={d === today.day && month === today.month && year === today.year}
-                      isSelected={d === selectedDay}
-                      phaseKey={dayPhases?.[d] ?? 'follicular'}
-                      dimmed={isDimmed(d)}
-                      onPress={handleDayCellPress}
-                    />
-              )}
+              <View style={styles.dayGrid}>
+                {grid.map((d, i) =>
+                  d === null
+                    ? <View key={`e-${i}`} style={{ width: cellSize, height: cellSize }} />
+                    : <DayCell
+                        key={d}
+                        day={d}
+                        month={month}
+                        size={cellSize}
+                        isToday={d === today.day && month === today.month && year === today.year}
+                        isSelected={d === selectedDay}
+                        phaseKey={dayPhases?.[d] ?? 'follicular'}
+                        dimmed={isDimmed(d)}
+                        onPress={handleDayCellPress}
+                      />
+                )}
+              </View>
             </View>
 
             <DayDetailCard
@@ -295,6 +339,14 @@ export function CalendarScreen() {
             minDate={periodSheet === 'end' ? latestCycle?.started_on : undefined}
             onConfirm={handlePeriodSheetConfirm}
             isLoading={endPeriod.isPending}
+          />
+
+          <CycleEditSheet
+            visible={editCycle !== null}
+            onClose={() => setEditCycle(null)}
+            cycle={editCycle}
+            onConfirm={handleCycleEditConfirm}
+            isLoading={updateCycle.isPending}
           />
         </>
       ) : (

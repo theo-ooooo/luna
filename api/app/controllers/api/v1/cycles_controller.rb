@@ -35,7 +35,9 @@ module Api
 
       def update
         @cycle.update!(update_params)
-        PredictionService.new(current_user).compute! if @cycle.saved_change_to_ended_on?
+        if @cycle.saved_change_to_ended_on? || @cycle.saved_change_to_started_on?
+          PredictionService.new(current_user).compute!
+        end
         success(cycle_json(@cycle))
       end
 
@@ -60,7 +62,7 @@ module Api
       end
 
       def update_params
-        params.permit(:ended_on, :flow_level)
+        params.permit(:started_on, :ended_on, :flow_level)
       end
 
       def cycle_json(cycle)

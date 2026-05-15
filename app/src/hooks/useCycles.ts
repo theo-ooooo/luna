@@ -61,7 +61,20 @@ export function useEndPeriod() {
   });
 }
 
-function todayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+export function useUpdateCycle() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ cycleId, startedOn, endedOn }: { cycleId: number; startedOn?: string; endedOn?: string | null }) => {
+      const payload: Record<string, unknown> = {};
+      if (startedOn !== undefined) payload.started_on = startedOn;
+      if (endedOn !== undefined) payload.ended_on = endedOn;
+      return api.patch<Cycle>(`/api/v1/cycles/${cycleId}`, payload);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['cycles'] });
+      qc.invalidateQueries({ queryKey: ['prediction'] });
+    },
+  });
 }
+
+export type { Cycle };
