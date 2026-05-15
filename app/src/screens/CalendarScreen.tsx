@@ -417,7 +417,9 @@ export function CalendarScreen() {
             onClose={() => setActionSheetVisible(false)}
             month={month}
             day={selectedDay}
+            isToday={selectedDay === today.day && month === today.month && year === today.year}
             phaseKey={selectedPhaseKey}
+            logChips={logChips}
             actions={dayActions}
           />
         </>
