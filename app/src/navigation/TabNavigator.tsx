@@ -36,11 +36,17 @@ const TABS: TabItem[] = [
   { id: 'Settings', label: '설정',  icon: 'user' },
 ];
 
+const SCREEN_BG: Partial<Record<keyof TabParamList, string>> = {
+  AI: Colors.bgInk,
+};
+
 function LunaTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const currentTabId = TABS[state.index]?.id;
+  const wrapperBg = SCREEN_BG[currentTabId] ?? Colors.bg;
 
   return (
-    <View style={[styles.tabBarWrapper, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+    <View style={[styles.tabBarWrapper, { paddingBottom: Math.max(insets.bottom, 8), backgroundColor: wrapperBg }]}>
       <View style={[styles.tabBar, Shadow.lift]}>
         {TABS.map((tab, index) => {
           const active = state.index === index;
@@ -107,7 +113,6 @@ const styles = StyleSheet.create({
   tabBarWrapper: {
     marginHorizontal: 16,
     marginBottom: 8,
-    backgroundColor: 'transparent',
   },
   tabBar: {
     backgroundColor: Colors.bgInk,
