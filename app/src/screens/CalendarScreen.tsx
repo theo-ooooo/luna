@@ -218,13 +218,13 @@ export function CalendarScreen() {
 
     if (matchedCycle) {
       setDayActions([
-        { label: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
+        { label: '하루 기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
         { label: '사이클 수정하기', variant: 'coral', onPress: () => setEditCycle(matchedCycle) },
       ]);
     } else {
       setDayActions([
-        { label: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
-        { label: '사이클 추가하기', variant: 'coral', onPress: () => setPeriodSheet('start') },
+        { label: '하루 기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
+        { label: '생리 기록하기', variant: 'coral', onPress: () => setPeriodSheet('start') },
       ]);
     }
     setActionSheetVisible(true);
