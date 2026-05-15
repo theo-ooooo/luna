@@ -76,8 +76,9 @@ const styles = StyleSheet.create({
   },
   emailButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 19,
+    fontFamily: 'NotoSansKR_600SemiBold',
+    letterSpacing: -0.3,
   },
   terms: {
     marginTop: 20,
