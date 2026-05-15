@@ -209,10 +209,6 @@ export function CalendarScreen() {
     setSelectedDay(day);
 
     if (isDateFuture) {
-      setDayActions([
-        { label: '기록하기', onPress: () => navigation.navigate('Record', { date: dateStr }) },
-      ]);
-      setActionSheetVisible(true);
       return;
     }
 
