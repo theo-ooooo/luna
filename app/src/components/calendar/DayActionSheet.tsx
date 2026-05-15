@@ -104,7 +104,11 @@ export function DayActionSheet({ visible, onClose, month, day, isToday, phaseKey
                 action.disabled && styles.actionBtnDisabled,
               ]}
               onPress={() => {
-                if (action.disabled) { action.onPress(); return; }
+                if (action.disabled) {
+                  onClose();
+                  setTimeout(action.onPress, Motion.fast + 50);
+                  return;
+                }
                 onClose(); action.onPress();
               }}
               activeOpacity={action.disabled ? 1 : 0.75}
