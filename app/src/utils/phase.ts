@@ -12,7 +12,7 @@ export function phaseForDay(
 ): PhaseKey {
   if (day < 1) day = 1;
   if (day > cycleLength) day = ((day - 1) % cycleLength) + 1;
-  const follicularEnd = periodLength + 7;
+  const follicularEnd = Math.min(periodLength + 7, cycleLength - 2);
   const ovulationEnd = Math.min(follicularEnd + 4, cycleLength - 1);
   if (day <= periodLength) return 'menstrual';
   if (day <= follicularEnd) return 'follicular';
