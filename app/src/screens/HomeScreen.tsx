@@ -59,7 +59,16 @@ export function HomeScreen() {
   }, []);
   const { data: insight, isLoading: insightLoading } = useAiDailyInsight(todayIso);
 
-  const cycleDay = prediction?.cycle_day ?? 1;
+  // latestCycle.started_on 우선 — 유저가 직접 기록한 값이 기준
+  const cycleDay = useMemo(() => {
+    if (latestCycle?.started_on) {
+      const start = new Date(latestCycle.started_on + 'T00:00:00');
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      return Math.floor((now.getTime() - start.getTime()) / 86_400_000) + 1;
+    }
+    return prediction?.cycle_day ?? 1;
+  }, [latestCycle?.started_on, prediction?.cycle_day]);
   const cycleLength: number = prediction?.avg_cycle_length ?? CYCLE_DEFAULTS.length;
   const periodLength = usePeriodLength();
   const phaseKey = phaseForDay(cycleDay, cycleLength, periodLength);
