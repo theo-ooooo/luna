@@ -59,7 +59,6 @@ export function HomeScreen() {
   }, []);
   const { data: insight, isLoading: insightLoading } = useAiDailyInsight(todayIso);
 
-  // latestCycle.started_on 우선 — 유저가 직접 기록한 값이 기준
   const cycleDay = useMemo(() => {
     if (latestCycle?.started_on) {
       const start = new Date(latestCycle.started_on + 'T00:00:00');

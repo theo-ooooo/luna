@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe PredictionService, type: :service do
+RSpec.describe PredictionService, type: :service do # >= 3사이클 가중평균
   let(:user) { create(:user, cycle_length_default: 28, luteal_phase_length: 14) }
   subject(:service) { described_class.new(user) }
 
@@ -37,7 +37,8 @@ RSpec.describe PredictionService, type: :service do
 
       it "가중평균으로 avg_cycle_length 계산" do
         prediction = service.compute!
-        expect(prediction.based_on_cycles_count).to eq(3)
+        # 3개 사이클 → each_cons(2)로 2개 인터벌 생성
+        expect(prediction.based_on_cycles_count).to eq(2)
         expect(prediction.avg_cycle_length).to be_a(BigDecimal)
       end
 

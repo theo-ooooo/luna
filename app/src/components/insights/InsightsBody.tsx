@@ -45,10 +45,13 @@ export function InsightsBody({ chartW, scrollable = false }: Props) {
 
   const content = (
     <>
-      {/* Hero */}
-      <View style={styles.heroSection}>
-        <Text style={styles.heroEyebrow}>INSIGHTS · 6 MONTHS</Text>
-        <Text style={styles.heroTitle}>당신의{'\n'}패턴<Text style={styles.heroDot}>.</Text></Text>
+      {/* Section header */}
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionDivider} />
+        <View style={styles.sectionLabelWrap}>
+          <Text style={styles.sectionLabel}>인사이트</Text>
+          <Text style={styles.sectionSub}>최근 6개월</Text>
+        </View>
       </View>
 
       {/* AI Summary */}
@@ -227,10 +230,11 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingBottom: 120, gap: 12 },
 
-  heroSection: { paddingTop: 4, paddingBottom: 4 },
-  heroEyebrow: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', letterSpacing: 1.2, color: Colors.ink3, marginBottom: 8 },
-  heroTitle: { fontSize: 44, fontFamily: 'NotoSansKR_900Black', letterSpacing: -2, lineHeight: 46, color: Colors.ink1 },
-  heroDot: { color: Colors.coral },
+  sectionHeader: { paddingTop: 8, paddingBottom: 4, gap: 12 },
+  sectionDivider: { height: 1, backgroundColor: Colors.borderSoft },
+  sectionLabelWrap: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+  sectionLabel: { fontSize: 20, fontFamily: 'NotoSansKR_900Black', letterSpacing: -0.8, color: Colors.ink1 },
+  sectionSub: { fontSize: 11, fontFamily: 'NotoSansKR_600SemiBold', color: Colors.ink3, letterSpacing: 0.4 },
 
   aiCard: { backgroundColor: Colors.lime, borderRadius: Radius.card, padding: 20 },
   aiCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },

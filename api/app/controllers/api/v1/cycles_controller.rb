@@ -35,8 +35,19 @@ module Api
 
       def update
         @cycle.update!(update_params)
-        PredictionService.new(current_user).compute! if @cycle.saved_change_to_ended_on?
+        if @cycle.saved_change_to_ended_on? || @cycle.saved_change_to_started_on?
+          PredictionService.new(current_user).compute!
+        end
         success(cycle_json(@cycle))
+      rescue ActiveRecord::RecordInvalid => e
+        errors = e.record.errors
+        if errors.of_kind?(:started_on, :taken)
+          failure("DUPLICATE_DATE", "이미 해당 날짜에 주기가 존재합니다.")
+        elsif errors.of_kind?(:started_on, :future_date)
+          failure("FUTURE_DATE", "미래 날짜는 입력할 수 없습니다.")
+        else
+          failure("VALIDATION_ERROR", e.record.errors.full_messages.first)
+        end
       end
 
       def destroy
@@ -60,7 +71,7 @@ module Api
       end
 
       def update_params
-        params.permit(:ended_on, :flow_level)
+        params.permit(:started_on, :ended_on, :flow_level)
       end
 
       def cycle_json(cycle)
