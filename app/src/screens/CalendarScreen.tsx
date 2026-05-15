@@ -92,7 +92,7 @@ export function CalendarScreen() {
     const dayMs = new Date(year, month - 1, selectedDay).getTime();
     const cycleDay = Math.floor((dayMs - cycleStartMs) / 86_400_000) + 1;
     return cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, periodLength) : 'follicular';
-  }, [cycleStartMs, year, month, selectedDay, cycleLength]);
+  }, [cycleStartMs, year, month, selectedDay, cycleLength, periodLength]);
 
   // Pre-compute phase per day-of-month for the current view
   const dayPhases = useMemo(() => {
@@ -104,7 +104,7 @@ export function CalendarScreen() {
       phases[d] = cycleDay >= 1 ? phaseForDay(cycleDay, cycleLength, periodLength) : 'follicular';
     }
     return phases;
-  }, [cycleStartMs, year, month, daysInMonth, cycleLength]);
+  }, [cycleStartMs, year, month, daysInMonth, cycleLength, periodLength]);
 
   // Derive display chips from the fetched daily log for the selected date
   const logChips = useMemo(() => {
