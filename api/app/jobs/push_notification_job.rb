@@ -63,13 +63,14 @@ class PushNotificationJob < ApplicationJob
   end
 
   def send_and_log(user, identifier, title:, body:, scheduled_for:)
+    log = user.notification_logs.find_or_initialize_by(identifier: identifier)
+    return if log.persisted?
+
     ExpoPushService.send_to_user(user, title: title, body: body)
-    user.notification_logs.find_or_initialize_by(identifier: identifier).tap do |log|
-      log.title = title
-      log.body = body
-      log.scheduled_for = scheduled_for
-      log.save!
-    end
+    log.title = title
+    log.body = body
+    log.scheduled_for = scheduled_for
+    log.save!
   rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => e
     Rails.logger.error("PushNotificationJob log error for user #{user.id}: #{e.message}")
   end
