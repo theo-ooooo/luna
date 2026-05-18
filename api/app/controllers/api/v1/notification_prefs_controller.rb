@@ -1,6 +1,11 @@
 module Api
   module V1
     class NotificationPrefsController < ApplicationController
+      rescue_from ActiveRecord::RecordNotUnique do
+        pref = current_user.reload.notification_pref
+        success(serialize(pref))
+      end
+
       def show
         pref = current_user.notification_pref || NotificationPref.new(NotificationPref::KEYS.index_with(true).merge(daily_reminder: false))
         success(serialize(pref))
