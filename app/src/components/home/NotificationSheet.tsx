@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Motion } from '../../theme/tokens';
 import { Icon } from '../ui/Icon';
 import { useNotificationStore } from '../../store/notificationStore';
+import { useUpdateNotificationPref } from '../../hooks/useNotificationPrefs';
 
 const SHEET_HEIGHT = 400;
 
@@ -24,7 +25,8 @@ const PREF_ROWS: { key: keyof import('../../store/notificationStore').Notificati
 
 export function NotificationSheet({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
-  const { prefs, setPrefs, permissionGranted } = useNotificationStore();
+  const { prefs, permissionGranted } = useNotificationStore();
+  const updatePref = useUpdateNotificationPref();
   const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -72,7 +74,7 @@ export function NotificationSheet({ visible, onClose }: Props) {
               </View>
               <Switch
                 value={prefs[row.key]}
-                onValueChange={v => setPrefs({ [row.key]: v })}
+                onValueChange={v => updatePref.mutate({ [row.key]: v })}
                 trackColor={{ false: Colors.borderSoft, true: Colors.coral }}
                 thumbColor={Colors.bgCard}
                 disabled={!permissionGranted}

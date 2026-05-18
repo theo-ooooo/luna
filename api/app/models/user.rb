@@ -13,6 +13,7 @@ class User < ApplicationRecord
   has_many :ai_monthly_reports, dependent: :destroy
   has_many :ai_daily_insights, dependent: :destroy
   has_many :notification_logs, dependent: :destroy
+  has_one :notification_pref, dependent: :destroy
   has_many :oauth_identities, dependent: :destroy, inverse_of: :user
 
   # OAuth(Apple 등) 유저는 email/password 없이 생성될 수 있음

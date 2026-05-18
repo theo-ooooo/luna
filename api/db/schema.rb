@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_14_135144) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_18_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -51,13 +51,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_135144) do
   end
 
   create_table "app_versions", force: :cascade do |t|
-    t.string "ios_latest_version", null: false
-    t.string "ios_min_version", null: false
-    t.string "ios_store_url"
     t.string "android_latest_version", null: false
     t.string "android_min_version", null: false
     t.string "android_store_url"
     t.datetime "created_at", null: false
+    t.string "ios_latest_version", null: false
+    t.string "ios_min_version", null: false
+    t.string "ios_store_url"
     t.datetime "updated_at", null: false
   end
 
@@ -110,6 +110,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_135144) do
     t.index ["user_id", "identifier"], name: "index_notification_logs_on_user_id_and_identifier", unique: true
     t.index ["user_id", "scheduled_for"], name: "index_notification_logs_on_user_id_and_scheduled_for"
     t.index ["user_id"], name: "index_notification_logs_on_user_id"
+  end
+
+  create_table "notification_prefs", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.boolean "daily_reminder", default: false, null: false
+    t.boolean "fertile_start", default: true, null: false
+    t.boolean "log_nudge", default: true, null: false
+    t.boolean "monthly_report", default: true, null: false
+    t.boolean "ovulation_alert", default: true, null: false
+    t.boolean "period_reminder", default: true, null: false
+    t.datetime "updated_at", null: false
+    t.bigint "user_id", null: false
+    t.index ["user_id"], name: "index_notification_prefs_on_user_id", unique: true
   end
 
   create_table "oauth_identities", force: :cascade do |t|
@@ -173,6 +186,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_14_135144) do
   add_foreign_key "cycles", "users", on_delete: :cascade
   add_foreign_key "daily_logs", "users", on_delete: :cascade
   add_foreign_key "notification_logs", "users", on_delete: :cascade
+  add_foreign_key "notification_prefs", "users", on_delete: :cascade
   add_foreign_key "oauth_identities", "users", on_delete: :cascade
   add_foreign_key "predictions", "cycles", on_delete: :nullify
   add_foreign_key "predictions", "users", on_delete: :cascade

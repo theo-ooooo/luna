@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useLayoutEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions, PanResponder, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -172,12 +172,26 @@ export function CalendarScreen() {
   screenWRef.current = screenW;
 
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const isAnimatingRef = useRef(false);
+  const pendingSlideDir = useRef<'next' | 'prev' | null>(null);
+
+  useLayoutEffect(() => {
+    const dir = pendingSlideDir.current;
+    if (dir === null) return;
+    pendingSlideDir.current = null;
+    // Native value is already at ±w from Animated.sequence — no setValue needed
+    Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start(({ finished }) => {
+      if (finished) isAnimatingRef.current = false;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [month, year]);
 
   const SWIPE_THRESHOLD = 50;
   const SLIDE_DURATION = 180;
 
   const swipePan = useRef(PanResponder.create({
     onMoveShouldSetPanResponder: (_, gs) =>
+      !isAnimatingRef.current &&
       Math.abs(gs.dx) > 12 && Math.abs(gs.dx) > Math.abs(gs.dy) * 1.5,
     onPanResponderMove: (_, gs) => {
       slideAnim.setValue(gs.dx);
@@ -185,16 +199,24 @@ export function CalendarScreen() {
     onPanResponderRelease: (_, gs) => {
       const w = screenWRef.current;
       if (gs.dx < -SWIPE_THRESHOLD) {
-        Animated.timing(slideAnim, { toValue: -w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
+        isAnimatingRef.current = true;
+        // Exit to -w, then atomically jump to +w on native thread before content changes
+        Animated.sequence([
+          Animated.timing(slideAnim, { toValue: -w, duration: SLIDE_DURATION, useNativeDriver: true }),
+          Animated.timing(slideAnim, { toValue: w, duration: 0, useNativeDriver: true }),
+        ]).start(() => {
+          pendingSlideDir.current = 'next';
           nextMonthRef.current();
-          slideAnim.setValue(w);
-          Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start();
         });
       } else if (gs.dx > SWIPE_THRESHOLD) {
-        Animated.timing(slideAnim, { toValue: w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
+        isAnimatingRef.current = true;
+        // Exit to +w, then atomically jump to -w on native thread before content changes
+        Animated.sequence([
+          Animated.timing(slideAnim, { toValue: w, duration: SLIDE_DURATION, useNativeDriver: true }),
+          Animated.timing(slideAnim, { toValue: -w, duration: 0, useNativeDriver: true }),
+        ]).start(() => {
+          pendingSlideDir.current = 'prev';
           prevMonthRef.current();
-          slideAnim.setValue(-w);
-          Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start();
         });
       } else {
         Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20, stiffness: 300 }).start();

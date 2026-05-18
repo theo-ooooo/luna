@@ -12,6 +12,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { useUpdateProfile } from '../hooks/useProfile';
 import { useNotificationStore } from '../store/notificationStore';
+import { useUpdateNotificationPref } from '../hooks/useNotificationPrefs';
 import { api } from '../api/client';
 
 export function SettingsScreen() {
@@ -20,7 +21,8 @@ export function SettingsScreen() {
   const update = useUpdateProfile();
   const qc = useQueryClient();
 
-  const { prefs, setPrefs, permissionGranted, permissionChecked } = useNotificationStore();
+  const { prefs, permissionGranted, permissionChecked } = useNotificationStore();
+  const updatePref = useUpdateNotificationPref();
 
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [cycleLen, setCycleLen] = useState(user?.cycle_length_default ?? 28);
@@ -85,19 +87,23 @@ export function SettingsScreen() {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* 프로필 헤더 */}
-        <View style={[styles.profileCard, Shadow.card]}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initial}</Text>
-          </View>
-          <View style={styles.profileInfo}>
-            <Text style={styles.profileEmail}>{user?.email}</Text>
-            <Text style={styles.profileSince}>Luna 사용 중</Text>
-          </View>
-        </View>
 
-        {/* 프로필 설정 */}
-        <Section title="프로필">
+        {/* 프로필 + 주기 설정 통합 카드 */}
+        <View style={[styles.card, Shadow.card]}>
+          {/* 프로필 헤더 */}
+          <View style={styles.profileRow}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{initial}</Text>
+            </View>
+            <View style={styles.profileInfo}>
+              <Text style={styles.profileEmail}>{user?.email}</Text>
+              <Text style={styles.profileSince}>Luna 사용 중</Text>
+            </View>
+          </View>
+
+          <View style={styles.cardSep} />
+
+          <Text style={styles.cardSectionLabel}>프로필</Text>
           <SettingRow label="호칭">
             <TextInput
               style={styles.textInput}
@@ -108,10 +114,10 @@ export function SettingsScreen() {
               maxLength={20}
             />
           </SettingRow>
-        </Section>
 
-        {/* 주기 설정 */}
-        <Section title="주기 설정">
+          <View style={styles.cardSep} />
+
+          <Text style={styles.cardSectionLabel}>주기 설정</Text>
           <SettingRow label="평균 주기 길이" detail={`${cycleLen}일`}>
             <View style={styles.stepperRow}>
               <TouchableOpacity style={styles.stepBtn} onPress={() => setCycleLen(v => Math.max(21, v - 1))}>
@@ -147,7 +153,16 @@ export function SettingsScreen() {
               </TouchableOpacity>
             </View>
           </SettingRow>
-        </Section>
+
+          <TouchableOpacity
+            style={[styles.saveBtn, update.isPending && styles.saveBtnDisabled]}
+            onPress={handleSave}
+            disabled={update.isPending}
+          >
+            <Icon name="check" size={16} strokeWidth={2.4} color={Colors.inkInv} />
+            <Text style={styles.saveBtnText}>{update.isPending ? '저장 중…' : '저장'}</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* 알림 */}
         <Section title="알림">
@@ -160,42 +175,42 @@ export function SettingsScreen() {
             label="생리 예정일 알림"
             sub="예정일 3일·1일 전 오전 9시"
             value={prefs.periodReminder}
-            onChange={(v) => setPrefs({ periodReminder: v })}
+            onChange={(v) => updatePref.mutate({ periodReminder: v })}
           />
           <View style={styles.divider} />
           <NotiRow
             label="배란 예정일 알림"
             sub="예정 배란일 2일·당일 오전 9시"
             value={prefs.ovulationAlert}
-            onChange={(v) => setPrefs({ ovulationAlert: v })}
+            onChange={(v) => updatePref.mutate({ ovulationAlert: v })}
           />
           <View style={styles.divider} />
           <NotiRow
             label="가임기 시작 알림"
             sub="가임기 첫날 오전 9시"
             value={prefs.fertileStart}
-            onChange={(v) => setPrefs({ fertileStart: v })}
+            onChange={(v) => updatePref.mutate({ fertileStart: v })}
           />
           <View style={styles.divider} />
           <NotiRow
             label="기록 독려"
             sub="예정일 당일 미기록 시 오후 8시"
             value={prefs.logNudge}
-            onChange={(v) => setPrefs({ logNudge: v })}
+            onChange={(v) => updatePref.mutate({ logNudge: v })}
           />
           <View style={styles.divider} />
           <NotiRow
             label="일일 리마인더"
             sub="매일 오후 10시 (기본 꺼짐)"
             value={prefs.dailyReminder}
-            onChange={(v) => setPrefs({ dailyReminder: v })}
+            onChange={(v) => updatePref.mutate({ dailyReminder: v })}
           />
           <View style={styles.divider} />
           <NotiRow
             label="월간 리포트"
             sub="주기 종료 다음날 오전 10시"
             value={prefs.monthlyReport}
-            onChange={(v) => setPrefs({ monthlyReport: v })}
+            onChange={(v) => updatePref.mutate({ monthlyReport: v })}
           />
         </Section>
 
@@ -234,17 +249,6 @@ export function SettingsScreen() {
 
         <Text style={styles.versionText}>v{Constants.expoConfig?.version ?? '—'}</Text>
       </ScrollView>
-
-      <View style={styles.bottomBar}>
-        <TouchableOpacity
-          style={[styles.saveBtn, update.isPending && styles.saveBtnDisabled]}
-          onPress={handleSave}
-          disabled={update.isPending}
-        >
-          <Icon name="check" size={16} strokeWidth={2.4} color={Colors.inkInv} />
-          <Text style={styles.saveBtnText}>{update.isPending ? '저장 중…' : '저장'}</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
@@ -293,16 +297,18 @@ const styles = StyleSheet.create({
   topBarLabel: { fontSize: 13, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink3, letterSpacing: -0.1 },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingBottom: 24, gap: 12 },
-  bottomBar: { paddingHorizontal: 16, paddingTop: 12, borderTopWidth: 1, borderTopColor: Colors.borderSoft, backgroundColor: Colors.bg },
-  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.coral, borderRadius: Radius.pill, paddingVertical: 16 },
-  saveBtnDisabled: { opacity: 0.6 },
-  saveBtnText: { fontSize: 15, fontFamily: 'NotoSansKR_800ExtraBold', color: Colors.inkInv, letterSpacing: -0.2 },
-  profileCard: { flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: Colors.bgCard, borderRadius: Radius.tile, padding: 18 },
+  card: { backgroundColor: Colors.bgCard, borderRadius: Radius.tile, padding: 18 },
+  profileRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: Colors.bgInk, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 20, fontFamily: 'NotoSansKR_900Black', color: Colors.coral },
   profileInfo: { flex: 1 },
   profileEmail: { fontSize: 13, fontFamily: 'NotoSansKR_700Bold', color: Colors.ink1 },
   profileSince: { fontSize: 11, color: Colors.ink3, marginTop: 2 },
+  cardSep: { height: 1, backgroundColor: Colors.borderSoft, marginVertical: 14 },
+  cardSectionLabel: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', letterSpacing: 1.5, textTransform: 'uppercase', color: Colors.ink3, marginBottom: 12 },
+  saveBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Colors.coral, borderRadius: Radius.pill, paddingVertical: 14, marginTop: 16 },
+  saveBtnDisabled: { opacity: 0.6 },
+  saveBtnText: { fontSize: 15, fontFamily: 'NotoSansKR_800ExtraBold', color: Colors.inkInv, letterSpacing: -0.2 },
   section: { backgroundColor: Colors.bgCard, borderRadius: Radius.tile, padding: 18 },
   sectionTitle: { fontSize: 11, fontFamily: 'NotoSansKR_700Bold', letterSpacing: 1.5, textTransform: 'uppercase', color: Colors.ink3, marginBottom: 14 },
   settingRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 40 },
