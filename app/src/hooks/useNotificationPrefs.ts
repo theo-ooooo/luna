@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import Toast from 'react-native-toast-message';
 import { api } from '../api/client';
 import { useNotificationStore, type NotificationPrefs } from '../store/notificationStore';
 import { useAuthStore } from '../store/authStore';
@@ -13,15 +14,15 @@ interface ServerPrefs {
   monthly_report: boolean;
 }
 
-function toLocal(s: ServerPrefs): NotificationPrefs {
-  return {
-    periodReminder: s.period_reminder,
-    ovulationAlert: s.ovulation_alert,
-    fertileStart: s.fertile_start,
-    logNudge: s.log_nudge,
-    dailyReminder: s.daily_reminder,
-    monthlyReport: s.monthly_report,
-  };
+function toLocal(s: Partial<ServerPrefs>): Partial<NotificationPrefs> {
+  const l: Partial<NotificationPrefs> = {};
+  if (s.period_reminder  != null) l.periodReminder = s.period_reminder;
+  if (s.ovulation_alert  != null) l.ovulationAlert = s.ovulation_alert;
+  if (s.fertile_start    != null) l.fertileStart    = s.fertile_start;
+  if (s.log_nudge        != null) l.logNudge        = s.log_nudge;
+  if (s.daily_reminder   != null) l.dailyReminder   = s.daily_reminder;
+  if (s.monthly_report   != null) l.monthlyReport   = s.monthly_report;
+  return l;
 }
 
 function toServer(l: Partial<NotificationPrefs>): Partial<ServerPrefs> {
@@ -61,9 +62,9 @@ export function useUpdateNotificationPref() {
     mutationFn: (patch: Partial<NotificationPrefs>) =>
       api.patch<ServerPrefs>('/api/v1/notification_prefs', toServer(patch)),
     onMutate: async (patch) => {
-      await qc.cancelQueries({ queryKey: ['notification-prefs'] });
       const previous = useNotificationStore.getState().prefs;
       setPrefs(patch);
+      await qc.cancelQueries({ queryKey: ['notification-prefs'] });
       return { previous };
     },
     onSuccess: (data) => {
@@ -73,6 +74,7 @@ export function useUpdateNotificationPref() {
     onError: (_err, _patch, ctx) => {
       if (ctx?.previous) setPrefs(ctx.previous);
       qc.invalidateQueries({ queryKey: ['notification-prefs'] });
+      Toast.show({ type: 'error', text1: '알림 설정 저장 실패', text2: '잠시 후 다시 시도해주세요.' });
     },
   });
 }
