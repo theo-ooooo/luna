@@ -70,7 +70,7 @@ class PushNotificationJob < ApplicationJob
       log.scheduled_for = scheduled_for
       log.save!
     end
-  rescue => e
+  rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => e
     Rails.logger.error("PushNotificationJob log error for user #{user.id}: #{e.message}")
   end
 end

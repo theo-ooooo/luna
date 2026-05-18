@@ -21,7 +21,7 @@ export function SettingsScreen() {
   const update = useUpdateProfile();
   const qc = useQueryClient();
 
-  const { prefs, setPrefs, permissionGranted, permissionChecked } = useNotificationStore();
+  const { prefs, permissionGranted, permissionChecked } = useNotificationStore();
   const updatePref = useUpdateNotificationPref();
 
   const [nickname, setNickname] = useState(user?.nickname ?? '');

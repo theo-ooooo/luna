@@ -61,13 +61,16 @@ export function useUpdateNotificationPref() {
     mutationFn: (patch: Partial<NotificationPrefs>) =>
       api.patch<ServerPrefs>('/api/v1/notification_prefs', toServer(patch)),
     onMutate: (patch) => {
+      const previous = useNotificationStore.getState().prefs;
       setPrefs(patch);
+      return { previous };
     },
     onSuccess: (data) => {
       setPrefs(toLocal(data));
       qc.setQueryData(['notification-prefs'], data);
     },
-    onError: (_err, _patch, _ctx) => {
+    onError: (_err, _patch, ctx) => {
+      if (ctx?.previous) setPrefs(ctx.previous);
       qc.invalidateQueries({ queryKey: ['notification-prefs'] });
     },
   });
