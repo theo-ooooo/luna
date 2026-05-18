@@ -3,7 +3,8 @@ module Api
     class NotificationPrefsController < ApplicationController
       rescue_from ActiveRecord::RecordNotUnique do
         pref = current_user.reload.notification_pref
-        success(serialize(pref))
+        pref.update!(pref_params)
+        success(serialize(pref.reload))
       end
 
       def show
