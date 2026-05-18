@@ -187,14 +187,18 @@ export function CalendarScreen() {
       if (gs.dx < -SWIPE_THRESHOLD) {
         Animated.timing(slideAnim, { toValue: -w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
           nextMonthRef.current();
-          slideAnim.setValue(w);
-          Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start();
+          requestAnimationFrame(() => {
+            slideAnim.setValue(w);
+            Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start();
+          });
         });
       } else if (gs.dx > SWIPE_THRESHOLD) {
         Animated.timing(slideAnim, { toValue: w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
           prevMonthRef.current();
-          slideAnim.setValue(-w);
-          Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start();
+          requestAnimationFrame(() => {
+            slideAnim.setValue(-w);
+            Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start();
+          });
         });
       } else {
         Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20, stiffness: 300 }).start();

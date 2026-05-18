@@ -68,6 +68,7 @@ export function buildLogFields({
 export function useLogForDate(date: string) {
   return useQuery({
     queryKey: ['dailyLog', date],
+    enabled: date <= todayStr(),
     queryFn: async () => {
       const logs = await api.get<DailyLog[]>(`/api/v1/daily_logs?from=${date}&to=${date}`);
       return logs[0] ?? null;
