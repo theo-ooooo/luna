@@ -12,6 +12,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import { useUpdateProfile } from '../hooks/useProfile';
 import { useNotificationStore } from '../store/notificationStore';
+import { useUpdateNotificationPref } from '../hooks/useNotificationPrefs';
 import { api } from '../api/client';
 
 export function SettingsScreen() {
@@ -21,6 +22,7 @@ export function SettingsScreen() {
   const qc = useQueryClient();
 
   const { prefs, setPrefs, permissionGranted, permissionChecked } = useNotificationStore();
+  const updatePref = useUpdateNotificationPref();
 
   const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [cycleLen, setCycleLen] = useState(user?.cycle_length_default ?? 28);
@@ -160,42 +162,42 @@ export function SettingsScreen() {
             label="생리 예정일 알림"
             sub="예정일 3일·1일 전 오전 9시"
             value={prefs.periodReminder}
-            onChange={(v) => setPrefs({ periodReminder: v })}
+            onChange={(v) => updatePref.mutate({ periodReminder: v })}
           />
           <View style={styles.divider} />
           <NotiRow
             label="배란 예정일 알림"
             sub="예정 배란일 2일·당일 오전 9시"
             value={prefs.ovulationAlert}
-            onChange={(v) => setPrefs({ ovulationAlert: v })}
+            onChange={(v) => updatePref.mutate({ ovulationAlert: v })}
           />
           <View style={styles.divider} />
           <NotiRow
             label="가임기 시작 알림"
             sub="가임기 첫날 오전 9시"
             value={prefs.fertileStart}
-            onChange={(v) => setPrefs({ fertileStart: v })}
+            onChange={(v) => updatePref.mutate({ fertileStart: v })}
           />
           <View style={styles.divider} />
           <NotiRow
             label="기록 독려"
             sub="예정일 당일 미기록 시 오후 8시"
             value={prefs.logNudge}
-            onChange={(v) => setPrefs({ logNudge: v })}
+            onChange={(v) => updatePref.mutate({ logNudge: v })}
           />
           <View style={styles.divider} />
           <NotiRow
             label="일일 리마인더"
             sub="매일 오후 10시 (기본 꺼짐)"
             value={prefs.dailyReminder}
-            onChange={(v) => setPrefs({ dailyReminder: v })}
+            onChange={(v) => updatePref.mutate({ dailyReminder: v })}
           />
           <View style={styles.divider} />
           <NotiRow
             label="월간 리포트"
             sub="주기 종료 다음날 오전 10시"
             value={prefs.monthlyReport}
-            onChange={(v) => setPrefs({ monthlyReport: v })}
+            onChange={(v) => updatePref.mutate({ monthlyReport: v })}
           />
         </Section>
 
