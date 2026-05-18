@@ -42,6 +42,11 @@ Rails.application.routes.draw do
         put  "/", to: "notifications#replace", as: :notifications_replace
       end
 
+      scope :notification_prefs do
+        get   "/", to: "notification_prefs#show",   as: :notification_prefs
+        patch "/", to: "notification_prefs#update", as: :notification_prefs_update
+      end
+
       scope :push_tokens do
         put  "/",     to: "push_tokens#upsert",     as: :push_tokens_upsert
         post "test",  to: "push_tokens#test_push",  as: :push_tokens_test
