@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useLayoutEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, useWindowDimensions, PanResponder, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -173,6 +173,21 @@ export function CalendarScreen() {
 
   const slideAnim = useRef(new Animated.Value(0)).current;
   const isAnimatingRef = useRef(false);
+  const pendingSlideDir = useRef<'next' | 'prev' | null>(null);
+
+  // 월 변경 후 React가 네이티브 레이어에 커밋한 직후 슬라이드인 시작.
+  // RAF보다 늦게 실행되므로 새 컨텐츠가 translateX:0에 잠깐 노출되는 플래시 없음.
+  useLayoutEffect(() => {
+    const dir = pendingSlideDir.current;
+    if (dir === null) return;
+    pendingSlideDir.current = null;
+    const w = screenWRef.current;
+    slideAnim.setValue(dir === 'next' ? w : -w);
+    Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start(({ finished }) => {
+      if (finished) isAnimatingRef.current = false;
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [month, year]);
 
   const SWIPE_THRESHOLD = 50;
   const SLIDE_DURATION = 180;
@@ -189,24 +204,14 @@ export function CalendarScreen() {
       if (gs.dx < -SWIPE_THRESHOLD) {
         isAnimatingRef.current = true;
         Animated.timing(slideAnim, { toValue: -w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
+          pendingSlideDir.current = 'next';
           nextMonthRef.current();
-          requestAnimationFrame(() => {
-            slideAnim.setValue(w);
-            Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start(({ finished }) => {
-              if (finished) isAnimatingRef.current = false;
-            });
-          });
         });
       } else if (gs.dx > SWIPE_THRESHOLD) {
         isAnimatingRef.current = true;
         Animated.timing(slideAnim, { toValue: w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
+          pendingSlideDir.current = 'prev';
           prevMonthRef.current();
-          requestAnimationFrame(() => {
-            slideAnim.setValue(-w);
-            Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start(({ finished }) => {
-              if (finished) isAnimatingRef.current = false;
-            });
-          });
         });
       } else {
         Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20, stiffness: 300 }).start();
