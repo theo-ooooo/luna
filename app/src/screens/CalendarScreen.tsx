@@ -172,12 +172,14 @@ export function CalendarScreen() {
   screenWRef.current = screenW;
 
   const slideAnim = useRef(new Animated.Value(0)).current;
+  const isAnimatingRef = useRef(false);
 
   const SWIPE_THRESHOLD = 50;
   const SLIDE_DURATION = 180;
 
   const swipePan = useRef(PanResponder.create({
     onMoveShouldSetPanResponder: (_, gs) =>
+      !isAnimatingRef.current &&
       Math.abs(gs.dx) > 12 && Math.abs(gs.dx) > Math.abs(gs.dy) * 1.5,
     onPanResponderMove: (_, gs) => {
       slideAnim.setValue(gs.dx);
@@ -185,16 +187,26 @@ export function CalendarScreen() {
     onPanResponderRelease: (_, gs) => {
       const w = screenWRef.current;
       if (gs.dx < -SWIPE_THRESHOLD) {
+        isAnimatingRef.current = true;
         Animated.timing(slideAnim, { toValue: -w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
           nextMonthRef.current();
-          slideAnim.setValue(w);
-          Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start();
+          requestAnimationFrame(() => {
+            slideAnim.setValue(w);
+            Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start(({ finished }) => {
+              if (finished) isAnimatingRef.current = false;
+            });
+          });
         });
       } else if (gs.dx > SWIPE_THRESHOLD) {
+        isAnimatingRef.current = true;
         Animated.timing(slideAnim, { toValue: w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
           prevMonthRef.current();
-          slideAnim.setValue(-w);
-          Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start();
+          requestAnimationFrame(() => {
+            slideAnim.setValue(-w);
+            Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start(({ finished }) => {
+              if (finished) isAnimatingRef.current = false;
+            });
+          });
         });
       } else {
         Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 20, stiffness: 300 }).start();
