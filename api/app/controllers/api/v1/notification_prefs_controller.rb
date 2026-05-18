@@ -15,7 +15,7 @@ module Api
         pref = current_user.notification_pref || current_user.build_notification_pref
         pref.assign_attributes(pref_params)
         pref.save!
-        success(serialize(pref))
+        success(serialize(pref.reload))
       end
 
       private

@@ -179,8 +179,7 @@ export function CalendarScreen() {
     const dir = pendingSlideDir.current;
     if (dir === null) return;
     pendingSlideDir.current = null;
-    const w = screenWRef.current;
-    slideAnim.setValue(dir === 'next' ? w : -w);
+    // Native value is already at ±w from Animated.sequence — no setValue needed
     Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, damping: 22, stiffness: 220 }).start(({ finished }) => {
       if (finished) isAnimatingRef.current = false;
     });
@@ -201,13 +200,21 @@ export function CalendarScreen() {
       const w = screenWRef.current;
       if (gs.dx < -SWIPE_THRESHOLD) {
         isAnimatingRef.current = true;
-        Animated.timing(slideAnim, { toValue: -w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
+        // Exit to -w, then atomically jump to +w on native thread before content changes
+        Animated.sequence([
+          Animated.timing(slideAnim, { toValue: -w, duration: SLIDE_DURATION, useNativeDriver: true }),
+          Animated.timing(slideAnim, { toValue: w, duration: 0, useNativeDriver: true }),
+        ]).start(() => {
           pendingSlideDir.current = 'next';
           nextMonthRef.current();
         });
       } else if (gs.dx > SWIPE_THRESHOLD) {
         isAnimatingRef.current = true;
-        Animated.timing(slideAnim, { toValue: w, duration: SLIDE_DURATION, useNativeDriver: true }).start(() => {
+        // Exit to +w, then atomically jump to -w on native thread before content changes
+        Animated.sequence([
+          Animated.timing(slideAnim, { toValue: w, duration: SLIDE_DURATION, useNativeDriver: true }),
+          Animated.timing(slideAnim, { toValue: -w, duration: 0, useNativeDriver: true }),
+        ]).start(() => {
           pendingSlideDir.current = 'prev';
           prevMonthRef.current();
         });

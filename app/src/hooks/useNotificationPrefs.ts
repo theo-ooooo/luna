@@ -60,7 +60,8 @@ export function useUpdateNotificationPref() {
   return useMutation({
     mutationFn: (patch: Partial<NotificationPrefs>) =>
       api.patch<ServerPrefs>('/api/v1/notification_prefs', toServer(patch)),
-    onMutate: (patch) => {
+    onMutate: async (patch) => {
+      await qc.cancelQueries({ queryKey: ['notification-prefs'] });
       const previous = useNotificationStore.getState().prefs;
       setPrefs(patch);
       return { previous };
