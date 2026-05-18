@@ -24,10 +24,12 @@ import { useRegisterPushToken } from './src/hooks/usePushToken';
 import { useAppVersion } from './src/hooks/useAppVersion';
 import { UpdateModal } from './src/components/ui/UpdateModal';
 import { setupAndroidChannel } from './src/services/notifications';
+import { useSyncNotificationPrefs } from './src/hooks/useNotificationPrefs';
 
 function AuthenticatedRoot() {
   useNotificationSetup();
   useRegisterPushToken();
+  useSyncNotificationPrefs();
   const onboardingDone = useAuthStore(s => s.onboardingDone);
   return onboardingDone ? <TabNavigator /> : <OnboardingNavigator />;
 }
