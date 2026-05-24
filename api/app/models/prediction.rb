@@ -26,6 +26,6 @@ class Prediction < ApplicationRecord
   private
 
   def last_period_start
-    @last_period_start ||= predicted_period_start - user.avg_cycle_length_days.days
+    @last_period_start ||= predicted_period_start - avg_cycle_length.days
   end
 end

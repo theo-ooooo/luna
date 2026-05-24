@@ -136,7 +136,11 @@ module Ai
       start_date = Date.new(year, month, 1)
       end_date   = start_date.end_of_month
 
-      cycle = user.cycles.where(started_on: start_date..end_date).first
+      cycle = user.cycles
+        .where("started_on <= ?", end_date)
+        .where("ended_on >= ? OR ended_on IS NULL", start_date)
+        .order(started_on: :desc)
+        .first
       return nil unless cycle
 
       logs       = user.daily_logs.for_range(start_date, end_date).to_a
