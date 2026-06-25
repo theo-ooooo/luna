@@ -26,7 +26,7 @@ module Api
           fertile_start: p.fertile_start,
           fertile_end: p.fertile_end,
           based_on_cycles_count: p.based_on_cycles_count,
-          avg_cycle_length: p.avg_cycle_length,
+          avg_cycle_length: p.avg_cycle_length.round,
           observed_ovulation_on: p.observed_ovulation_on,
           computed_at: p.computed_at,
           current_phase: p.current_phase,

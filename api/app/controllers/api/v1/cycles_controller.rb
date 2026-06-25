@@ -21,6 +21,7 @@ module Api
         cycle.started_on = cycle.started_on.presence || Date.current
         cycle.save!
         PredictionService.new(current_user).compute!
+        AiDailyInsight.where(user: current_user, date: Date.current).update_all(stale: true)
         success(cycle_json(cycle), status: :created)
       rescue ActiveRecord::RecordInvalid => e
         errors = e.record.errors
@@ -37,6 +38,7 @@ module Api
         @cycle.update!(update_params)
         if @cycle.saved_change_to_ended_on? || @cycle.saved_change_to_started_on?
           PredictionService.new(current_user).compute!
+          AiDailyInsight.where(user: current_user, date: Date.current).update_all(stale: true)
         end
         success(cycle_json(@cycle))
       rescue ActiveRecord::RecordInvalid => e
@@ -57,6 +59,7 @@ module Api
         else
           current_user.predictions.destroy_all
         end
+        AiDailyInsight.where(user: current_user, date: Date.current).update_all(stale: true)
         success(nil)
       end
 
