@@ -27,6 +27,12 @@ RSpec.describe "Api::V1::Predictions", type: :request do
         expect(data["current_phase"]).to be_in(%w[menstrual follicular ovulation luteal])
         expect(data["fertile_start"]).to be_present
       end
+
+      it "avg_cycle_length는 소수점 포함 실수로 반환" do
+        get "/api/v1/predictions/current", headers: headers
+        data = response.parsed_body["data"]
+        expect(data["avg_cycle_length"]).to be_a(Numeric)
+      end
     end
   end
 

@@ -35,16 +35,19 @@ export function useLatestCycle() {
   });
 }
 
+function invalidateCycleRelated(qc: ReturnType<typeof useQueryClient>) {
+  qc.invalidateQueries({ queryKey: ['cycles'] });
+  qc.invalidateQueries({ queryKey: ['prediction'] });
+  qc.invalidateQueries({ queryKey: ['ai-daily-insight'] });
+}
+
 export function useStartPeriod() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ flowLevel, startedOn }: { flowLevel: 1 | 2 | 3; startedOn: string }) => {
       return api.post<Cycle>('/api/v1/cycles', { started_on: startedOn, flow_level: flowLevel });
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['cycles'] });
-      qc.invalidateQueries({ queryKey: ['prediction'] });
-    },
+    onSuccess: () => invalidateCycleRelated(qc),
   });
 }
 
@@ -54,10 +57,7 @@ export function useEndPeriod() {
     mutationFn: ({ cycleId, endedOn }: { cycleId: number; endedOn: string }) => {
       return api.patch<Cycle>(`/api/v1/cycles/${cycleId}`, { ended_on: endedOn });
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['cycles'] });
-      qc.invalidateQueries({ queryKey: ['prediction'] });
-    },
+    onSuccess: () => invalidateCycleRelated(qc),
   });
 }
 
@@ -70,9 +70,15 @@ export function useUpdateCycle() {
       if (endedOn !== undefined) payload.ended_on = endedOn;
       return api.patch<Cycle>(`/api/v1/cycles/${cycleId}`, payload);
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['cycles'] });
-      qc.invalidateQueries({ queryKey: ['prediction'] });
+    onSuccess: (updatedCycle) => {
+      // 캐시를 즉시 업데이트해서 refetch 전에도 달력이 바로 반영되도록
+      qc.setQueriesData<Cycle[]>({ queryKey: ['cycles', 'list'] }, (old) =>
+        old?.map((c) => (c.id === updatedCycle.id ? updatedCycle : c)),
+      );
+      qc.setQueryData<Cycle | null>(['cycles', 'latest'], (old) =>
+        old?.id === updatedCycle.id ? updatedCycle : old,
+      );
+      invalidateCycleRelated(qc);
     },
   });
 }
