@@ -21,7 +21,7 @@ export function phaseForDay(
 }
 
 export function daysUntilPeriod(day: number, cycleLength: number = CYCLE_DEFAULTS.length): number {
-  return Math.max(0, cycleLength - day + 1);
+  return Math.max(0, Math.round(cycleLength) - day + 1);
 }
 
 export function phaseMeta(day: number, cycleLength = CYCLE_DEFAULTS.length, periodLength = CYCLE_DEFAULTS.period) {

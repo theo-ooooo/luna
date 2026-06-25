@@ -151,7 +151,7 @@ export function HomeScreen() {
       </View>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <HeroCard phaseKey={phaseKey} cycleDay={cycleDay} daysUntilPeriod={dPeriod} onDetail={() => navigation.navigate('Calendar')} />
+        <HeroCard phaseKey={phaseKey} cycleDay={cycleDay} daysUntilPeriod={daysUntilNext !== null ? Math.max(0, daysUntilNext) : dPeriod} onDetail={() => navigation.navigate('Calendar')} />
 
         {/* 생리 상태 카드 */}
         {!cycleLoading && isActivePeriod ? (

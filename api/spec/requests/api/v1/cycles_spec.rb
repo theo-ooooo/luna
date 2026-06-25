@@ -22,6 +22,13 @@ RSpec.describe "Api::V1::Cycles", type: :request do
   describe "POST /api/v1/cycles" do
     let(:params) { { started_on: Date.current.to_s, flow_level: 2 } }
 
+    it "생성 후 오늘 AI insight를 stale 처리" do
+      insight = AiDailyInsight.create!(user: user, date: Date.current, content: "기존 인사이트", stale: false, generated_at: Time.current)
+      post "/api/v1/cycles", params: params, headers: headers, as: :json
+      expect(response).to have_http_status(:created)
+      expect(insight.reload.stale).to be true
+    end
+
     it "주기를 생성하고 예측을 계산" do
       expect {
         post "/api/v1/cycles", params: params, headers: headers, as: :json
@@ -60,6 +67,15 @@ RSpec.describe "Api::V1::Cycles", type: :request do
   describe "PUT /api/v1/cycles/:id" do
     let!(:cycle) { create(:cycle, :ongoing, user: user) }
 
+    it "종료일 변경 후 오늘 AI insight를 stale 처리" do
+      insight = AiDailyInsight.create!(user: user, date: Date.current, content: "기존 인사이트", stale: false, generated_at: Time.current)
+      put "/api/v1/cycles/#{cycle.id}",
+          params: { ended_on: Date.current.to_s },
+          headers: headers, as: :json
+      expect(response).to have_http_status(:ok)
+      expect(insight.reload.stale).to be true
+    end
+
     it "주기 종료일 업데이트" do
       put "/api/v1/cycles/#{cycle.id}",
           params: { ended_on: Date.current.to_s },
@@ -77,6 +93,13 @@ RSpec.describe "Api::V1::Cycles", type: :request do
 
   describe "DELETE /api/v1/cycles/:id" do
     let!(:cycle) { create(:cycle, user: user) }
+
+    it "삭제 후 오늘 AI insight를 stale 처리" do
+      insight = AiDailyInsight.create!(user: user, date: Date.current, content: "기존 인사이트", stale: false, generated_at: Time.current)
+      delete "/api/v1/cycles/#{cycle.id}", headers: headers
+      expect(response).to have_http_status(:ok)
+      expect(insight.reload.stale).to be true
+    end
 
     it "주기 삭제" do
       expect {
